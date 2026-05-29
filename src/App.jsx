@@ -1577,7 +1577,7 @@ function Contact() {
 function Footer() {
   const { t } = useLang();
   return (
-    <footer className="border-t border-line">
+    <footer className="relative z-10 border-t border-line">
       <div
         className={`${WRAP} flex flex-col items-center justify-between gap-4 py-8 text-sm text-muted md:flex-row`}
       >
@@ -1616,15 +1616,15 @@ function Footer() {
 /* ================================================================== */
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
-function Meteors({ count = 18 }) {
+function Meteors({ count = 24 }) {
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => ({
         left: Math.random() * 100, // %
         top: -10 - Math.random() * 30, // % (ekranın üstünde başlar)
-        delay: Math.random() * 10, // s
-        duration: 5 + Math.random() * 7, // s
-        tail: 70 + Math.random() * 140, // px — izin uzunluğu
+        delay: Math.random() * 8, // s
+        duration: 3.5 + Math.random() * 6, // s
+        tail: 110 + Math.random() * 170, // px — izin uzunluğu
       })),
     [count]
   );

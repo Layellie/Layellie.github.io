@@ -76,14 +76,15 @@ body {
 /* Meteor / yıldız kayması — yukarıdan aşağı inip iz bırakan beyaz çizgiler */
 .meteor {
   position: absolute;
-  width: 1px;
+  width: 1.5px;
   border-radius: 9999px;
   background: linear-gradient(
     to top,
-    rgba(255, 255, 255, 0.75),
-    rgba(255, 255, 255, 0)
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.55) 14%,
+    rgba(255, 255, 255, 0) 100%
   );
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.45));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
   opacity: 0;
   transform: translate3d(0, -10vh, 0) rotate(20deg);
   animation-name: meteor-fall;
