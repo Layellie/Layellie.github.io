@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useMemo,
   createContext,
   useContext,
 } from "react";
@@ -704,7 +705,8 @@ function Navbar() {
   }, [open]);
 
   return (
-    <header
+    <>
+      <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
           ? "border-b border-line bg-canvas/70 backdrop-blur-xl"
@@ -760,6 +762,7 @@ function Navbar() {
           </button>
         </div>
       </nav>
+      </header>
 
       <AnimatePresence>
         {open && (
@@ -768,7 +771,7 @@ function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex flex-col bg-canvas md:hidden"
+            className="fixed inset-0 z-[70] flex flex-col bg-canvas md:hidden"
           >
             <div className={`${WRAP} flex h-16 items-center justify-between`}>
               <span className="font-display font-medium">Laye77ie</span>
@@ -812,7 +815,7 @@ function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
 
@@ -1611,6 +1614,43 @@ function Footer() {
 }
 
 /* ================================================================== */
+/*  Arka plan: meteor / yıldız kayması animasyonu                      */
+/* ================================================================== */
+function Meteors({ count = 18 }) {
+  const meteors = useMemo(
+    () =>
+      Array.from({ length: count }, () => ({
+        left: Math.random() * 100, // %
+        top: -10 - Math.random() * 30, // % (ekranın üstünde başlar)
+        delay: Math.random() * 10, // s
+        duration: 5 + Math.random() * 7, // s
+        tail: 70 + Math.random() * 140, // px — izin uzunluğu
+      })),
+    [count]
+  );
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+    >
+      {meteors.map((m, i) => (
+        <span
+          key={i}
+          className="meteor"
+          style={{
+            left: `${m.left}%`,
+            top: `${m.top}%`,
+            height: `${m.tail}px`,
+            animationDelay: `${m.delay}s`,
+            animationDuration: `${m.duration}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ================================================================== */
 /*  APP                                                                */
 /* ================================================================== */
 export default function App() {
@@ -1638,6 +1678,7 @@ export default function App() {
             "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
         }}
       />
+      <Meteors />
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[60] opacity-[0.04] mix-blend-soft-light"

@@ -73,6 +73,42 @@ body {
   animation: marquee 34s linear infinite;
 }
 
+/* Meteor / yıldız kayması — yukarıdan aşağı inip iz bırakan beyaz çizgiler */
+.meteor {
+  position: absolute;
+  width: 1px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0)
+  );
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.45));
+  opacity: 0;
+  transform: translate3d(0, -10vh, 0) rotate(20deg);
+  animation-name: meteor-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes meteor-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(20deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-22vw, 112vh, 0) rotate(20deg);
+    opacity: 0;
+  }
+}
+
 /* Erişilebilirlik: hareketi azalt */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -80,5 +116,8 @@ body {
   }
   .animate-marquee {
     animation: none;
+  }
+  .meteor {
+    display: none;
   }
 }
