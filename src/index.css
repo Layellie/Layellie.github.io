@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  Tasarım token'ları — Tailwind v4 @theme                            */
+/*  Yüksek kontrastlı, monokrom dark mode + ince bir akıl yeşili aksan */
+/* ------------------------------------------------------------------ */
+@theme {
+  --font-sans: "General Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-display: "Clash Display", "General Sans", ui-sans-serif, system-ui,
+    sans-serif;
+
+  --color-canvas: #08080a;
+  --color-surface: #101013;
+  --color-elevated: #16161a;
+  --color-line: #232328;
+  --color-ink: #f3f1ec;
+  --color-muted: #9a9aa2;
+  --color-faint: #5c5c63;
+  --color-accent: #d6ff3f;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #0a0a0a;
+}
+
+/* İnce, koyu kaydırma çubuğu */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a30;
+  border-radius: 999px;
+  border: 2px solid var(--color-canvas);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a42;
+}
+
+/* Sonsuz kayan şerit (marquee) */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 34s linear infinite;
+}
+
+/* Erişilebilirlik: hareketi azalt */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-marquee {
+    animation: none;
+  }
+}
