@@ -1,60 +1,73 @@
-# Samet Kaşmer — Portfolyo
+# Samet Kaşmer — Portfolio
 
-Bilgisayar Programcısı & Sistem Geliştirici (Layellie) için tek sayfalık,
-premium hisli kişisel portfolyo. **React + Vite + Tailwind CSS v4 + Framer
-Motion + Lucide React** ile geliştirildi.
+Single-page, premium personal portfolio for a **Full-Stack Developer & Systems
+Engineer** (Layellie). Built with **React + Vite + Tailwind CSS v4 + Framer
+Motion + Lucide React**.
 
-## Özellikler
+🌐 **Live:** https://layellie.github.io/
 
-- Devasa, modern tipografi ve bolca beyaz alan (Webflow tarzı estetik)
-- Yüksek kontrastlı, monokrom **dark mode** + ince akıl yeşili aksan
-- Scroll ile **fade-in-up** animasyonları, kayan şerit ve zarif hover efektleri
-- Asimetrik / **bento-box** yetenek gridi
-- Gerçek mock arayüzler içeren devasa proje kartları
-- Sabit navigasyon, mobil menü ve scroll ilerleme çubuğu
-- Tüm içerik tek bir `DATA` nesnesinde — kolayca güncellenebilir
+## Features
 
-## Çalıştırma
+- Bold, modern typography with generous whitespace (Webflow-style aesthetic)
+- High-contrast, monochrome **dark mode** with a subtle lime accent
+- Scroll-triggered **fade-in-up** animations, marquee strip and elegant hovers
+- Asymmetric / **bento-box** skills grid
+- Large project cards with custom mock UIs
+- **Bilingual (TR / EN)** with a language switcher (persisted in `localStorage`)
+- **BTK Akademi certificates** mapped to skills (PDFs open in a new tab)
+- **Live GitHub stats** (repos, stars, followers) via the GitHub API
+- Sticky nav with **scroll-spy**, mobile menu and a scroll progress bar
+- Subtle **falling-meteor** background animation
+- **SEO:** Open Graph / Twitter meta, JSON-LD Person schema, `sitemap.xml` & `robots.txt`
+- All content lives in a single `CONTENT` object — easy to edit
+
+## Getting started
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
 ```
 
-Üretim derlemesi:
+Production build:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Yayınlama (GitHub Pages)
+## Deployment (GitHub Pages)
 
-Site GitHub Pages'te `https://layellie.github.io/` adresinde yayınlanır.
-Kaynak kod `main` dalında, derlenmiş site `gh-pages` dalında tutulur.
-
-Değişiklik sonrası tek komutla yeniden yayınla:
+Published at `https://layellie.github.io/` via **GitHub Actions**. Every push to
+`main` automatically builds and deploys — no manual step needed:
 
 ```bash
-npm run deploy   # build alır + gh-pages dalına gönderir
+git push          # triggers the auto-deploy workflow
 ```
 
-> Domain bağladıktan sonra `index.html` içindeki `og:url`, `og:image`,
-> `twitter:image` ve `canonical` adreslerini gerçek domaininle değiştir.
+Manual fallback (push the build to the `gh-pages` branch directly):
 
-## İçeriği güncelleme
+```bash
+npm run deploy
+```
 
-Tüm kişisel bilgiler, yetenekler ve projeler `src/App.jsx` dosyasının en
-üstündeki **`DATA`** nesnesinde tutulur. Yeni bir proje eklemek için
-`DATA.projects` dizisine bir nesne ekleyin; özel bir görsel istiyorsanız
-`VISUALS` eşlemesine `id` ile bir bileşen bağlayabilirsiniz.
+> After connecting a custom domain, update `og:url`, `og:image`,
+> `twitter:image` and `canonical` in `index.html`.
 
-## Teknolojiler
+## Editing content
 
-| Katman      | Teknoloji                  |
-| ----------- | -------------------------- |
-| Çatı        | React 18 + Vite            |
-| Stil        | Tailwind CSS v4            |
-| Animasyon   | Framer Motion              |
-| İkonlar     | Lucide React               |
-| Fontlar     | Clash Display, General Sans (Fontshare) |
+All text, skills, projects and certificates live in the **`CONTENT`** object
+(with `tr` and `en` trees) at the top of `src/App.jsx`. Language-independent
+data (links, email) lives in **`IDENTITY`**. To add a project, append to
+`CONTENT.<lang>.projects.items`; for a custom visual, map a component by `id`
+in `VISUALS`.
+
+## Tech stack
+
+| Layer     | Technology                              |
+| --------- | --------------------------------------- |
+| Framework | React 18 + Vite                         |
+| Styling   | Tailwind CSS v4                         |
+| Animation | Framer Motion                           |
+| Icons     | Lucide React                            |
+| Fonts     | Clash Display, General Sans (Fontshare) |
+| Hosting   | GitHub Pages (auto-deploy via Actions)  |
