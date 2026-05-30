@@ -101,7 +101,7 @@ const CONTENT = {
       "HTML5",
       "CSS3",
       "Laravel",
-      "Livewire",
+      "Node.js",
       "Sistem Optimizasyonu",
       "Donanım Geliştirme",
       "WPF",
@@ -121,8 +121,8 @@ const CONTENT = {
         " çalışması beni heyecanlandırıyor.",
       ],
       paragraphs: [
-        "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi.",
-        "C# ve C++ ile masaüstü uygulamaları; Laravel ve Livewire ile web tarafında çözümler geliştiriyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmayı seviyorum.",
+        "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
+        "C# ve C++ ile masaüstü uygulamaları; Laravel ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
       ],
       facts: [
         { label: "Eğitim", value: "Bilgisayar Programcılığı" },
@@ -157,7 +157,7 @@ const CONTENT = {
         { name: "HTML5", icon: "Code2", note: "Semantik · Erişilebilir" },
         { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
         { name: "Laravel", icon: "Layers", note: "PHP · MVC · Eloquent" },
-        { name: "Livewire", icon: "Zap", note: "Reaktif · Dinamik UI" },
+        { name: "Node.js", icon: "Network", note: "Express · API · Runtime" },
       ],
       more: [
         {
@@ -324,7 +324,7 @@ const CONTENT = {
       "HTML5",
       "CSS3",
       "Laravel",
-      "Livewire",
+      "Node.js",
       "System Optimization",
       "Hardware Dev",
       "WPF",
@@ -344,8 +344,8 @@ const CONTENT = {
         ".",
       ],
       paragraphs: [
-        "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond.",
-        "I build desktop applications with C# and C++, and web solutions with Laravel and Livewire. I love shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways.",
+        "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
+        "I build desktop applications with C# and C++, and web solutions with Laravel and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
       ],
       facts: [
         { label: "Education", value: "Computer Programming" },
@@ -380,7 +380,7 @@ const CONTENT = {
         { name: "HTML5", icon: "Code2", note: "Semantic · Accessible" },
         { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
         { name: "Laravel", icon: "Layers", note: "PHP · MVC · Eloquent" },
-        { name: "Livewire", icon: "Zap", note: "Reactive · Dynamic UI" },
+        { name: "Node.js", icon: "Network", note: "Express · API · Runtime" },
       ],
       more: [
         {
