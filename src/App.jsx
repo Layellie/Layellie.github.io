@@ -243,6 +243,12 @@ const CONTENT = {
       kicker: "Açık kaynak masaüstü & sistem araçları",
       view: "GitHub'da İncele",
       stats: { repos: "Depo", stars: "Yıldız", followers: "Takipçi" },
+      more: {
+        title: "GitHub'da daha fazlası",
+        subtitle: "Profilimden otomatik çekilen diğer açık kaynak repolar",
+        noDesc: "Açıklama eklenmemiş.",
+        viewAll: "Tüm repoları GitHub'da gör",
+      },
       items: [
         {
           id: "clipboard",
@@ -475,6 +481,12 @@ const CONTENT = {
       kicker: "Open-source desktop & system tools",
       view: "View on GitHub",
       stats: { repos: "Repos", stars: "Stars", followers: "Followers" },
+      more: {
+        title: "More on GitHub",
+        subtitle: "Other open-source repos pulled automatically from my profile",
+        noDesc: "No description provided.",
+        viewAll: "View all repos on GitHub",
+      },
       items: [
         {
           id: "clipboard",
@@ -650,9 +662,9 @@ function useScrollSpy(ids) {
   return active;
 }
 
-// GitHub canlı istatistikleri (yedek değerlerle)
-function useGithubStats(user, fallback) {
-  const [stats, setStats] = useState(fallback);
+// GitHub canlı verisi: istatistikler + repo listesi (tek fetch ile paylaşılır)
+function useGithub(user, fallback) {
+  const [data, setData] = useState({ stats: fallback, repos: [] });
   useEffect(() => {
     let active = true;
     (async () => {
@@ -664,14 +676,16 @@ function useGithubStats(user, fallback) {
         if (!reposRes.ok || !userRes.ok) return;
         const repos = await reposRes.json();
         const u = await userRes.json();
-        const stars = Array.isArray(repos)
-          ? repos.reduce((s, r) => s + (r.stargazers_count || 0), 0)
-          : fallback.stars;
+        const list = Array.isArray(repos) ? repos : [];
+        const stars = list.reduce((s, r) => s + (r.stargazers_count || 0), 0);
         if (active) {
-          setStats({
-            repos: u.public_repos ?? fallback.repos,
-            stars,
-            followers: u.followers ?? fallback.followers,
+          setData({
+            stats: {
+              repos: u.public_repos ?? fallback.repos,
+              stars: list.length ? stars : fallback.stars,
+              followers: u.followers ?? fallback.followers,
+            },
+            repos: list,
           });
         }
       } catch {
@@ -682,7 +696,7 @@ function useGithubStats(user, fallback) {
       active = false;
     };
   }, [user, fallback]);
-  return stats;
+  return data;
 }
 
 /* ================================================================== */
@@ -1375,9 +1389,8 @@ const VISUALS = { clipboard: ClipboardMock, standby: TimerMock };
 /* ================================================================== */
 /*  GitHub canlı istatistik şeridi                                     */
 /* ================================================================== */
-function GithubStats() {
+function GithubStats({ stats }) {
   const { t } = useLang();
-  const stats = useGithubStats(IDENTITY.githubUser, IDENTITY.statsFallback);
   const labels = t.projects.stats;
   const cards = [
     { icon: FolderGit2, value: stats.repos, label: labels.repos },
@@ -1405,6 +1418,103 @@ function GithubStats() {
             </div>
           </a>
         ))}
+      </div>
+    </Reveal>
+  );
+}
+
+/* ================================================================== */
+/*  GITHUB REPOLARI — otomatik çekilen "daha fazlası" grid'i           */
+/* ================================================================== */
+const LANG_COLORS = {
+  "C#": "#178600",
+  "C++": "#f34b7d",
+  C: "#555555",
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  PHP: "#4F5D95",
+  Python: "#3572A5",
+  Shell: "#89e051",
+  Batchfile: "#C1F12E",
+  PowerShell: "#012456",
+};
+
+function RepoCard({ repo, noDesc }) {
+  const license =
+    repo.license?.spdx_id && repo.license.spdx_id !== "NOASSERTION"
+      ? repo.license.spdx_id
+      : null;
+  return (
+    <a
+      href={repo.html_url}
+      target="_blank"
+      rel="noreferrer"
+      className="group flex h-full flex-col rounded-2xl border border-line bg-surface/40 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-[#34343c] hover:bg-surface"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2 font-medium">
+          <FolderGit2 className="h-4 w-4 shrink-0 text-accent" />
+          <span className="truncate">{repo.name}</span>
+        </div>
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
+      </div>
+
+      <p className="mt-3 line-clamp-2 flex-1 text-sm text-muted">
+        {repo.description || noDesc}
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-faint">
+        {repo.language && (
+          <span className="inline-flex items-center gap-1.5">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: LANG_COLORS[repo.language] || "#8b8b94" }}
+            />
+            {repo.language}
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1">
+          <Star className="h-3.5 w-3.5" /> {repo.stargazers_count}
+        </span>
+        {license && (
+          <span className="ml-auto rounded-full border border-line px-2 py-0.5">
+            {license}
+          </span>
+        )}
+      </div>
+    </a>
+  );
+}
+
+function MoreRepos({ repos, labels }) {
+  if (!repos.length) return null;
+  return (
+    <Reveal delay={0.1}>
+      <div className="mt-12 md:mt-16">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
+          <Sparkles className="h-3.5 w-3.5" /> {labels.title}
+        </div>
+        <p className="mt-2 text-sm text-muted">{labels.subtitle}</p>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {repos.map((r) => (
+            <RepoCard key={r.id} repo={r} noDesc={labels.noDesc} />
+          ))}
+        </div>
+
+        <div className="mt-6">
+          <a
+            href={IDENTITY.github}
+            target="_blank"
+            rel="noreferrer"
+            className="group/btn inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-ink"
+          >
+            <Github className="h-4 w-4" /> {labels.viewAll}
+            <ArrowUpRight className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
+          </a>
+        </div>
       </div>
     </Reveal>
   );
@@ -1482,13 +1592,36 @@ function ProjectCard({ project, num, reverse, viewLabel }) {
 function Projects() {
   const { t } = useLang();
   const p = t.projects;
+  const { stats, repos } = useGithub(IDENTITY.githubUser, IDENTITY.statsFallback);
+
+  // Flagship projeler elde küratörlü; geri kalan repolar otomatik listelenir.
+  const moreRepos = useMemo(() => {
+    const featured = new Set(
+      p.items.map((it) => it.github.split("/").pop().toLowerCase())
+    );
+    return repos
+      .filter(
+        (r) =>
+          !r.fork &&
+          !r.archived &&
+          !r.name.toLowerCase().endsWith(".github.io") && // sitenin kendi reposu
+          !featured.has(r.name.toLowerCase())
+      )
+      .sort(
+        (a, b) =>
+          b.stargazers_count - a.stargazers_count ||
+          new Date(b.pushed_at) - new Date(a.pushed_at)
+      )
+      .slice(0, 6);
+  }, [repos, p.items]);
+
   return (
     <section id="projeler" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
       <Reveal>
         <SectionHeader index={p.index} title={p.title} kicker={p.kicker} />
       </Reveal>
 
-      <GithubStats />
+      <GithubStats stats={stats} />
 
       <div className="mt-8 space-y-8 md:mt-12 md:space-y-12">
         {p.items.map((proj, i) => (
@@ -1501,6 +1634,8 @@ function Projects() {
           />
         ))}
       </div>
+
+      <MoreRepos repos={moreRepos} labels={p.more} />
     </section>
   );
 }
