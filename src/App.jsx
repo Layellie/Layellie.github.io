@@ -152,7 +152,7 @@ const CONTENT = {
       ],
       languages: [
         { name: "C#", icon: "Hash", note: "WPF · .NET 10 · MVVM", span: "lg:col-span-2", certified: true },
-        { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL" },
+        { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL", certified: true },
         { name: "SQL", icon: "Database", note: "Veri modelleme · Sorgu" },
         { name: "HTML5", icon: "Code2", note: "Semantik · Erişilebilir" },
         { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
@@ -384,7 +384,7 @@ const CONTENT = {
       ],
       languages: [
         { name: "C#", icon: "Hash", note: "WPF · .NET 10 · MVVM", span: "lg:col-span-2", certified: true },
-        { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL" },
+        { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL", certified: true },
         { name: "SQL", icon: "Database", note: "Data modeling · Queries" },
         { name: "HTML5", icon: "Code2", note: "Semantic · Accessible" },
         { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
