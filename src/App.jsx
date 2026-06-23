@@ -94,7 +94,7 @@ const CONTENT = {
       location: "Bursa, Türkiye",
       role: "Full-Stack Developer & Sistem Geliştirici",
       tagline:
-        "Sistem analizi, optimizasyon ve masaüstü/web yazılımları geliştiriyorum.",
+        "Sistem seviyesindeki optimizasyondan ölçeklenebilir web mimarilerine kadar; performansı ölçülebilir biçimde artıran, temiz ve sürdürülebilir yazılımlar tasarlıyorum.",
       ctaProjects: "Projelerim",
       ctaContact: "İletişim",
     },
@@ -127,10 +127,13 @@ const CONTENT = {
       paragraphs: [
         "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
         "C# ve C++ ile masaüstü uygulamaları; Laravel ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
+        "Öğrenmeyi sürekli bir disiplin olarak görüyorum: BTK Akademi üzerinden C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar edindim. Bilgisayar Programcılığı programından 3.09 genel ortalamayla mezun olmaya hazırlanıyorum.",
       ],
       facts: [
         { label: "Eğitim", value: "Bilgisayar Programcılığı" },
         { label: "Okul", value: "Kütahya Teknik Bilimler MYO" },
+        { label: "Genel Ortalama", value: "3.09 / 4.00" },
+        { label: "Sertifika", value: "8 · BTK Akademi" },
         { label: "Konum", value: "Bursa, Türkiye" },
         { label: "Odak", value: "Full-Stack Developer" },
       ],
@@ -373,7 +376,7 @@ const CONTENT = {
       location: "Bursa, Turkey",
       role: "Full-Stack Developer & Systems Engineer",
       tagline:
-        "I build system analysis, optimization and desktop/web software.",
+        "From system-level optimization to scalable web architectures — I design clean, maintainable software that improves performance in measurable ways.",
       ctaProjects: "My Work",
       ctaContact: "Contact",
     },
@@ -406,10 +409,13 @@ const CONTENT = {
       paragraphs: [
         "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
         "I build desktop applications with C# and C++, and web solutions with Laravel and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
+        "I treat learning as an ongoing discipline: through BTK Akademi I've earned verified certificates in C#, C++, databases, object-oriented programming and generative AI. I'm on track to graduate from the Computer Programming program with a 3.09 GPA.",
       ],
       facts: [
         { label: "Education", value: "Computer Programming" },
         { label: "School", value: "Kütahya Vocational School" },
+        { label: "GPA", value: "3.09 / 4.00" },
+        { label: "Certificates", value: "8 · BTK Akademi" },
         { label: "Location", value: "Bursa, Turkey" },
         { label: "Focus", value: "Full-Stack Developer" },
       ],
@@ -682,12 +688,12 @@ const useLang = () => useContext(LangCtx);
 /* ================================================================== */
 /*  Yardımcı bileşenler ve hook'lar                                    */
 /* ================================================================== */
-function Reveal({ children, className = "", delay = 0, y = 28, once = true }) {
+function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = true }) {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y, x }}
+      whileInView={{ opacity: 1, y: 0, x: 0 }}
       viewport={{ once, margin: "-60px" }}
       transition={{ duration: 0.85, delay, ease: EASE }}
     >
@@ -1139,7 +1145,7 @@ function About() {
         </div>
 
         <div className="lg:col-span-4">
-          <Reveal delay={0.1}>
+          <Reveal delay={0.1} y={0} x={70}>
             <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
               {a.facts.map((f) => (
                 <div key={f.label} className="bg-surface p-6">
@@ -1220,7 +1226,7 @@ function Skills() {
 
       <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">
         {s.focus.map((f, i) => (
-          <Reveal key={f.title} delay={i * 0.08}>
+          <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
             <FeatureCard item={f} />
           </Reveal>
         ))}
@@ -1228,7 +1234,13 @@ function Skills() {
 
       <div className="mt-5 grid grid-cols-2 gap-5 lg:grid-cols-4">
         {s.languages.map((l, i) => (
-          <Reveal key={l.name} delay={i * 0.05} className={l.span || ""}>
+          <Reveal
+            key={l.name}
+            delay={i * 0.05}
+            y={0}
+            x={i % 2 === 0 ? -64 : 64}
+            className={l.span || ""}
+          >
             <SkillTile item={l} certifiedLabel={certifiedLabel} />
           </Reveal>
         ))}
@@ -1739,7 +1751,7 @@ function MoreRepos({ repos, labels }) {
 function ProjectCard({ project, num, reverse, viewLabel }) {
   const Visual = VISUALS[project.id];
   return (
-    <Reveal>
+    <Reveal y={0} x={reverse ? 90 : -90}>
       <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
           {Visual && <Visual />}
