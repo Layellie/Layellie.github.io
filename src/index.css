@@ -70,7 +70,7 @@ body {
   }
 }
 .animate-marquee {
-  animation: marquee 34s linear infinite;
+  animation: marquee 48s linear infinite;
 }
 
 /* Meteor / yıldız kayması — yukarıdan aşağı inip iz bırakan beyaz çizgiler */
@@ -80,11 +80,10 @@ body {
   border-radius: 9999px;
   background: linear-gradient(
     to top,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.22) 16%,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.24) 16%,
     rgba(255, 255, 255, 0) 100%
   );
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.18));
   opacity: 0;
   transform: translate3d(0, -10vh, 0) rotate(20deg);
   animation-name: meteor-fall;

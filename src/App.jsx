@@ -12,6 +12,8 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  useInView,
+  animate,
 } from "framer-motion";
 import {
   ArrowUpRight,
@@ -291,6 +293,7 @@ const CONTENT = {
       kicker: "Açık kaynak masaüstü & sistem araçları",
       view: "GitHub'da İncele",
       stats: { repos: "Depo", stars: "Yıldız", followers: "Takipçi" },
+      contributions: "Katkı grafiği",
       more: {
         title: "GitHub'da daha fazlası",
         subtitle: "Profilimden otomatik çekilen diğer açık kaynak repolar",
@@ -346,6 +349,15 @@ const CONTENT = {
         "Bir proje fikri, iş birliği ya da yalnızca merhaba demek için — bana bir mesaj bırak. En kısa sürede dönüş yaparım.",
     },
     footer: { backToTop: "Başa dön ↑" },
+    cmd: {
+      placeholder: "Komut ara veya bir bölüme git…",
+      empty: "Sonuç yok",
+      goto: "Bölüm",
+      lang: "Dil",
+      copyEmail: "Kopyala",
+      open: "Aç",
+      toTop: "Başa dön",
+    },
     mock: {
       search: "Pano geçmişinde ara…",
       ocrCaption: "görselden çıkarılan metin",
@@ -573,6 +585,7 @@ const CONTENT = {
       kicker: "Open-source desktop & system tools",
       view: "View on GitHub",
       stats: { repos: "Repos", stars: "Stars", followers: "Followers" },
+      contributions: "Contribution graph",
       more: {
         title: "More on GitHub",
         subtitle: "Other open-source repos pulled automatically from my profile",
@@ -628,6 +641,15 @@ const CONTENT = {
         "Got a project idea, a collaboration, or just want to say hi? Drop me a message — I'll get back to you soon.",
     },
     footer: { backToTop: "Back to top ↑" },
+    cmd: {
+      placeholder: "Search a command or jump to a section…",
+      empty: "No results",
+      goto: "Section",
+      lang: "Language",
+      copyEmail: "Copy",
+      open: "Open",
+      toTop: "Back to top",
+    },
     mock: {
       search: "Search clipboard history…",
       ocrCaption: "text extracted from image",
@@ -695,7 +717,7 @@ function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = tru
       initial={{ opacity: 0, y, x }}
       whileInView={{ opacity: 1, y: 0, x: 0 }}
       viewport={{ once, margin: "-60px" }}
-      transition={{ duration: 0.85, delay, ease: EASE }}
+      transition={{ duration: 1.1, delay, ease: EASE }}
     >
       {children}
     </motion.div>
@@ -836,7 +858,7 @@ function Navbar() {
       <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "border-b border-line bg-canvas/70 backdrop-blur-xl"
+          ? "border-b border-line bg-canvas/80 backdrop-blur-md"
           : "border-b border-transparent"
       }`}
     >
@@ -869,6 +891,17 @@ function Navbar() {
               </a>
             );
           })}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-cmdk"))}
+            aria-label={t.cmd.placeholder}
+            className="hidden items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:bg-surface lg:inline-flex"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <kbd className="font-mono text-[10px] tracking-wide">
+              {META_LABEL} K
+            </kbd>
+          </button>
           <LangSwitch />
           <a
             href={`mailto:${IDENTITY.email}`}
@@ -951,7 +984,7 @@ function Navbar() {
 /* ================================================================== */
 const headlineParent = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.045, delayChildren: 0.2 } },
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.3 } },
 };
 const charChild = {
   hidden: { y: "120%", opacity: 0, filter: "blur(14px)" },
@@ -959,7 +992,7 @@ const charChild = {
     y: 0,
     opacity: 1,
     filter: "blur(0px)",
-    transition: { duration: 0.9, ease: EASE },
+    transition: { duration: 1.15, ease: EASE },
   },
 };
 
@@ -996,7 +1029,7 @@ function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: EASE }}
+          transition={{ duration: 0.95, ease: EASE }}
           className="mb-8 flex flex-wrap items-center gap-3 text-sm"
         >
           <span className="relative flex h-2.5 w-2.5">
@@ -1059,7 +1092,7 @@ function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65, duration: 0.85, ease: EASE }}
+          transition={{ delay: 0.9, duration: 1.1, ease: EASE }}
           className="mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between"
         >
           <div className="max-w-xl">
@@ -1614,6 +1647,27 @@ const VISUALS = { clipboard: ClipboardMock, standby: TimerMock };
 /* ================================================================== */
 /*  GitHub canlı istatistik şeridi                                     */
 /* ================================================================== */
+// Görünüme girince 0'dan hedef değere sayan animasyonlu sayaç.
+function Counter({ value, duration = 2 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [display, setDisplay] = useState(0);
+  const fromRef = useRef(0);
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(fromRef.current, value, {
+      duration,
+      ease: EASE,
+      onUpdate: (v) => setDisplay(Math.round(v)),
+      onComplete: () => {
+        fromRef.current = value;
+      },
+    });
+    return () => controls.stop();
+  }, [inView, value, duration]);
+  return <span ref={ref}>{display}</span>;
+}
+
 function GithubStats({ stats }) {
   const { t } = useLang();
   const labels = t.projects.stats;
@@ -1635,7 +1689,7 @@ function GithubStats({ stats }) {
           >
             <c.icon className="h-5 w-5 text-accent" />
             <div className="mt-2 font-display text-3xl tracking-tight md:text-4xl">
-              {c.value}
+              <Counter value={c.value} />
               {c.value > 0 && <span className="text-accent">+</span>}
             </div>
             <div className="text-xs uppercase tracking-wider text-faint">
@@ -1643,6 +1697,30 @@ function GithubStats({ stats }) {
             </div>
           </a>
         ))}
+      </div>
+    </Reveal>
+  );
+}
+
+function ContributionGraph() {
+  const { t } = useLang();
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    <Reveal>
+      <div className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
+          <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
+        </div>
+        <div className="mt-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <img
+            src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
+            alt={t.projects.contributions}
+            loading="lazy"
+            onError={() => setOk(false)}
+            className="w-full min-w-[680px] opacity-90"
+          />
+        </div>
       </div>
     </Reveal>
   );
@@ -1848,6 +1926,8 @@ function Projects() {
 
       <GithubStats stats={stats} />
 
+      <ContributionGraph />
+
       <div className="mt-8 space-y-8 md:mt-12 md:space-y-12">
         {p.items.map((proj, i) => (
           <ProjectCard
@@ -1994,7 +2074,7 @@ function Footer() {
 /* ================================================================== */
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
-function Meteors({ count = 24 }) {
+function Meteors({ count = 14 }) {
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => ({
@@ -2029,6 +2109,210 @@ function Meteors({ count = 24 }) {
 }
 
 /* ================================================================== */
+/*  KOMUT PALETİ (⌘K / Ctrl+K)                                         */
+/* ================================================================== */
+const IS_MAC =
+  typeof navigator !== "undefined" &&
+  /Mac|iPhone|iPad|iPod/.test(navigator.platform || "");
+const META_LABEL = IS_MAC ? "⌘" : "Ctrl";
+
+function CommandPalette() {
+  const { t, lang, setLang } = useLang();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [index, setIndex] = useState(0);
+  const inputRef = useRef(null);
+  const activeRef = useRef(null);
+
+  const commands = useMemo(() => {
+    const go = (href) => () => {
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    };
+    const sections = NAV_KEYS.map((n) => ({
+      id: n.href,
+      label: t.nav[n.key],
+      hint: t.cmd.goto,
+      icon: ChevronRight,
+      action: go(n.href),
+    }));
+    return [
+      ...sections,
+      {
+        id: "lang",
+        label:
+          lang === "tr" ? "Switch to English" : "Türkçe'ye geç",
+        hint: t.cmd.lang,
+        icon: Languages,
+        action: () => setLang(lang === "tr" ? "en" : "tr"),
+      },
+      {
+        id: "email",
+        label: IDENTITY.email,
+        hint: t.cmd.copyEmail,
+        icon: Copy,
+        action: () => navigator.clipboard?.writeText(IDENTITY.email),
+      },
+      {
+        id: "github",
+        label: `GitHub · @${IDENTITY.githubUser}`,
+        hint: t.cmd.open,
+        icon: Github,
+        action: () => window.open(IDENTITY.github, "_blank", "noopener"),
+      },
+      {
+        id: "linkedin",
+        label: "LinkedIn",
+        hint: t.cmd.open,
+        icon: Linkedin,
+        action: () => window.open(IDENTITY.linkedin, "_blank", "noopener"),
+      },
+      {
+        id: "top",
+        label: t.cmd.toTop,
+        hint: "",
+        icon: ArrowUpRight,
+        action: () => window.scrollTo({ top: 0, behavior: "smooth" }),
+      },
+    ];
+  }, [t, lang, setLang]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return commands;
+    return commands.filter(
+      (c) =>
+        c.label.toLowerCase().includes(q) ||
+        (c.hint || "").toLowerCase().includes(q)
+    );
+  }, [commands, query]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setOpen((o) => !o);
+      }
+    };
+    const onToggle = () => setOpen((o) => !o);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("toggle-cmdk", onToggle);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("toggle-cmdk", onToggle);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      setIndex(0);
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [open]);
+
+  useEffect(() => setIndex(0), [query]);
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest" });
+  }, [index]);
+
+  const run = (cmd) => {
+    setOpen(false);
+    setTimeout(() => cmd.action(), 0);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setIndex((i) => Math.min(i + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (filtered[index]) run(filtered[index]);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[90] flex items-start justify-center px-4 pt-[12vh]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div
+            className="absolute inset-0 bg-canvas/70 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0, y: -14, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: EASE }}
+            className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-black/50"
+          >
+            <div className="flex items-center gap-3 border-b border-line px-4">
+              <Search className="h-4 w-4 shrink-0 text-faint" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder={t.cmd.placeholder}
+                className="w-full bg-transparent py-4 text-sm text-ink outline-none placeholder:text-faint"
+              />
+              <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-faint">
+                ESC
+              </kbd>
+            </div>
+            <div className="max-h-[320px] overflow-y-auto p-2">
+              {filtered.length === 0 ? (
+                <div className="px-3 py-8 text-center text-sm text-faint">
+                  {t.cmd.empty}
+                </div>
+              ) : (
+                filtered.map((cmd, i) => {
+                  const Icon = cmd.icon;
+                  return (
+                    <button
+                      key={cmd.id}
+                      ref={i === index ? activeRef : null}
+                      onMouseMove={() => setIndex(i)}
+                      onClick={() => run(cmd)}
+                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                        i === index
+                          ? "bg-elevated text-ink"
+                          : "text-muted hover:bg-elevated/60"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-accent" />
+                      <span className="truncate">{cmd.label}</span>
+                      {cmd.hint && (
+                        <span className="ml-auto shrink-0 text-[11px] uppercase tracking-wider text-faint">
+                          {cmd.hint}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ================================================================== */
 /*  APP                                                                */
 /* ================================================================== */
 export default function App() {
@@ -2047,6 +2331,7 @@ export default function App() {
   return (
     <LangCtx.Provider value={{ lang, setLang, t }}>
       <ScrollProgress />
+      <CommandPalette />
 
       <div
         aria-hidden
@@ -2059,7 +2344,7 @@ export default function App() {
       <Meteors />
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[60] opacity-[0.04] mix-blend-soft-light"
+        className="pointer-events-none fixed inset-0 z-[60] opacity-[0.035]"
         style={{ backgroundImage: NOISE }}
       />
 
