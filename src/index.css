@@ -70,7 +70,7 @@ body {
   }
 }
 .animate-marquee {
-  animation: marquee 48s linear infinite;
+  animation: marquee 60s linear infinite;
 }
 
 /* Meteor / yıldız kayması — yukarıdan aşağı inip iz bırakan beyaz çizgiler */

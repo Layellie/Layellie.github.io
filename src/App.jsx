@@ -710,14 +710,14 @@ const useLang = () => useContext(LangCtx);
 /* ================================================================== */
 /*  Yardımcı bileşenler ve hook'lar                                    */
 /* ================================================================== */
-function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = true }) {
+function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = false }) {
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y, x }}
       whileInView={{ opacity: 1, y: 0, x: 0 }}
-      viewport={{ once, margin: "-60px" }}
-      transition={{ duration: 1.1, delay, ease: EASE }}
+      viewport={{ once, margin: "-80px" }}
+      transition={{ duration: 1.4, delay, ease: EASE }}
     >
       {children}
     </motion.div>
@@ -858,7 +858,7 @@ function Navbar() {
       <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "border-b border-line bg-canvas/80 backdrop-blur-md"
+          ? "border-b border-line bg-canvas/90 backdrop-blur-sm"
           : "border-b border-transparent"
       }`}
     >
@@ -984,7 +984,7 @@ function Navbar() {
 /* ================================================================== */
 const headlineParent = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.06, delayChildren: 0.3 } },
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.35 } },
 };
 const charChild = {
   hidden: { y: "120%", opacity: 0, filter: "blur(14px)" },
@@ -992,18 +992,14 @@ const charChild = {
     y: 0,
     opacity: 1,
     filter: "blur(0px)",
-    transition: { duration: 1.15, ease: EASE },
+    transition: { duration: 1.4, ease: EASE },
   },
 };
 
 // İsmi harf harf, maskeli yükselme efektiyle render eder.
 function AnimatedWord({ text }) {
   return text.split("").map((ch, i) => (
-    <motion.span
-      key={i}
-      variants={charChild}
-      className="inline-block will-change-transform"
-    >
+    <motion.span key={i} variants={charChild} className="inline-block">
       {ch}
     </motion.span>
   ));
@@ -1029,7 +1025,7 @@ function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.95, ease: EASE }}
+          transition={{ duration: 1.15, ease: EASE }}
           className="mb-8 flex flex-wrap items-center gap-3 text-sm"
         >
           <span className="relative flex h-2.5 w-2.5">
@@ -1092,7 +1088,7 @@ function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 1.1, ease: EASE }}
+          transition={{ delay: 1.05, duration: 1.3, ease: EASE }}
           className="mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between"
         >
           <div className="max-w-xl">
@@ -1494,7 +1490,7 @@ function ClipboardMock() {
   const { t } = useLang();
   const m = t.mock;
   return (
-    <div className="relative w-full rounded-2xl border border-line bg-elevated/60 shadow-2xl shadow-black/40 backdrop-blur">
+    <div className="relative w-full rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40">
       <div className="flex items-center gap-3 border-b border-line px-5 py-4">
         <WindowDots />
         <div className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
@@ -1578,7 +1574,7 @@ function TimerMock() {
   const { t } = useLang();
   const m = t.mock;
   return (
-    <div className="relative w-full rounded-2xl border border-line bg-elevated/60 shadow-2xl shadow-black/40 backdrop-blur">
+    <div className="relative w-full rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40">
       <div className="flex items-center gap-3 border-b border-line px-5 py-4">
         <WindowDots />
         <div className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
@@ -1648,20 +1644,19 @@ const VISUALS = { clipboard: ClipboardMock, standby: TimerMock };
 /*  GitHub canlı istatistik şeridi                                     */
 /* ================================================================== */
 // Görünüme girince 0'dan hedef değere sayan animasyonlu sayaç.
-function Counter({ value, duration = 2 }) {
+function Counter({ value, duration = 2.4 }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const inView = useInView(ref, { margin: "-40px" });
   const [display, setDisplay] = useState(0);
-  const fromRef = useRef(0);
   useEffect(() => {
-    if (!inView) return;
-    const controls = animate(fromRef.current, value, {
+    if (!inView) {
+      setDisplay(0);
+      return;
+    }
+    const controls = animate(0, value, {
       duration,
       ease: EASE,
       onUpdate: (v) => setDisplay(Math.round(v)),
-      onComplete: () => {
-        fromRef.current = value;
-      },
     });
     return () => controls.stop();
   }, [inView, value, duration]);
@@ -2074,7 +2069,7 @@ function Footer() {
 /* ================================================================== */
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
-function Meteors({ count = 14 }) {
+function Meteors({ count = 10 }) {
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => ({
