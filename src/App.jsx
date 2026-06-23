@@ -54,6 +54,10 @@ import {
   FolderGit2,
   Users,
   Globe,
+  Bot,
+  Boxes,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 /* ================================================================== */
@@ -153,7 +157,7 @@ const CONTENT = {
       languages: [
         { name: "C#", icon: "Hash", note: "WPF · .NET 10 · MVVM", span: "lg:col-span-2", certified: true },
         { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL", certified: true },
-        { name: "SQL", icon: "Database", note: "Veri modelleme · Sorgu" },
+        { name: "SQL", icon: "Database", note: "Veri modelleme · Sorgu", certified: true },
         { name: "HTML5", icon: "Code2", note: "Semantik · Erişilebilir" },
         { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
         { name: "Laravel", icon: "Layers", note: "PHP · MVC · Eloquent" },
@@ -182,6 +186,9 @@ const CONTENT = {
           items: [
             { name: "Yapay Zeka & Algoritmalar", certified: true },
             { name: "Bilgi Teknolojileri Temelleri", certified: true },
+            { name: "Üretken Yapay Zekâ", certified: true },
+            { name: "Anthropic Claude", certified: true },
+            { name: "Nesne Yönelimli Programlama (OOP)", certified: true },
           ],
         },
         {
@@ -198,6 +205,8 @@ const CONTENT = {
       verified: "Doğrulandı",
       validates: "Doğruladığı yetenek",
       view: "Görüntüle",
+      prev: "Önceki",
+      next: "Sonraki",
       items: [
         {
           title: "C# Programlama",
@@ -234,6 +243,42 @@ const CONTENT = {
           skill: "C++",
           icon: "Binary",
           file: "/sertifikalar/cpp-programlamaya-giris.pdf",
+        },
+        {
+          title: "Anthropic Claude",
+          issuer: "BTK Akademi",
+          date: "18.06.2026",
+          code: "JoNf2NxGKO",
+          skill: "Yapay Zekâ · LLM",
+          icon: "Bot",
+          file: "/sertifikalar/anthropic-claude.pdf",
+        },
+        {
+          title: "Üretken Yapay Zekâya Giriş",
+          issuer: "BTK Akademi",
+          date: "23.06.2026",
+          code: "WJ1SkP7J9V",
+          skill: "Üretken Yapay Zekâ",
+          icon: "Sparkles",
+          file: "/sertifikalar/uretken-yapay-zeka.pdf",
+        },
+        {
+          title: "Uygulamalarla Nesne Yönelimli Programlama",
+          issuer: "BTK Akademi",
+          date: "23.06.2026",
+          code: "xr4tN6bV46",
+          skill: "OOP",
+          icon: "Boxes",
+          file: "/sertifikalar/nesne-yonelimli-programlama.pdf",
+        },
+        {
+          title: "Veri Tabanına Giriş",
+          issuer: "BTK Akademi",
+          date: "23.06.2026",
+          code: "Yx1h8DOjld",
+          skill: "Veritabanı",
+          icon: "Database",
+          file: "/sertifikalar/veri-tabanina-giris.pdf",
         },
       ],
     },
@@ -391,7 +436,7 @@ const CONTENT = {
       languages: [
         { name: "C#", icon: "Hash", note: "WPF · .NET 10 · MVVM", span: "lg:col-span-2", certified: true },
         { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL", certified: true },
-        { name: "SQL", icon: "Database", note: "Data modeling · Queries" },
+        { name: "SQL", icon: "Database", note: "Data modeling · Queries", certified: true },
         { name: "HTML5", icon: "Code2", note: "Semantic · Accessible" },
         { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
         { name: "Laravel", icon: "Layers", note: "PHP · MVC · Eloquent" },
@@ -420,6 +465,9 @@ const CONTENT = {
           items: [
             { name: "AI & Algorithms", certified: true },
             { name: "IT Fundamentals", certified: true },
+            { name: "Generative AI", certified: true },
+            { name: "Anthropic Claude", certified: true },
+            { name: "Object-Oriented Programming (OOP)", certified: true },
           ],
         },
         {
@@ -436,6 +484,8 @@ const CONTENT = {
       verified: "Verified",
       validates: "Validates",
       view: "View",
+      prev: "Previous",
+      next: "Next",
       items: [
         {
           title: "C# Programming",
@@ -472,6 +522,42 @@ const CONTENT = {
           skill: "C++",
           icon: "Binary",
           file: "/sertifikalar/cpp-programlamaya-giris.pdf",
+        },
+        {
+          title: "Anthropic Claude",
+          issuer: "BTK Akademi",
+          date: "18.06.2026",
+          code: "JoNf2NxGKO",
+          skill: "AI · LLM",
+          icon: "Bot",
+          file: "/sertifikalar/anthropic-claude.pdf",
+        },
+        {
+          title: "Introduction to Generative AI",
+          issuer: "BTK Akademi",
+          date: "23.06.2026",
+          code: "WJ1SkP7J9V",
+          skill: "Generative AI",
+          icon: "Sparkles",
+          file: "/sertifikalar/uretken-yapay-zeka.pdf",
+        },
+        {
+          title: "Object-Oriented Programming with Applications",
+          issuer: "BTK Akademi",
+          date: "23.06.2026",
+          code: "xr4tN6bV46",
+          skill: "OOP",
+          icon: "Boxes",
+          file: "/sertifikalar/nesne-yonelimli-programlama.pdf",
+        },
+        {
+          title: "Introduction to Databases",
+          issuer: "BTK Akademi",
+          date: "23.06.2026",
+          code: "Yx1h8DOjld",
+          skill: "Databases",
+          icon: "Database",
+          file: "/sertifikalar/veri-tabanina-giris.pdf",
         },
       ],
     },
@@ -577,6 +663,9 @@ const ICONS = {
   Wrench,
   Languages,
   Award,
+  Sparkles,
+  Bot,
+  Boxes,
 };
 
 const EASE = [0.16, 1, 0.3, 1];
@@ -856,12 +945,30 @@ function Navbar() {
 /* ================================================================== */
 const headlineParent = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+  show: { transition: { staggerChildren: 0.045, delayChildren: 0.2 } },
 };
-const lineChild = {
-  hidden: { y: "115%" },
-  show: { y: 0, transition: { duration: 0.95, ease: EASE } },
+const charChild = {
+  hidden: { y: "120%", opacity: 0, filter: "blur(14px)" },
+  show: {
+    y: 0,
+    opacity: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.9, ease: EASE },
+  },
 };
+
+// İsmi harf harf, maskeli yükselme efektiyle render eder.
+function AnimatedWord({ text }) {
+  return text.split("").map((ch, i) => (
+    <motion.span
+      key={i}
+      variants={charChild}
+      className="inline-block will-change-transform"
+    >
+      {ch}
+    </motion.span>
+  ));
+}
 
 function Hero() {
   const { t } = useLang();
@@ -897,23 +1004,51 @@ function Hero() {
           </span>
         </motion.div>
 
-        <motion.h1
-          variants={headlineParent}
-          initial="hidden"
-          animate="show"
-          className="font-display text-[clamp(3.25rem,14vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]"
-        >
-          <span className="block overflow-hidden pb-[0.05em]">
-            <motion.span variants={lineChild} className="block">
-              Samet
-            </motion.span>
-          </span>
-          <span className="block overflow-hidden pb-[0.05em]">
-            <motion.span variants={lineChild} className="block">
-              Kaşmer<span className="text-accent">.</span>
-            </motion.span>
-          </span>
-        </motion.h1>
+        <div className="relative">
+          <motion.div
+            aria-hidden
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.4, delay: 0.15, ease: EASE }}
+            className="pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full opacity-[0.16] blur-[100px]"
+            style={{
+              background:
+                "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)",
+            }}
+          />
+          <motion.h1
+            variants={headlineParent}
+            initial="hidden"
+            animate="show"
+            aria-label={`${IDENTITY.name}.`}
+            className="relative font-display text-[clamp(3.25rem,14vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]"
+          >
+            <span aria-hidden className="block overflow-hidden pb-[0.08em]">
+              <span className="block">
+                <AnimatedWord text="Samet" />
+              </span>
+            </span>
+            <span aria-hidden className="block overflow-hidden pb-[0.08em]">
+              <span className="block">
+                <AnimatedWord text="Kaşmer" />
+                <motion.span variants={charChild} className="inline-block text-accent">
+                  <motion.span
+                    className="inline-block"
+                    animate={{ opacity: [1, 0.4, 1], scale: [1, 1.15, 1] }}
+                    transition={{
+                      duration: 2.6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1.7,
+                    }}
+                  >
+                    .
+                  </motion.span>
+                </motion.span>
+              </span>
+            </span>
+          </motion.h1>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -1199,22 +1334,100 @@ function CertificateCard({ cert, labels }) {
 function Certificates() {
   const { t } = useLang();
   const c = t.certificates;
+  const scrollerRef = useRef(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+  const labels = { verified: c.verified, validates: c.validates, view: c.view };
+
+  const updateArrows = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setAtStart(el.scrollLeft <= 4);
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    updateArrows();
+    window.addEventListener("resize", updateArrows);
+    return () => window.removeEventListener("resize", updateArrows);
+  }, []);
+
+  const scrollByCard = (dir) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const card = el.querySelector("[data-card]");
+    const step = card ? card.offsetWidth + 20 : el.clientWidth * 0.9;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
+
+  const Arrow = ({ dir, disabled, side }) => (
+    <button
+      type="button"
+      onClick={() => scrollByCard(dir)}
+      disabled={disabled}
+      aria-label={dir < 0 ? c.prev : c.next}
+      className={`absolute top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/80 text-ink backdrop-blur transition hover:border-accent hover:bg-elevated disabled:pointer-events-none disabled:opacity-0 md:flex ${
+        side === "left" ? "-left-2 lg:-left-5" : "-right-2 lg:-right-5"
+      }`}
+    >
+      {dir < 0 ? (
+        <ChevronLeft className="h-5 w-5" />
+      ) : (
+        <ChevronRight className="h-5 w-5" />
+      )}
+    </button>
+  );
+
   return (
     <section id="sertifikalar" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
       <Reveal>
         <SectionHeader index={c.index} title={c.title} kicker={c.kicker} />
       </Reveal>
 
-      <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {c.items.map((cert, i) => (
-          <Reveal key={cert.code} delay={i * 0.08}>
-            <CertificateCard
-              cert={cert}
-              labels={{ verified: c.verified, validates: c.validates, view: c.view }}
-            />
-          </Reveal>
-        ))}
-      </div>
+      <Reveal delay={0.05}>
+        <div className="relative mt-14 md:mt-16">
+          <Arrow dir={-1} disabled={atStart} side="left" />
+          <Arrow dir={1} disabled={atEnd} side="right" />
+
+          <div
+            ref={scrollerRef}
+            onScroll={updateArrows}
+            className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {c.items.map((cert) => (
+              <div
+                key={cert.code}
+                data-card
+                className="shrink-0 snap-start basis-[85%] sm:basis-[47%] lg:basis-[31.5%]"
+              >
+                <CertificateCard cert={cert} labels={labels} />
+              </div>
+            ))}
+          </div>
+
+          {/* Mobilde alt-orta gezinme okları */}
+          <div className="mt-7 flex items-center justify-center gap-4 md:hidden">
+            <button
+              type="button"
+              onClick={() => scrollByCard(-1)}
+              disabled={atStart}
+              aria-label={c.prev}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface/80 text-ink transition hover:border-accent disabled:opacity-40"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCard(1)}
+              disabled={atEnd}
+              aria-label={c.next}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface/80 text-ink transition hover:border-accent disabled:opacity-40"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </Reveal>
     </section>
   );
 }
