@@ -129,7 +129,7 @@ const CONTENT = {
       paragraphs: [
         "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
         "C# ve C++ ile masaüstü uygulamaları; Laravel ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
-        "Öğrenmeyi sürekli bir disiplin olarak görüyorum: BTK Akademi üzerinden C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar edindim. Bilgisayar Programcılığı programından 3.09 genel ortalamayla mezun olmaya hazırlanıyorum.",
+        "Sürekli öğrenmeyi bir disiplin olarak benimsedim. BTK Akademi'de tamamladığım eğitimlerle C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar aldım; Bilgisayar Programcılığı bölümünden 3.09 genel not ortalamasıyla mezun olmaya hazırlanıyorum.",
       ],
       facts: [
         { label: "Eğitim", value: "Bilgisayar Programcılığı" },
