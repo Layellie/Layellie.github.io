@@ -923,7 +923,7 @@ function Navbar() {
       }`}
     >
       <nav className={`${WRAP} flex h-16 items-center justify-between md:h-20`}>
-        <a href="#home" className="inline-flex items-center gap-2.5">
+        <a href="#anasayfa" className="inline-flex items-center gap-2.5">
           <span className="h-2.5 w-2.5 rounded-full bg-accent" />
           <span className="font-display text-base font-medium tracking-tight">
             Laye77ie
@@ -1077,7 +1077,7 @@ function Hero() {
 
   return (
     <section
-      id="home"
+      id="anasayfa"
       ref={ref}
       className={`${WRAP} relative flex min-h-screen flex-col justify-center pb-16 pt-28`}
     >
@@ -2117,7 +2117,7 @@ function Footer() {
           >
             <Linkedin className="h-4 w-4" />
           </a>
-          <a href="#home" className="transition-colors hover:text-ink">
+          <a href="#anasayfa" className="transition-colors hover:text-ink">
             {t.footer.backToTop}
           </a>
         </div>
