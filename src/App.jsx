@@ -342,11 +342,41 @@ const CONTENT = {
       ],
     },
     contact: {
-      index: "05",
+      index: "06",
       label: "İletişim",
       big: ["Birlikte", "Çalışalım"],
       blurb:
         "Bir proje fikri, iş birliği ya da yalnızca merhaba demek için — bana bir mesaj bırak. En kısa sürede dönüş yaparım.",
+    },
+    terminal: {
+      index: "05",
+      title: "Terminal",
+      kicker: "Komut yazarak hakkımda daha fazlasını keşfet",
+      user: "ziyaretci",
+      host: "layellie",
+      welcome: "Layellie portföy terminaline hoş geldin.",
+      hint: "Başlamak için 'help' yaz · geçmiş için ↑ ↓ tuşları",
+      helpTitle: "Kullanılabilir komutlar",
+      notFound: "komut bulunamadı",
+      tryHelp: "'help' yazarak tüm komutları görebilirsin.",
+      labels: {
+        langs: "Diller & Çatılar",
+        focus: "Odak Alanları",
+        certCount: "doğrulanmış sertifika",
+        sudo: "ziyaretci sudoers dosyasında yok. Bu olay bildirilecek. 😏",
+      },
+      cmds: {
+        help: "bu menüyü gösterir",
+        whoami: "kim olduğumu gösterir",
+        about: "kısa künye & bilgiler",
+        skills: "yeteneklerimi listeler",
+        projects: "açık kaynak projelerim",
+        certs: "sertifikalarım",
+        contact: "iletişim bilgilerim",
+        social: "sosyal medya hesaplarım",
+        date: "bugünün tarihi",
+        clear: "ekranı temizler",
+      },
     },
     footer: { backToTop: "Başa dön ↑" },
     cmd: {
@@ -634,11 +664,41 @@ const CONTENT = {
       ],
     },
     contact: {
-      index: "05",
+      index: "06",
       label: "Contact",
       big: ["Let's", "Talk."],
       blurb:
         "Got a project idea, a collaboration, or just want to say hi? Drop me a message — I'll get back to you soon.",
+    },
+    terminal: {
+      index: "05",
+      title: "Terminal",
+      kicker: "Type commands to explore more about me",
+      user: "visitor",
+      host: "layellie",
+      welcome: "Welcome to the Layellie portfolio terminal.",
+      hint: "Type 'help' to start · use ↑ ↓ for history",
+      helpTitle: "Available commands",
+      notFound: "command not found",
+      tryHelp: "Type 'help' to see all commands.",
+      labels: {
+        langs: "Languages & Frameworks",
+        focus: "Focus Areas",
+        certCount: "verified certificates",
+        sudo: "visitor is not in the sudoers file. This incident will be reported. 😏",
+      },
+      cmds: {
+        help: "show this menu",
+        whoami: "who I am",
+        about: "short profile & facts",
+        skills: "list my skills",
+        projects: "my open-source projects",
+        certs: "my certificates",
+        contact: "my contact details",
+        social: "my social accounts",
+        date: "today's date",
+        clear: "clear the screen",
+      },
     },
     footer: { backToTop: "Back to top ↑" },
     cmd: {
@@ -2310,6 +2370,250 @@ function CommandPalette() {
 /* ================================================================== */
 /*  APP                                                                */
 /* ================================================================== */
+/* ================================================================== */
+/*  İNTERAKTİF TERMINAL — ziyaretçi komut yazarak siteyi keşfeder      */
+/* ================================================================== */
+const TERMINAL_CMDS = [
+  "help",
+  "whoami",
+  "about",
+  "skills",
+  "projects",
+  "certs",
+  "contact",
+  "social",
+  "date",
+  "clear",
+];
+
+function Terminal() {
+  const { t, lang } = useLang();
+  const tt = t.terminal;
+  const prompt = `${tt.user}@${tt.host}:~$`;
+
+  const bootLines = useMemo(
+    () => [
+      { tone: "accent", text: tt.welcome },
+      { tone: "muted", text: tt.hint },
+    ],
+    [tt.welcome, tt.hint]
+  );
+
+  const [lines, setLines] = useState(bootLines);
+  const [input, setInput] = useState("");
+  const [hist, setHist] = useState([]);
+  const [histIdx, setHistIdx] = useState(-1);
+
+  const bodyRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // dil değişince terminali baştan başlat
+  useEffect(() => {
+    setLines(bootLines);
+    setInput("");
+    setHist([]);
+    setHistIdx(-1);
+  }, [bootLines]);
+
+  // her yeni çıktıda en alta kaydır
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [lines]);
+
+  const out = (text, tone = "out") => ({ text, tone });
+
+  function runCommand(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) return [];
+    const [name, ...rest] = trimmed.toLowerCase().split(/\s+/);
+
+    switch (name) {
+      case "help":
+        return [
+          out(tt.helpTitle, "accent"),
+          ...TERMINAL_CMDS.map((c) =>
+            out(`  ${c.padEnd(10)} ${tt.cmds[c] || ""}`)
+          ),
+        ];
+      case "whoami":
+        return [
+          out(`${IDENTITY.name} · @${IDENTITY.handle}`, "accent"),
+          out(t.hero.role),
+        ];
+      case "about":
+        return t.about.facts.map((f) =>
+          out(`${(f.label + ":").padEnd(18)}${f.value}`)
+        );
+      case "skills":
+        return [
+          out(`${tt.labels.langs}:`, "accent"),
+          ...t.skills.languages.map((l) => out(`  ▸ ${l.name.padEnd(8)}${l.note}`)),
+          out(""),
+          out(`${tt.labels.focus}:`, "accent"),
+          ...t.skills.focus.map((f) => out(`  ▸ ${f.title}`)),
+        ];
+      case "projects":
+        return t.projects.items.flatMap((p) => [
+          out(`  ▸ ${p.name} (${p.year}) — ${p.type}`, "accent"),
+          out(`    ${p.github}`, "link"),
+        ]);
+      case "certs":
+        return [
+          out(
+            `${t.certificates.items.length} ${tt.labels.certCount}:`,
+            "accent"
+          ),
+          ...t.certificates.items.map((c) =>
+            out(`  ✓ ${c.title}  ·  ${c.date}`)
+          ),
+        ];
+      case "contact":
+        return [
+          out(`email     ${IDENTITY.email}`),
+          out(`github    ${IDENTITY.github}`, "link"),
+          out(`linkedin  ${IDENTITY.linkedin}`, "link"),
+        ];
+      case "social":
+        return [
+          out(`github    ${IDENTITY.github}`, "link"),
+          out(`linkedin  ${IDENTITY.linkedin}`, "link"),
+        ];
+      case "date":
+        return [
+          out(
+            new Date().toLocaleDateString(lang === "tr" ? "tr-TR" : "en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          ),
+        ];
+      case "echo":
+        return [out(rest.join(" "))];
+      case "sudo":
+        return [out(tt.labels.sudo, "error")];
+      case "clear":
+        return "CLEAR";
+      default:
+        return [out(`${tt.notFound}: ${name}`, "error"), out(tt.tryHelp, "muted")];
+    }
+  }
+
+  function submit() {
+    const raw = input;
+    const result = runCommand(raw);
+    if (result === "CLEAR") {
+      setLines([]);
+      setInput("");
+      setHistIdx(-1);
+      return;
+    }
+    setLines((prev) => [...prev, { tone: "cmd", text: raw }, ...result]);
+    if (raw.trim()) setHist((h) => [...h, raw]);
+    setHistIdx(-1);
+    setInput("");
+  }
+
+  function onKeyDown(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submit();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!hist.length) return;
+      const idx = histIdx === -1 ? hist.length - 1 : Math.max(0, histIdx - 1);
+      setHistIdx(idx);
+      setInput(hist[idx]);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (histIdx === -1) return;
+      const idx = histIdx + 1;
+      if (idx >= hist.length) {
+        setHistIdx(-1);
+        setInput("");
+      } else {
+        setHistIdx(idx);
+        setInput(hist[idx]);
+      }
+    }
+  }
+
+  const toneClass = {
+    out: "text-muted",
+    accent: "text-accent",
+    muted: "text-faint",
+    error: "text-red-400",
+    link: "text-ink/70",
+  };
+
+  return (
+    <section id="terminal" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
+      <Reveal>
+        <SectionHeader index={tt.index} title={tt.title} kicker={tt.kicker} />
+      </Reveal>
+
+      <Reveal y={36} delay={0.05}>
+        <div className="mt-10 overflow-hidden rounded-2xl border border-line bg-[#0b0b0e] shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)]">
+          {/* başlık çubuğu */}
+          <div className="flex items-center gap-3 border-b border-line bg-surface/80 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+              <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+              <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+            </div>
+            <span className="mx-auto select-none font-mono text-xs text-faint">
+              {tt.user}@{tt.host}: ~
+            </span>
+          </div>
+
+          {/* gövde */}
+          <div
+            ref={bodyRef}
+            onClick={() => inputRef.current?.focus()}
+            className="h-[340px] cursor-text overflow-y-auto p-4 font-mono text-[13px] leading-relaxed md:h-[400px] md:p-5"
+          >
+            {lines.map((l, i) =>
+              l.tone === "cmd" ? (
+                <div key={i} className="flex gap-2 break-all">
+                  <span className="shrink-0 text-accent">{prompt}</span>
+                  <span className="text-ink">{l.text}</span>
+                </div>
+              ) : (
+                <div
+                  key={i}
+                  className={`whitespace-pre-wrap break-words ${
+                    toneClass[l.tone] || "text-muted"
+                  }`}
+                >
+                  {l.text || " "}
+                </div>
+              )
+            )}
+
+            {/* aktif giriş satırı */}
+            <div className="flex gap-2">
+              <span className="shrink-0 text-accent">{prompt}</span>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                spellCheck={false}
+                autoComplete="off"
+                autoCapitalize="off"
+                aria-label="terminal"
+                className="flex-1 bg-transparent text-ink caret-accent outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState(() => {
     if (typeof window === "undefined") return "tr";
@@ -2352,6 +2656,7 @@ export default function App() {
         <Skills />
         <Certificates />
         <Projects />
+        <Terminal />
         <Contact />
       </main>
 
