@@ -60,6 +60,9 @@ import {
   Boxes,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  Monitor,
+  BellRing,
 } from "lucide-react";
 
 /* ================================================================== */
@@ -73,7 +76,7 @@ const IDENTITY = {
   github: "https://github.com/Layellie",
   linkedin: "https://www.linkedin.com/in/samet-ka%C5%9Fmer-0118b13b1/",
   // GitHub API erişilemezse kullanılacak yedek değerler
-  statsFallback: { repos: 2, stars: 3, followers: 1 },
+  statsFallback: { repos: 3, stars: 3, followers: 1 },
 };
 
 /* ================================================================== */
@@ -339,6 +342,25 @@ const CONTENT = {
           ],
           stack: ["C#", "WPF", ".NET 10", "MVVM", "Win32 P/Invoke", "Inno Setup"],
         },
+        {
+          id: "eyehealth",
+          name: "EyeHealth",
+          type: "Açık Kaynak · Göz Sağlığı",
+          year: "2026",
+          license: "MIT",
+          github: "https://github.com/Layellie/EyeHealth",
+          description:
+            "20-20-20 kuralını masaüstüne taşıyan; tam ekran uygulamalarını algılayan, hafif ve yerel bir Windows mola hatırlatıcısı.",
+          features: [
+            "Özelleştirilebilir çalışma ve mola süreleri",
+            "Üç modlu tam ekran algılama ve akıllı erteleme",
+            "Tüm monitörlerde geri sayımlı mola perdesi",
+            "Göz sağlığı rehberi ve ilk açılış sihirbazı",
+            "Sistem tepsisi · Windows ile başlatma · uyku algılama",
+            "Canlı dil geçişli Türkçe / İngilizce arayüz",
+          ],
+          stack: ["C++20", "Qt 6.8"],
+        },
       ],
     },
     contact: {
@@ -401,6 +423,14 @@ const CONTENT = {
       gameMode: "Oyun Modu",
       on: "Açık",
       affinity: "Yüksek öncelik · Tam affinity",
+      eyeNext: "Sonraki mola",
+      eyeWork: "Çalışma",
+      eyeBreak: "Mola",
+      eyeFullscreen: "Tam ekran algılama",
+      eyePostpone: "Sessizce ertele",
+      eyeRunning: "Aktif",
+      eyeRule: "20-20-20 kuralı",
+      eyeNative: "Yerel C++ · ~30 MB",
     },
   },
 
@@ -661,6 +691,25 @@ const CONTENT = {
           ],
           stack: ["C#", "WPF", ".NET 10", "MVVM", "Win32 P/Invoke", "Inno Setup"],
         },
+        {
+          id: "eyehealth",
+          name: "EyeHealth",
+          type: "Open Source · Eye Care",
+          year: "2026",
+          license: "MIT",
+          github: "https://github.com/Layellie/EyeHealth",
+          description:
+            "A lightweight, native Windows break reminder that brings the 20-20-20 rule to your desktop and responds intelligently to fullscreen apps.",
+          features: [
+            "Customizable work and break durations",
+            "Three-mode fullscreen detection and smart postponing",
+            "Countdown break overlay across every monitor",
+            "Built-in eye-care guide and first-run wizard",
+            "System tray · Windows startup · sleep awareness",
+            "Live-switching English / Turkish interface",
+          ],
+          stack: ["C++20", "Qt 6.8"],
+        },
       ],
     },
     contact: {
@@ -723,6 +772,14 @@ const CONTENT = {
       gameMode: "Game Mode",
       on: "On",
       affinity: "High priority · Full affinity",
+      eyeNext: "Next break",
+      eyeWork: "Work",
+      eyeBreak: "Break",
+      eyeFullscreen: "Fullscreen detection",
+      eyePostpone: "Postpone silently",
+      eyeRunning: "Running",
+      eyeRule: "20-20-20 rule",
+      eyeNative: "Native C++ · ~30 MB",
     },
   },
 };
@@ -1698,7 +1755,95 @@ function TimerMock() {
   );
 }
 
-const VISUALS = { clipboard: ClipboardMock, standby: TimerMock };
+function EyeHealthMock() {
+  const { t } = useLang();
+  const m = t.mock;
+  return (
+    <div className="relative w-full overflow-hidden rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 opacity-70"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 0%, rgba(214,255,63,0.13), transparent 68%)",
+        }}
+      />
+
+      <div className="relative flex items-center gap-3 border-b border-line px-5 py-4">
+        <WindowDots />
+        <div className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
+          <Eye className="h-4 w-4 text-accent" /> EyeHealth
+        </div>
+        <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] text-accent">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {m.eyeRunning}
+        </span>
+      </div>
+
+      <div className="relative grid gap-4 p-5 sm:grid-cols-[1.15fr_0.85fr]">
+        <div className="flex min-h-52 flex-col items-center justify-center rounded-xl border border-line bg-canvas/40 p-5 text-center">
+          <div
+            className="relative flex h-36 w-36 items-center justify-center rounded-full p-[7px]"
+            style={{
+              background:
+                "conic-gradient(var(--color-accent) 0deg 292deg, var(--color-line) 292deg 360deg)",
+            }}
+          >
+            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[#111114]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-faint">
+                {m.eyeNext}
+              </span>
+              <span className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink">
+                19:42
+              </span>
+            </div>
+          </div>
+          <div className="mt-4 inline-flex items-center gap-2 text-xs text-muted">
+            <BellRing className="h-3.5 w-3.5 text-accent" /> {m.eyeRule}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+          <div className="rounded-xl border border-line bg-canvas/40 p-4">
+            <div className="text-[10px] uppercase tracking-wider text-faint">
+              {m.eyeWork}
+            </div>
+            <div className="mt-1 font-display text-2xl text-ink">20 min</div>
+          </div>
+          <div className="rounded-xl border border-line bg-canvas/40 p-4">
+            <div className="text-[10px] uppercase tracking-wider text-faint">
+              {m.eyeBreak}
+            </div>
+            <div className="mt-1 font-display text-2xl text-ink">20 sec</div>
+          </div>
+          <div className="col-span-2 rounded-xl border border-line bg-canvas/40 p-4 sm:col-span-1">
+            <div className="flex items-center gap-2 text-xs text-faint">
+              <Monitor className="h-4 w-4" /> {m.eyeFullscreen}
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <span className="text-xs text-ink/90">{m.eyePostpone}</span>
+              <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-accent px-0.5">
+                <span className="ml-auto h-4 w-4 rounded-full bg-canvas" />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative flex items-center justify-between border-t border-line px-5 py-3 text-[11px] text-faint">
+        <span className="inline-flex items-center gap-1.5">
+          <Eye className="h-3.5 w-3.5" /> {m.eyeNative}
+        </span>
+        <span className="rounded-full border border-line px-2 py-0.5">TR / EN</span>
+      </div>
+    </div>
+  );
+}
+
+const VISUALS = {
+  clipboard: ClipboardMock,
+  standby: TimerMock,
+  eyehealth: EyeHealthMock,
+};
 
 /* ================================================================== */
 /*  GitHub canlı istatistik şeridi                                     */
