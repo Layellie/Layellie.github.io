@@ -207,7 +207,7 @@ const CONTENT = {
       ],
     },
     certificates: {
-      index: "03",
+      index: "04",
       title: "Sertifikalar",
       kicker: "BTK Akademi · doğrulanmış eğitimler ve eşleşen yetenekler",
       verified: "Doğrulandı",
@@ -291,10 +291,11 @@ const CONTENT = {
       ],
     },
     projects: {
-      index: "04",
+      index: "03",
       title: "Projeler",
       kicker: "Açık kaynak masaüstü & sistem araçları",
       view: "GitHub'da İncele",
+      statusLabel: "Proje durumu",
       stats: { repos: "Depo", stars: "Yıldız", followers: "Takipçi" },
       contributions: "Katkı grafiği",
       more: {
@@ -321,6 +322,7 @@ const CONTENT = {
             "Oturum kalıcılığı ve sürükle-bırak desteği",
             "Sistem tepsisi entegrasyonu · TR / EN arayüz",
           ],
+          status: ["v1.6.0 Yayında", "Windows", "CI/CD"],
           stack: ["C# 12", ".NET 10", "WPF", "C++20", "WinRT", "P/Invoke"],
         },
         {
@@ -340,6 +342,7 @@ const CONTENT = {
             "Çift tema (açık / koyu) · TR / EN yerelleştirme",
             "Yerleşik güncelleme denetleyici (GitHub Release)",
           ],
+          status: ["v2.1.0 Yayında", "Windows", "Kurulum Paketi"],
           stack: ["C#", "WPF", ".NET 10", "MVVM", "Win32 P/Invoke", "Inno Setup"],
         },
         {
@@ -359,6 +362,7 @@ const CONTENT = {
             "Sistem tepsisi · Windows ile başlatma · uyku algılama",
             "Canlı dil geçişli Türkçe / İngilizce arayüz",
           ],
+          status: ["v1.0.0 Yayında", "Testler Mevcut", "Portable"],
           stack: ["C++20", "Qt 6.8"],
         },
       ],
@@ -556,7 +560,7 @@ const CONTENT = {
       ],
     },
     certificates: {
-      index: "03",
+      index: "04",
       title: "Certificates",
       kicker: "BTK Akademi · verified training mapped to skills",
       verified: "Verified",
@@ -640,10 +644,11 @@ const CONTENT = {
       ],
     },
     projects: {
-      index: "04",
+      index: "03",
       title: "Projects",
       kicker: "Open-source desktop & system tools",
       view: "View on GitHub",
+      statusLabel: "Project status",
       stats: { repos: "Repos", stars: "Stars", followers: "Followers" },
       contributions: "Contribution graph",
       more: {
@@ -670,6 +675,7 @@ const CONTENT = {
             "Session persistence and drag & drop",
             "System tray integration · TR / EN UI",
           ],
+          status: ["v1.6.0 Released", "Windows", "CI/CD"],
           stack: ["C# 12", ".NET 10", "WPF", "C++20", "WinRT", "P/Invoke"],
         },
         {
@@ -689,6 +695,7 @@ const CONTENT = {
             "Dual themes (light / dark) · TR / EN localization",
             "Built-in update checker (GitHub Release)",
           ],
+          status: ["v2.1.0 Released", "Windows", "Installer"],
           stack: ["C#", "WPF", ".NET 10", "MVVM", "Win32 P/Invoke", "Inno Setup"],
         },
         {
@@ -708,6 +715,7 @@ const CONTENT = {
             "System tray · Windows startup · sleep awareness",
             "Live-switching English / Turkish interface",
           ],
+          status: ["v1.0.0 Released", "Tests Available", "Portable"],
           stack: ["C++20", "Qt 6.8"],
         },
       ],
@@ -784,12 +792,12 @@ const CONTENT = {
   },
 };
 
-const SECTION_IDS = ["hakkimda", "yetenekler", "sertifikalar", "projeler", "iletisim"];
+const SECTION_IDS = ["hakkimda", "yetenekler", "projeler", "sertifikalar", "iletisim"];
 const NAV_KEYS = [
   { key: "about", href: "#hakkimda" },
   { key: "skills", href: "#yetenekler" },
-  { key: "certificates", href: "#sertifikalar" },
   { key: "projects", href: "#projeler" },
+  { key: "certificates", href: "#sertifikalar" },
   { key: "contact", href: "#iletisim" },
 ];
 
@@ -2026,7 +2034,7 @@ function MoreRepos({ repos, labels }) {
 /* ================================================================== */
 /*  PROJELER                                                           */
 /* ================================================================== */
-function ProjectCard({ project, num, reverse, viewLabel }) {
+function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
   const Visual = VISUALS[project.id];
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
@@ -2050,6 +2058,26 @@ function ProjectCard({ project, num, reverse, viewLabel }) {
           <h3 className="mt-5 font-display text-[clamp(2rem,4.5vw,3.25rem)] font-semibold leading-[0.95] tracking-tight">
             {project.name}
           </h3>
+
+          <div className="mt-4 flex flex-wrap gap-2" aria-label={statusLabel}>
+            {project.status.map((status, i) => (
+              <span
+                key={status}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                  i === 0
+                    ? "border-accent/25 bg-accent/10 text-accent"
+                    : "border-line bg-canvas/40 text-muted"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    i === 0 ? "bg-accent" : "bg-faint"
+                  }`}
+                />
+                {status}
+              </span>
+            ))}
+          </div>
 
           <p className="mt-4 max-w-xl leading-relaxed text-muted md:text-lg">
             {project.description}
@@ -2136,6 +2164,7 @@ function Projects() {
             num={String(i + 1).padStart(2, "0")}
             reverse={i % 2 === 1}
             viewLabel={p.view}
+            statusLabel={p.statusLabel}
           />
         ))}
       </div>
@@ -2799,8 +2828,8 @@ export default function App() {
         <Marquee />
         <About />
         <Skills />
-        <Certificates />
         <Projects />
+        <Certificates />
         <Terminal />
         <Contact />
       </main>
