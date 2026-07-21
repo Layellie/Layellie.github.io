@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "presets": [
+    {
+      "id": "clipboard",
+      "name": "AIO Hybrid Clipboard",
+      "shared": {
+        "accent": "lime",
+        "window": {
+          "title": "AIO Hybrid Clipboard",
+          "icon": "ClipboardList",
+          "controls": "neutral",
+          "trailing": "ALT + SPACE"
+        },
+        "footer": {
+          "icon": "Code2",
+          "badge": "Reverse Search"
+        }
+      },
+      "tr": {
+        "footerText": "OCR Motoru · C++20 / WinRT",
+        "footerBadge": "Tersine Arama"
+      },
+      "en": {
+        "footerText": "OCR Engine · C++20 / WinRT",
+        "footerBadge": "Reverse Search"
+      },
+      "modules": [
+        {
+          "id": "clipboard-search",
+          "type": "searchBar",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 12,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "icon": "Search"
+          },
+          "tr": {
+            "placeholder": "Pano geçmişinde ara…"
+          },
+          "en": {
+            "placeholder": "Search clipboard history…"
+          }
+        },
+        {
+          "id": "clipboard-row-code",
+          "type": "listRow",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 12,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "index": "1",
+            "icon": "Code2",
+            "shortcut": "ALT+1",
+            "tone": "code"
+          },
+          "tr": {
+            "text": "git commit -m \"perf: 0.5ms timer\"",
+            "caption": ""
+          },
+          "en": {
+            "text": "git commit -m \"perf: 0.5ms timer\"",
+            "caption": ""
+          }
+        },
+        {
+          "id": "clipboard-row-ocr",
+          "type": "listRow",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 12,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "index": "2",
+            "icon": "Image",
+            "shortcut": "ALT+2",
+            "badge": "OCR",
+            "tone": "image"
+          },
+          "tr": {
+            "text": "Fatura No: 2026-0192",
+            "caption": "görselden çıkarılan metin"
+          },
+          "en": {
+            "text": "Invoice No: 2026-0192",
+            "caption": "text extracted from image"
+          }
+        },
+        {
+          "id": "clipboard-row-link",
+          "type": "listRow",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 12,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "index": "3",
+            "icon": "Link2",
+            "shortcut": "ALT+3",
+            "tone": "code"
+          },
+          "tr": {
+            "text": "github.com/Layellie",
+            "caption": ""
+          },
+          "en": {
+            "text": "github.com/Layellie",
+            "caption": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "standby",
+      "name": "StandbyAndTimer",
+      "shared": {
+        "accent": "lime",
+        "window": {
+          "title": "StandbyAndTimer",
+          "icon": "Gauge",
+          "controls": "neutral",
+          "trailing": "Admin",
+          "trailingIcon": "Lock"
+        },
+        "footer": {
+          "icon": "Cpu",
+          "badge": "MVVM"
+        }
+      },
+      "tr": {
+        "windowTrailing": "Yönetici",
+        "footerText": "NtSetTimerResolution · Win32 P/Invoke",
+        "footerBadge": "MVVM"
+      },
+      "en": {
+        "windowTrailing": "Admin",
+        "footerText": "NtSetTimerResolution · Win32 P/Invoke",
+        "footerBadge": "MVVM"
+      },
+      "modules": [
+        {
+          "id": "timer-resolution",
+          "type": "metric",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 12,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "value": "0.50",
+            "unit": "ms",
+            "icon": "Lock"
+          },
+          "tr": {
+            "label": "Timer Çözünürlüğü",
+            "status": "Kilitli"
+          },
+          "en": {
+            "label": "Timer Resolution",
+            "status": "Locked"
+          }
+        },
+        {
+          "id": "timer-memory",
+          "type": "statCard",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 6,
+              "desktopColSpan": 6,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "icon": "MemoryStick",
+            "value": "3.4 GB",
+            "progress": 82
+          },
+          "tr": {
+            "label": "Standby Bellek",
+            "caption": "temizlendi"
+          },
+          "en": {
+            "label": "Standby Memory",
+            "caption": "cleared"
+          }
+        },
+        {
+          "id": "timer-game-mode",
+          "type": "toggle",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 6,
+              "desktopColSpan": 6,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "icon": "Gamepad2",
+            "enabled": true
+          },
+          "tr": {
+            "label": "Oyun Modu",
+            "valueLabel": "Açık",
+            "caption": "Yüksek öncelik · Tam affinity"
+          },
+          "en": {
+            "label": "Game Mode",
+            "valueLabel": "On",
+            "caption": "High priority · Full affinity"
+          }
+        }
+      ]
+    },
+    {
+      "id": "eyehealth",
+      "name": "EyeHealth",
+      "shared": {
+        "accent": "lime",
+        "glow": true,
+        "window": {
+          "title": "EyeHealth",
+          "icon": "Eye",
+          "controls": "neutral",
+          "trailing": "Running"
+        },
+        "footer": {
+          "icon": "Eye",
+          "badge": "TR / EN"
+        }
+      },
+      "tr": {
+        "windowTrailing": "Aktif",
+        "footerText": "Yerel C++ · ~30 MB",
+        "footerBadge": "TR / EN"
+      },
+      "en": {
+        "windowTrailing": "Running",
+        "footerText": "Native C++ · ~30 MB",
+        "footerBadge": "TR / EN"
+      },
+      "modules": [
+        {
+          "id": "eye-next-break",
+          "type": "circularProgress",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 7,
+              "rowSpan": 3,
+              "height": "tall"
+            },
+            "value": "19:42",
+            "progress": 81,
+            "icon": "BellRing"
+          },
+          "tr": {
+            "label": "Sonraki mola",
+            "caption": "20-20-20 kuralı"
+          },
+          "en": {
+            "label": "Next break",
+            "caption": "20-20-20 rule"
+          }
+        },
+        {
+          "id": "eye-work",
+          "type": "statCard",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 6,
+              "desktopColSpan": 5,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "value": "20 min"
+          },
+          "tr": {
+            "label": "Çalışma",
+            "caption": ""
+          },
+          "en": {
+            "label": "Work",
+            "caption": ""
+          }
+        },
+        {
+          "id": "eye-break",
+          "type": "statCard",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 6,
+              "desktopColSpan": 5,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "value": "20 sec"
+          },
+          "tr": {
+            "label": "Mola",
+            "caption": ""
+          },
+          "en": {
+            "label": "Break",
+            "caption": ""
+          }
+        },
+        {
+          "id": "eye-fullscreen",
+          "type": "toggle",
+          "shared": {
+            "placement": {
+              "mobileColSpan": 12,
+              "desktopColSpan": 5,
+              "rowSpan": 1,
+              "height": "normal"
+            },
+            "icon": "Monitor",
+            "enabled": true
+          },
+          "tr": {
+            "label": "Tam ekran algılama",
+            "valueLabel": "",
+            "caption": "Sessizce ertele"
+          },
+          "en": {
+            "label": "Fullscreen detection",
+            "valueLabel": "",
+            "caption": "Postpone silently"
+          }
+        }
+      ]
+    }
+  ]
+}

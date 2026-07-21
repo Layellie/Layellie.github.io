@@ -6,6 +6,7 @@ import {
   createContext,
   useContext,
 } from "react";
+import { selectMoreGithubRepositories } from "./content/githubUrls.js";
 import {
   motion,
   AnimatePresence,
@@ -25,13 +26,8 @@ import {
   MapPin,
   Gauge,
   Cpu,
-  Database,
   Hash,
-  Binary,
   Code2,
-  Palette,
-  Layers,
-  Zap,
   ScanText,
   MemoryStick,
   Gamepad2,
@@ -45,9 +41,6 @@ import {
   Award,
   BadgeCheck,
   Calendar,
-  BrainCircuit,
-  Network,
-  Wrench,
   Languages,
   FileText,
   Linkedin,
@@ -56,741 +49,15 @@ import {
   FolderGit2,
   Users,
   Globe,
-  Bot,
-  Boxes,
   ChevronLeft,
   ChevronRight,
   Eye,
   Monitor,
   BellRing,
 } from "lucide-react";
-
-/* ================================================================== */
-/*  KİMLİK — dilden bağımsız bilgiler (linkler, e-posta vb.)           */
-/* ================================================================== */
-const IDENTITY = {
-  name: "Samet Kaşmer",
-  handle: "Layellie",
-  githubUser: "Layellie",
-  email: "sametkasmer16@gmail.com",
-  github: "https://github.com/Layellie",
-  linkedin: "https://www.linkedin.com/in/samet-ka%C5%9Fmer-0118b13b1/",
-  // GitHub API erişilemezse kullanılacak yedek değerler
-  statsFallback: { repos: 3, stars: 3, followers: 1 },
-};
-
-/* ================================================================== */
-/*  İÇERİK — iki dilli. Siteyi güncellemek için bu nesneyi düzenle.    */
-/*  Yapısal alanlar (icon, span, stack, file, github, date, code)      */
-/*  iki dilde aynı tutulmalıdır.                                       */
-/* ================================================================== */
-const CONTENT = {
-  tr: {
-    nav: {
-      about: "Hakkımda",
-      skills: "Yetenekler",
-      certificates: "Sertifikalar",
-      projects: "Projeler",
-      contact: "İletişim",
-      mail: "Mail at",
-    },
-    hero: {
-      available: "Yeni projelere açığım",
-      location: "Bursa, Türkiye",
-      role: "Full-Stack Developer & Sistem Geliştirici",
-      tagline:
-        "Sistem seviyesindeki optimizasyondan ölçeklenebilir web mimarilerine kadar; performansı ölçülebilir biçimde artıran, temiz ve sürdürülebilir yazılımlar tasarlıyorum.",
-      ctaProjects: "Projelerim",
-      ctaContact: "İletişim",
-    },
-    marquee: [
-      "C#",
-      "C++",
-      "SQL",
-      "HTML5",
-      "CSS3",
-      "Laravel",
-      "Node.js",
-      "Sistem Optimizasyonu",
-      "Donanım Geliştirme",
-      "WPF",
-      ".NET 10",
-      "WinRT",
-      "PHP",
-      "MySQL",
-      "Yapay Zeka",
-    ],
-    about: {
-      index: "01",
-      title: "Hakkımda",
-      kicker: "Yazılım & sistem geliştirme üzerine",
-      statement: [
-        "Kodun yalnızca çalışması değil; ",
-        "hızlı, verimli ve donanımla uyumlu",
-        " çalışması beni heyecanlandırıyor.",
-      ],
-      paragraphs: [
-        "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
-        "C# ve C++ ile masaüstü uygulamaları; Laravel ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
-        "Sürekli öğrenmeyi bir disiplin olarak benimsedim. BTK Akademi'de tamamladığım eğitimlerle C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar aldım; Bilgisayar Programcılığı bölümünden 3.09 genel not ortalamasıyla mezun olmaya hazırlanıyorum.",
-      ],
-      facts: [
-        { label: "Eğitim", value: "Bilgisayar Programcılığı" },
-        { label: "Okul", value: "Kütahya Teknik Bilimler MYO" },
-        { label: "Genel Ortalama", value: "3.09 / 4.00" },
-        { label: "Sertifika", value: "8 · BTK Akademi" },
-        { label: "Konum", value: "Bursa, Türkiye" },
-        { label: "Odak", value: "Full-Stack Developer" },
-      ],
-    },
-    skills: {
-      index: "02",
-      title: "Yetenekler",
-      kicker: "Diller, çatılar ve uzmanlık alanları",
-      moreLabel: "Daha Fazla",
-      focus: [
-        {
-          icon: "Gauge",
-          title: "Sistem Optimizasyonu",
-          desc: "RAM yönetimi, Standby list temizliği ve 0.5 ms timer çözünürlüğü ile düşük gecikmeli, akıcı bir sistem deneyimi.",
-          tags: ["RAM Purge", "0.5ms Timer", "Game Mode"],
-        },
-        {
-          icon: "Cpu",
-          title: "Donanım Seviyesi Geliştirme",
-          desc: "Win32 P/Invoke, kernel çağrıları ve yerel C++ modülleri ile donanıma yakın, yüksek performanslı geliştirme.",
-          tags: ["Win32 P/Invoke", "C++ Native", "Kernel API"],
-        },
-      ],
-      languages: [
-        { name: "C#", icon: "Hash", note: "WPF · .NET 10 · MVVM", span: "lg:col-span-2", certified: true },
-        { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL", certified: true },
-        { name: "SQL", icon: "Database", note: "Veri modelleme · Sorgu", certified: true },
-        { name: "HTML5", icon: "Code2", note: "Semantik · Erişilebilir" },
-        { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
-        { name: "Laravel", icon: "Layers", note: "PHP · MVC · Eloquent" },
-        { name: "Node.js", icon: "Network", note: "Express · API · Runtime" },
-      ],
-      more: [
-        {
-          group: "Diller & Veritabanı",
-          icon: "Database",
-          items: [{ name: "PHP" }, { name: "MS SQL Server" }, { name: "MySQL" }],
-        },
-        {
-          group: "Araçlar & IDE'ler",
-          icon: "Wrench",
-          items: [
-            { name: "Visual Studio 2022" },
-            { name: "Visual Studio 2026 Insiders" },
-            { name: "VS Code" },
-            { name: "CLion" },
-            { name: "Antigravity" },
-          ],
-        },
-        {
-          group: "Uzmanlık & Eğitim",
-          icon: "BrainCircuit",
-          items: [
-            { name: "Yapay Zeka & Algoritmalar", certified: true },
-            { name: "Bilgi Teknolojileri Temelleri", certified: true },
-            { name: "Üretken Yapay Zekâ", certified: true },
-            { name: "Anthropic Claude", certified: true },
-            { name: "Nesne Yönelimli Programlama (OOP)", certified: true },
-          ],
-        },
-        {
-          group: "Yabancı Dil",
-          icon: "Languages",
-          items: [{ name: "İngilizce" }],
-        },
-      ],
-    },
-    certificates: {
-      index: "04",
-      title: "Sertifikalar",
-      kicker: "BTK Akademi · doğrulanmış eğitimler ve eşleşen yetenekler",
-      verified: "Doğrulandı",
-      validates: "Doğruladığı yetenek",
-      view: "Görüntüle",
-      prev: "Önceki",
-      next: "Sonraki",
-      items: [
-        {
-          title: "C# Programlama",
-          issuer: "BTK Akademi",
-          date: "23.05.2026",
-          code: "pKmhqJKXKY",
-          skill: "C#",
-          icon: "Hash",
-          file: "/sertifikalar/csharp-programlama.pdf",
-        },
-        {
-          title: "Yapay Zeka ve Algoritmalarına Giriş",
-          issuer: "BTK Akademi",
-          date: "24.05.2026",
-          code: "Yx1h8D8laD",
-          skill: "Yapay Zeka & Algoritmalar",
-          icon: "BrainCircuit",
-          file: "/sertifikalar/yapay-zeka-algoritmalar.pdf",
-        },
-        {
-          title: "Bilgi Teknolojilerine Giriş",
-          issuer: "BTK Akademi",
-          date: "29.05.2026",
-          code: "BozfxjD1Bz",
-          skill: "BT Temelleri",
-          icon: "Network",
-          file: "/sertifikalar/bilgi-teknolojilerine-giris.pdf",
-        },
-        {
-          title: "C++ ile Programlamaya Giriş",
-          issuer: "BTK Akademi",
-          date: "13.06.2026",
-          code: "mKEhkMNx8r",
-          skill: "C++",
-          icon: "Binary",
-          file: "/sertifikalar/cpp-programlamaya-giris.pdf",
-        },
-        {
-          title: "Anthropic Claude",
-          issuer: "BTK Akademi",
-          date: "18.06.2026",
-          code: "JoNf2NxGKO",
-          skill: "Yapay Zekâ · LLM",
-          icon: "Bot",
-          file: "/sertifikalar/anthropic-claude.pdf",
-        },
-        {
-          title: "Üretken Yapay Zekâya Giriş",
-          issuer: "BTK Akademi",
-          date: "23.06.2026",
-          code: "WJ1SkP7J9V",
-          skill: "Üretken Yapay Zekâ",
-          icon: "Sparkles",
-          file: "/sertifikalar/uretken-yapay-zeka.pdf",
-        },
-        {
-          title: "Uygulamalarla Nesne Yönelimli Programlama",
-          issuer: "BTK Akademi",
-          date: "23.06.2026",
-          code: "xr4tN6bV46",
-          skill: "OOP",
-          icon: "Boxes",
-          file: "/sertifikalar/nesne-yonelimli-programlama.pdf",
-        },
-        {
-          title: "Veri Tabanına Giriş",
-          issuer: "BTK Akademi",
-          date: "23.06.2026",
-          code: "Yx1h8DOjld",
-          skill: "Veritabanı",
-          icon: "Database",
-          file: "/sertifikalar/veri-tabanina-giris.pdf",
-        },
-      ],
-    },
-    projects: {
-      index: "03",
-      title: "Projeler",
-      kicker: "Açık kaynak masaüstü & sistem araçları",
-      view: "GitHub'da İncele",
-      statusLabel: "Proje durumu",
-      stats: { repos: "Depo", stars: "Yıldız", followers: "Takipçi" },
-      contributions: "Katkı grafiği",
-      more: {
-        title: "GitHub'da daha fazlası",
-        subtitle: "Profilimden otomatik çekilen diğer açık kaynak repolar",
-        noDesc: "Açıklama eklenmemiş.",
-        viewAll: "Tüm repoları GitHub'da gör",
-      },
-      items: [
-        {
-          id: "clipboard",
-          name: "AIO-Hybrid-Clipboard",
-          type: "Açık Kaynak · Masaüstü",
-          year: "2026",
-          license: "MIT",
-          github: "https://github.com/Layellie/AIO-Hybrid-Clipboard",
-          description:
-            "C# ve C++'ı birleştiren, dahili OCR ve tersine görsel-metin aramasına sahip yıldırım hızında hibrit bir pano yöneticisi.",
-          features: [
-            "Hibrit mimari: C# WPF arayüz + C++20 yerel motor",
-            "Akıllı OCR: WinRT ile görsellerden metin çıkarma",
-            "Tersine OCR araması: görseller içinde metin bulma",
-            "Hızlı yapıştırma kısayolları (ALT+1 / 2 / 3)",
-            "Oturum kalıcılığı ve sürükle-bırak desteği",
-            "Sistem tepsisi entegrasyonu · TR / EN arayüz",
-          ],
-          status: ["v1.6.0 Yayında", "Windows", "CI/CD"],
-          stack: ["C# 12", ".NET 10", "WPF", "C++20", "WinRT", "P/Invoke"],
-        },
-        {
-          id: "standby",
-          name: "StandbyAndTimer",
-          type: "Açık Kaynak · Sistem Aracı",
-          year: "2026",
-          license: "MIT",
-          github: "https://github.com/Layellie/StandbyAndTimer",
-          description:
-            "Gelişmiş RAM temizliği ve 0.5 ms sistem timer çözünürlüğü ile giriş gecikmesini düşüren; oyuncular ve ileri kullanıcılar için bir optimizasyon aracı.",
-          features: [
-            "0.5 ms timer çözünürlüğü kilidi (NtSetTimerResolution)",
-            "Standby bellek temizliği: manuel ve otomatik",
-            "Oyun Modu: yüksek CPU önceliği ve tam affinity",
-            "Sistem tepsisi + Windows başlangıç desteği",
-            "Çift tema (açık / koyu) · TR / EN yerelleştirme",
-            "Yerleşik güncelleme denetleyici (GitHub Release)",
-          ],
-          status: ["v2.1.0 Yayında", "Windows", "Kurulum Paketi"],
-          stack: ["C#", "WPF", ".NET 10", "MVVM", "Win32 P/Invoke", "Inno Setup"],
-        },
-        {
-          id: "eyehealth",
-          name: "EyeHealth",
-          type: "Açık Kaynak · Göz Sağlığı",
-          year: "2026",
-          license: "MIT",
-          github: "https://github.com/Layellie/EyeHealth",
-          description:
-            "20-20-20 kuralını masaüstüne taşıyan; tam ekran uygulamalarını algılayan, hafif ve yerel bir Windows mola hatırlatıcısı.",
-          features: [
-            "Özelleştirilebilir çalışma ve mola süreleri",
-            "Üç modlu tam ekran algılama ve akıllı erteleme",
-            "Tüm monitörlerde geri sayımlı mola perdesi",
-            "Göz sağlığı rehberi ve ilk açılış sihirbazı",
-            "Sistem tepsisi · Windows ile başlatma · uyku algılama",
-            "Canlı dil geçişli Türkçe / İngilizce arayüz",
-          ],
-          status: ["v1.0.0 Yayında", "Testler Mevcut", "Portable"],
-          stack: ["C++20", "Qt 6.8"],
-        },
-      ],
-    },
-    contact: {
-      index: "06",
-      label: "İletişim",
-      big: ["Birlikte", "Çalışalım"],
-      blurb:
-        "Bir proje fikri, iş birliği ya da yalnızca merhaba demek için — bana bir mesaj bırak. En kısa sürede dönüş yaparım.",
-    },
-    terminal: {
-      index: "05",
-      title: "Terminal",
-      kicker: "Komut yazarak hakkımda daha fazlasını keşfet",
-      user: "ziyaretci",
-      host: "layellie",
-      welcome: "Layellie portföy terminaline hoş geldin.",
-      hint: "Başlamak için 'help' yaz · geçmiş için ↑ ↓ tuşları",
-      helpTitle: "Kullanılabilir komutlar",
-      notFound: "komut bulunamadı",
-      tryHelp: "'help' yazarak tüm komutları görebilirsin.",
-      labels: {
-        langs: "Diller & Çatılar",
-        focus: "Odak Alanları",
-        certCount: "doğrulanmış sertifika",
-        sudo: "ziyaretci sudoers dosyasında yok. Bu olay bildirilecek. 😏",
-      },
-      cmds: {
-        help: "bu menüyü gösterir",
-        whoami: "kim olduğumu gösterir",
-        about: "kısa künye & bilgiler",
-        skills: "yeteneklerimi listeler",
-        projects: "açık kaynak projelerim",
-        certs: "sertifikalarım",
-        contact: "iletişim bilgilerim",
-        social: "sosyal medya hesaplarım",
-        date: "bugünün tarihi",
-        clear: "ekranı temizler",
-      },
-    },
-    footer: { backToTop: "Başa dön ↑" },
-    cmd: {
-      placeholder: "Komut ara veya bir bölüme git…",
-      empty: "Sonuç yok",
-      goto: "Bölüm",
-      lang: "Dil",
-      copyEmail: "Kopyala",
-      open: "Aç",
-      toTop: "Başa dön",
-    },
-    mock: {
-      search: "Pano geçmişinde ara…",
-      ocrCaption: "görselden çıkarılan metin",
-      ocrEngine: "OCR Motoru · C++20 / WinRT",
-      reverse: "Tersine Arama",
-      admin: "Yönetici",
-      timerRes: "Timer Çözünürlüğü",
-      locked: "Kilitli",
-      standbyMem: "Standby Bellek",
-      cleared: "temizlendi",
-      gameMode: "Oyun Modu",
-      on: "Açık",
-      affinity: "Yüksek öncelik · Tam affinity",
-      eyeNext: "Sonraki mola",
-      eyeWork: "Çalışma",
-      eyeBreak: "Mola",
-      eyeFullscreen: "Tam ekran algılama",
-      eyePostpone: "Sessizce ertele",
-      eyeRunning: "Aktif",
-      eyeRule: "20-20-20 kuralı",
-      eyeNative: "Yerel C++ · ~30 MB",
-    },
-  },
-
-  en: {
-    nav: {
-      about: "About",
-      skills: "Skills",
-      certificates: "Certificates",
-      projects: "Projects",
-      contact: "Contact",
-      mail: "Email me",
-    },
-    hero: {
-      available: "Open to new projects",
-      location: "Bursa, Turkey",
-      role: "Full-Stack Developer & Systems Engineer",
-      tagline:
-        "From system-level optimization to scalable web architectures — I design clean, maintainable software that improves performance in measurable ways.",
-      ctaProjects: "My Work",
-      ctaContact: "Contact",
-    },
-    marquee: [
-      "C#",
-      "C++",
-      "SQL",
-      "HTML5",
-      "CSS3",
-      "Laravel",
-      "Node.js",
-      "System Optimization",
-      "Hardware Dev",
-      "WPF",
-      ".NET 10",
-      "WinRT",
-      "PHP",
-      "MySQL",
-      "AI",
-    ],
-    about: {
-      index: "01",
-      title: "About",
-      kicker: "On software & systems development",
-      statement: [
-        "What excites me isn't just code that works — it's code that runs ",
-        "fast, efficiently and in tune with the hardware",
-        ".",
-      ],
-      paragraphs: [
-        "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
-        "I build desktop applications with C# and C++, and web solutions with Laravel and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
-        "I treat learning as an ongoing discipline: through BTK Akademi I've earned verified certificates in C#, C++, databases, object-oriented programming and generative AI. I'm on track to graduate from the Computer Programming program with a 3.09 GPA.",
-      ],
-      facts: [
-        { label: "Education", value: "Computer Programming" },
-        { label: "School", value: "Kütahya Vocational School" },
-        { label: "GPA", value: "3.09 / 4.00" },
-        { label: "Certificates", value: "8 · BTK Akademi" },
-        { label: "Location", value: "Bursa, Turkey" },
-        { label: "Focus", value: "Full-Stack Developer" },
-      ],
-    },
-    skills: {
-      index: "02",
-      title: "Skills",
-      kicker: "Languages, frameworks and areas of expertise",
-      moreLabel: "More",
-      focus: [
-        {
-          icon: "Gauge",
-          title: "System Optimization",
-          desc: "A low-latency, smooth system experience through RAM management, Standby list purging and 0.5 ms timer resolution.",
-          tags: ["RAM Purge", "0.5ms Timer", "Game Mode"],
-        },
-        {
-          icon: "Cpu",
-          title: "Hardware-Level Development",
-          desc: "High-performance, close-to-the-metal development with Win32 P/Invoke, kernel calls and native C++ modules.",
-          tags: ["Win32 P/Invoke", "C++ Native", "Kernel API"],
-        },
-      ],
-      languages: [
-        { name: "C#", icon: "Hash", note: "WPF · .NET 10 · MVVM", span: "lg:col-span-2", certified: true },
-        { name: "C++", icon: "Binary", note: "C++20 · WinRT · DLL", certified: true },
-        { name: "SQL", icon: "Database", note: "Data modeling · Queries", certified: true },
-        { name: "HTML5", icon: "Code2", note: "Semantic · Accessible" },
-        { name: "CSS3", icon: "Palette", note: "Responsive · Modern UI" },
-        { name: "Laravel", icon: "Layers", note: "PHP · MVC · Eloquent" },
-        { name: "Node.js", icon: "Network", note: "Express · API · Runtime" },
-      ],
-      more: [
-        {
-          group: "Languages & Database",
-          icon: "Database",
-          items: [{ name: "PHP" }, { name: "MS SQL Server" }, { name: "MySQL" }],
-        },
-        {
-          group: "Tools & IDEs",
-          icon: "Wrench",
-          items: [
-            { name: "Visual Studio 2022" },
-            { name: "Visual Studio 2026 Insiders" },
-            { name: "VS Code" },
-            { name: "CLion" },
-            { name: "Antigravity" },
-          ],
-        },
-        {
-          group: "Expertise & Training",
-          icon: "BrainCircuit",
-          items: [
-            { name: "AI & Algorithms", certified: true },
-            { name: "IT Fundamentals", certified: true },
-            { name: "Generative AI", certified: true },
-            { name: "Anthropic Claude", certified: true },
-            { name: "Object-Oriented Programming (OOP)", certified: true },
-          ],
-        },
-        {
-          group: "Language",
-          icon: "Languages",
-          items: [{ name: "English" }],
-        },
-      ],
-    },
-    certificates: {
-      index: "04",
-      title: "Certificates",
-      kicker: "BTK Akademi · verified training mapped to skills",
-      verified: "Verified",
-      validates: "Validates",
-      view: "View",
-      prev: "Previous",
-      next: "Next",
-      items: [
-        {
-          title: "C# Programming",
-          issuer: "BTK Akademi",
-          date: "23.05.2026",
-          code: "pKmhqJKXKY",
-          skill: "C#",
-          icon: "Hash",
-          file: "/sertifikalar/csharp-programlama.pdf",
-        },
-        {
-          title: "Introduction to AI and Algorithms",
-          issuer: "BTK Akademi",
-          date: "24.05.2026",
-          code: "Yx1h8D8laD",
-          skill: "AI & Algorithms",
-          icon: "BrainCircuit",
-          file: "/sertifikalar/yapay-zeka-algoritmalar.pdf",
-        },
-        {
-          title: "Introduction to Information Technologies",
-          issuer: "BTK Akademi",
-          date: "29.05.2026",
-          code: "BozfxjD1Bz",
-          skill: "IT Fundamentals",
-          icon: "Network",
-          file: "/sertifikalar/bilgi-teknolojilerine-giris.pdf",
-        },
-        {
-          title: "Introduction to Programming with C++",
-          issuer: "BTK Akademi",
-          date: "13.06.2026",
-          code: "mKEhkMNx8r",
-          skill: "C++",
-          icon: "Binary",
-          file: "/sertifikalar/cpp-programlamaya-giris.pdf",
-        },
-        {
-          title: "Anthropic Claude",
-          issuer: "BTK Akademi",
-          date: "18.06.2026",
-          code: "JoNf2NxGKO",
-          skill: "AI · LLM",
-          icon: "Bot",
-          file: "/sertifikalar/anthropic-claude.pdf",
-        },
-        {
-          title: "Introduction to Generative AI",
-          issuer: "BTK Akademi",
-          date: "23.06.2026",
-          code: "WJ1SkP7J9V",
-          skill: "Generative AI",
-          icon: "Sparkles",
-          file: "/sertifikalar/uretken-yapay-zeka.pdf",
-        },
-        {
-          title: "Object-Oriented Programming with Applications",
-          issuer: "BTK Akademi",
-          date: "23.06.2026",
-          code: "xr4tN6bV46",
-          skill: "OOP",
-          icon: "Boxes",
-          file: "/sertifikalar/nesne-yonelimli-programlama.pdf",
-        },
-        {
-          title: "Introduction to Databases",
-          issuer: "BTK Akademi",
-          date: "23.06.2026",
-          code: "Yx1h8DOjld",
-          skill: "Databases",
-          icon: "Database",
-          file: "/sertifikalar/veri-tabanina-giris.pdf",
-        },
-      ],
-    },
-    projects: {
-      index: "03",
-      title: "Projects",
-      kicker: "Open-source desktop & system tools",
-      view: "View on GitHub",
-      statusLabel: "Project status",
-      stats: { repos: "Repos", stars: "Stars", followers: "Followers" },
-      contributions: "Contribution graph",
-      more: {
-        title: "More on GitHub",
-        subtitle: "Other open-source repos pulled automatically from my profile",
-        noDesc: "No description provided.",
-        viewAll: "View all repos on GitHub",
-      },
-      items: [
-        {
-          id: "clipboard",
-          name: "AIO-Hybrid-Clipboard",
-          type: "Open Source · Desktop",
-          year: "2026",
-          license: "MIT",
-          github: "https://github.com/Layellie/AIO-Hybrid-Clipboard",
-          description:
-            "A blazing-fast hybrid clipboard manager that fuses C# and C++, with built-in OCR and reverse image-text search.",
-          features: [
-            "Hybrid architecture: C# WPF UI + C++20 native engine",
-            "Smart OCR: text extraction from images via WinRT",
-            "Reverse OCR search: find text inside images",
-            "Quick-paste hotkeys (ALT+1 / 2 / 3)",
-            "Session persistence and drag & drop",
-            "System tray integration · TR / EN UI",
-          ],
-          status: ["v1.6.0 Released", "Windows", "CI/CD"],
-          stack: ["C# 12", ".NET 10", "WPF", "C++20", "WinRT", "P/Invoke"],
-        },
-        {
-          id: "standby",
-          name: "StandbyAndTimer",
-          type: "Open Source · System Tool",
-          year: "2026",
-          license: "MIT",
-          github: "https://github.com/Layellie/StandbyAndTimer",
-          description:
-            "An optimization tool for gamers and power users that cuts input latency with advanced RAM purging and 0.5 ms system timer resolution.",
-          features: [
-            "0.5 ms timer resolution lock (NtSetTimerResolution)",
-            "Standby memory purge: manual and automatic",
-            "Game Mode: high CPU priority and full affinity",
-            "System tray + Windows startup support",
-            "Dual themes (light / dark) · TR / EN localization",
-            "Built-in update checker (GitHub Release)",
-          ],
-          status: ["v2.1.0 Released", "Windows", "Installer"],
-          stack: ["C#", "WPF", ".NET 10", "MVVM", "Win32 P/Invoke", "Inno Setup"],
-        },
-        {
-          id: "eyehealth",
-          name: "EyeHealth",
-          type: "Open Source · Eye Care",
-          year: "2026",
-          license: "MIT",
-          github: "https://github.com/Layellie/EyeHealth",
-          description:
-            "A lightweight, native Windows break reminder that brings the 20-20-20 rule to your desktop and responds intelligently to fullscreen apps.",
-          features: [
-            "Customizable work and break durations",
-            "Three-mode fullscreen detection and smart postponing",
-            "Countdown break overlay across every monitor",
-            "Built-in eye-care guide and first-run wizard",
-            "System tray · Windows startup · sleep awareness",
-            "Live-switching English / Turkish interface",
-          ],
-          status: ["v1.0.0 Released", "Tests Available", "Portable"],
-          stack: ["C++20", "Qt 6.8"],
-        },
-      ],
-    },
-    contact: {
-      index: "06",
-      label: "Contact",
-      big: ["Let's", "Talk."],
-      blurb:
-        "Got a project idea, a collaboration, or just want to say hi? Drop me a message — I'll get back to you soon.",
-    },
-    terminal: {
-      index: "05",
-      title: "Terminal",
-      kicker: "Type commands to explore more about me",
-      user: "visitor",
-      host: "layellie",
-      welcome: "Welcome to the Layellie portfolio terminal.",
-      hint: "Type 'help' to start · use ↑ ↓ for history",
-      helpTitle: "Available commands",
-      notFound: "command not found",
-      tryHelp: "Type 'help' to see all commands.",
-      labels: {
-        langs: "Languages & Frameworks",
-        focus: "Focus Areas",
-        certCount: "verified certificates",
-        sudo: "visitor is not in the sudoers file. This incident will be reported. 😏",
-      },
-      cmds: {
-        help: "show this menu",
-        whoami: "who I am",
-        about: "short profile & facts",
-        skills: "list my skills",
-        projects: "my open-source projects",
-        certs: "my certificates",
-        contact: "my contact details",
-        social: "my social accounts",
-        date: "today's date",
-        clear: "clear the screen",
-      },
-    },
-    footer: { backToTop: "Back to top ↑" },
-    cmd: {
-      placeholder: "Search a command or jump to a section…",
-      empty: "No results",
-      goto: "Section",
-      lang: "Language",
-      copyEmail: "Copy",
-      open: "Open",
-      toTop: "Back to top",
-    },
-    mock: {
-      search: "Search clipboard history…",
-      ocrCaption: "text extracted from image",
-      ocrEngine: "OCR Engine · C++20 / WinRT",
-      reverse: "Reverse Search",
-      admin: "Admin",
-      timerRes: "Timer Resolution",
-      locked: "Locked",
-      standbyMem: "Standby Memory",
-      cleared: "cleared",
-      gameMode: "Game Mode",
-      on: "On",
-      affinity: "High priority · Full affinity",
-      eyeNext: "Next break",
-      eyeWork: "Work",
-      eyeBreak: "Break",
-      eyeFullscreen: "Fullscreen detection",
-      eyePostpone: "Postpone silently",
-      eyeRunning: "Running",
-      eyeRule: "20-20-20 rule",
-      eyeNative: "Native C++ · ~30 MB",
-    },
-  },
-};
+import ProjectVisual from "./components/project-visuals/ProjectVisual.jsx";
+import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
+import { CONTENT, IDENTITY, portfolioFiles } from "./content/loadContent.js";
 
 const SECTION_IDS = ["hakkimda", "yetenekler", "projeler", "sertifikalar", "iletisim"];
 const NAV_KEYS = [
@@ -801,25 +68,8 @@ const NAV_KEYS = [
   { key: "contact", href: "#iletisim" },
 ];
 
-const ICONS = {
-  Hash,
-  Binary,
-  Database,
-  Code2,
-  Palette,
-  Layers,
-  Zap,
-  Gauge,
-  Cpu,
-  BrainCircuit,
-  Network,
-  Wrench,
-  Languages,
-  Award,
-  Sparkles,
-  Bot,
-  Boxes,
-};
+export const SKILL_WIDTH_CLASSES = Object.freeze({ normal: "", wide: "lg:col-span-2" });
+export const skillWidthClass = (width) => SKILL_WIDTH_CLASSES[width] || "";
 
 const EASE = [0.16, 1, 0.3, 1];
 const WRAP = "mx-auto w-full max-w-[1380px] px-6 md:px-10";
@@ -1323,12 +573,11 @@ function About() {
 /*  YETENEKLER                                                         */
 /* ================================================================== */
 function FeatureCard({ item }) {
-  const Icon = ICONS[item.icon];
   return (
     <div className="group relative h-full overflow-hidden rounded-2xl border border-line bg-surface/50 p-8 transition-colors duration-500 hover:border-[#34343c]">
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-elevated text-accent transition-transform duration-500 group-hover:-rotate-6">
-          <Icon className="h-6 w-6" />
+          <SafeIcon name={item.icon} className="h-6 w-6" />
         </div>
         <ArrowUpRight className="h-5 w-5 text-faint transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-ink" />
       </div>
@@ -1349,11 +598,10 @@ function FeatureCard({ item }) {
 }
 
 function SkillTile({ item, certifiedLabel }) {
-  const Icon = ICONS[item.icon];
   return (
     <div className="group h-full rounded-2xl border border-line bg-surface/40 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-[#34343c] hover:bg-surface">
       <div className="flex items-start justify-between">
-        <Icon className="h-7 w-7 text-muted transition-colors group-hover:text-accent" />
+        <SafeIcon name={item.icon} className="h-7 w-7 text-muted transition-colors group-hover:text-accent" />
         {item.certified && (
           <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
             <BadgeCheck className="h-3 w-3" /> {certifiedLabel}
@@ -1393,7 +641,7 @@ function Skills() {
             delay={i * 0.05}
             y={0}
             x={i % 2 === 0 ? -64 : 64}
-            className={l.span || ""}
+            className={skillWidthClass(l.width)}
           >
             <SkillTile item={l} certifiedLabel={certifiedLabel} />
           </Reveal>
@@ -1407,14 +655,13 @@ function Skills() {
           </div>
           <div className="mt-6 divide-y divide-line">
             {s.more.map((g) => {
-              const GIcon = ICONS[g.icon];
               return (
                 <div
                   key={g.group}
                   className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 md:flex-row md:items-center md:gap-6"
                 >
                   <div className="flex items-center gap-2.5 md:w-56 md:shrink-0">
-                    {GIcon && <GIcon className="h-4 w-4 text-accent" />}
+                    <SafeIcon name={g.icon} className="h-4 w-4 text-accent" />
                     <span className="text-sm font-medium">{g.group}</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -1443,8 +690,7 @@ function Skills() {
 /* ================================================================== */
 /*  SERTİFİKALAR                                                       */
 /* ================================================================== */
-function CertificateCard({ cert, labels }) {
-  const Icon = ICONS[cert.icon] || Award;
+export function CertificateCard({ cert, labels }) {
   return (
     <a
       href={cert.file}
@@ -1454,7 +700,7 @@ function CertificateCard({ cert, labels }) {
     >
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-elevated text-accent">
-          <Icon className="h-6 w-6" />
+          <SafeIcon name={cert.icon} fallback="Award" className="h-6 w-6" />
         </div>
         <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent">
           <BadgeCheck className="h-3.5 w-3.5" /> {labels.verified}
@@ -1847,10 +1093,10 @@ function EyeHealthMock() {
   );
 }
 
-const VISUALS = {
-  clipboard: ClipboardMock,
-  standby: TimerMock,
-  eyehealth: EyeHealthMock,
+const LEGACY_VISUALS = {
+  "legacy-clipboard": ClipboardMock,
+  "legacy-standby": TimerMock,
+  "legacy-eyehealth": EyeHealthMock,
 };
 
 /* ================================================================== */
@@ -2035,12 +1281,17 @@ function MoreRepos({ repos, labels }) {
 /*  PROJELER                                                           */
 /* ================================================================== */
 function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
-  const Visual = VISUALS[project.id];
+  const { lang } = useLang();
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
       <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
-          {Visual && <Visual />}
+          <ProjectVisual
+            reference={project.visual}
+            presets={portfolioFiles.visuals.presets}
+            lang={lang}
+            legacyVisuals={LEGACY_VISUALS}
+          />
         </div>
 
         <div className={`lg:col-span-6 ${reverse ? "lg:order-1" : ""}`}>
@@ -2126,25 +1377,7 @@ function Projects() {
   const { stats, repos } = useGithub(IDENTITY.githubUser, IDENTITY.statsFallback);
 
   // Flagship projeler elde küratörlü; geri kalan repolar otomatik listelenir.
-  const moreRepos = useMemo(() => {
-    const featured = new Set(
-      p.items.map((it) => it.github.split("/").pop().toLowerCase())
-    );
-    return repos
-      .filter(
-        (r) =>
-          !r.fork &&
-          !r.archived &&
-          !r.name.toLowerCase().endsWith(".github.io") && // sitenin kendi reposu
-          !featured.has(r.name.toLowerCase())
-      )
-      .sort(
-        (a, b) =>
-          b.stargazers_count - a.stargazers_count ||
-          new Date(b.pushed_at) - new Date(a.pushed_at)
-      )
-      .slice(0, 6);
-  }, [repos, p.items]);
+  const moreRepos = useMemo(() => selectMoreGithubRepositories(repos, p.items), [repos, p.items]);
 
   return (
     <section id="projeler" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>

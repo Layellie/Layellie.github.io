@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "certificate-c-programlama",
+      "shared": {
+        "date": "2026-05-23",
+        "code": "pKmhqJKXKY",
+        "icon": "Hash",
+        "file": "/sertifikalar/csharp-programlama.pdf",
+        "relatedSkillId": "csharp"
+      },
+      "tr": {
+        "title": "C# Programlama",
+        "issuer": "BTK Akademi",
+        "skillLabel": "C#"
+      },
+      "en": {
+        "title": "C# Programming",
+        "issuer": "BTK Akademi",
+        "skillLabel": "C#"
+      }
+    },
+    {
+      "id": "certificate-yapay-zeka-ve-algoritmalarina-giris",
+      "shared": {
+        "date": "2026-05-24",
+        "code": "Yx1h8D8laD",
+        "icon": "BrainCircuit",
+        "file": "/sertifikalar/yapay-zeka-algoritmalar.pdf",
+        "relatedSkillId": "ai-algorithms"
+      },
+      "tr": {
+        "title": "Yapay Zeka ve Algoritmalarına Giriş",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Yapay Zeka & Algoritmalar"
+      },
+      "en": {
+        "title": "Introduction to AI and Algorithms",
+        "issuer": "BTK Akademi",
+        "skillLabel": "AI & Algorithms"
+      }
+    },
+    {
+      "id": "certificate-bilgi-teknolojilerine-giris",
+      "shared": {
+        "date": "2026-05-29",
+        "code": "BozfxjD1Bz",
+        "icon": "Network",
+        "file": "/sertifikalar/bilgi-teknolojilerine-giris.pdf",
+        "relatedSkillId": "it-fundamentals"
+      },
+      "tr": {
+        "title": "Bilgi Teknolojilerine Giriş",
+        "issuer": "BTK Akademi",
+        "skillLabel": "BT Temelleri"
+      },
+      "en": {
+        "title": "Introduction to Information Technologies",
+        "issuer": "BTK Akademi",
+        "skillLabel": "IT Fundamentals"
+      }
+    },
+    {
+      "id": "certificate-c-ile-programlamaya-giris",
+      "shared": {
+        "date": "2026-06-13",
+        "code": "mKEhkMNx8r",
+        "icon": "Binary",
+        "file": "/sertifikalar/cpp-programlamaya-giris.pdf",
+        "relatedSkillId": "cplusplus"
+      },
+      "tr": {
+        "title": "C++ ile Programlamaya Giriş",
+        "issuer": "BTK Akademi",
+        "skillLabel": "C++"
+      },
+      "en": {
+        "title": "Introduction to Programming with C++",
+        "issuer": "BTK Akademi",
+        "skillLabel": "C++"
+      }
+    },
+    {
+      "id": "certificate-anthropic-claude",
+      "shared": {
+        "date": "2026-06-18",
+        "code": "JoNf2NxGKO",
+        "icon": "Bot",
+        "file": "/sertifikalar/anthropic-claude.pdf",
+        "relatedSkillId": "anthropic-claude"
+      },
+      "tr": {
+        "title": "Anthropic Claude",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Yapay Zekâ · LLM"
+      },
+      "en": {
+        "title": "Anthropic Claude",
+        "issuer": "BTK Akademi",
+        "skillLabel": "AI · LLM"
+      }
+    },
+    {
+      "id": "certificate-uretken-yapay-zekaya-giris",
+      "shared": {
+        "date": "2026-06-23",
+        "code": "WJ1SkP7J9V",
+        "icon": "Sparkles",
+        "file": "/sertifikalar/uretken-yapay-zeka.pdf",
+        "relatedSkillId": "generative-ai"
+      },
+      "tr": {
+        "title": "Üretken Yapay Zekâya Giriş",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Üretken Yapay Zekâ"
+      },
+      "en": {
+        "title": "Introduction to Generative AI",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Generative AI"
+      }
+    },
+    {
+      "id": "certificate-uygulamalarla-nesne-yonelimli-programlama",
+      "shared": {
+        "date": "2026-06-23",
+        "code": "xr4tN6bV46",
+        "icon": "Boxes",
+        "file": "/sertifikalar/nesne-yonelimli-programlama.pdf",
+        "relatedSkillId": "oop"
+      },
+      "tr": {
+        "title": "Uygulamalarla Nesne Yönelimli Programlama",
+        "issuer": "BTK Akademi",
+        "skillLabel": "OOP"
+      },
+      "en": {
+        "title": "Object-Oriented Programming with Applications",
+        "issuer": "BTK Akademi",
+        "skillLabel": "OOP"
+      }
+    },
+    {
+      "id": "certificate-veri-tabanina-giris",
+      "shared": {
+        "date": "2026-06-23",
+        "code": "Yx1h8DOjld",
+        "icon": "Database",
+        "file": "/sertifikalar/veri-tabanina-giris.pdf",
+        "relatedSkillId": "sql"
+      },
+      "tr": {
+        "title": "Veri Tabanına Giriş",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Veritabanı"
+      },
+      "en": {
+        "title": "Introduction to Databases",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Databases"
+      }
+    }
+  ]
+}

@@ -7,7 +7,15 @@ npm-debug.log*
 node_modules
 dist
 dist-ssr
+dist-admin
 *.local
+
+# Cloudflare local state and secrets
+worker/.dev.vars
+worker/.wrangler
+.wrangler
+test-results
+playwright-report
 
 # Editor
 .vscode/*

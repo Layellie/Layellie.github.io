@@ -1,0 +1,39 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "layellie-portfolio-admin",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-18",
+  "assets": {
+    "directory": "../dist-admin",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/auth/*"]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ADMIN_STATE",
+        "class_name": "AdminSessionStore"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["AdminSessionStore"]
+    }
+  ],
+  "vars": {
+    "GITHUB_CLIENT_ID": "REPLACE_WITH_GITHUB_APP_CLIENT_ID",
+    "GITHUB_OWNER": "Layellie",
+    "GITHUB_REPOSITORY": "Layellie.github.io",
+    "GITHUB_DEFAULT_BRANCH": "main",
+    "GITHUB_ALLOWED_USER": "Layellie",
+    "GITHUB_ALLOWED_USER_ID": "REPLACE_WITH_NUMERIC_GITHUB_USER_ID",
+    "ADMIN_ORIGIN": "https://REPLACE_WITH_WORKER_ORIGIN",
+    "PUBLIC_SITE_ORIGIN": "https://layellie.github.io"
+  },
+  "observability": {
+    "enabled": false
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "clipboard",
+      "publicationStatus": "published",
+      "shared": {
+        "github": "https://github.com/Layellie/AIO-Hybrid-Clipboard",
+        "year": "2026",
+        "license": "MIT",
+        "stack": [
+          "C# 12",
+          ".NET 10",
+          "WPF",
+          "C++20",
+          "WinRT",
+          "P/Invoke"
+        ],
+        "visual": {
+          "mode": "custom",
+          "componentId": "legacy-clipboard"
+        }
+      },
+      "tr": {
+        "name": "AIO-Hybrid-Clipboard",
+        "type": "Açık Kaynak · Masaüstü",
+        "description": "C# ve C++'ı birleştiren, dahili OCR ve tersine görsel-metin aramasına sahip yıldırım hızında hibrit bir pano yöneticisi.",
+        "features": [
+          "Hibrit mimari: C# WPF arayüz + C++20 yerel motor",
+          "Akıllı OCR: WinRT ile görsellerden metin çıkarma",
+          "Tersine OCR araması: görseller içinde metin bulma",
+          "Hızlı yapıştırma kısayolları (ALT+1 / 2 / 3)",
+          "Oturum kalıcılığı ve sürükle-bırak desteği",
+          "Sistem tepsisi entegrasyonu · TR / EN arayüz"
+        ],
+        "status": [
+          "v1.6.0 Yayında",
+          "Windows",
+          "CI/CD"
+        ]
+      },
+      "en": {
+        "name": "AIO-Hybrid-Clipboard",
+        "type": "Open Source · Desktop",
+        "description": "A blazing-fast hybrid clipboard manager that fuses C# and C++, with built-in OCR and reverse image-text search.",
+        "features": [
+          "Hybrid architecture: C# WPF UI + C++20 native engine",
+          "Smart OCR: text extraction from images via WinRT",
+          "Reverse OCR search: find text inside images",
+          "Quick-paste hotkeys (ALT+1 / 2 / 3)",
+          "Session persistence and drag & drop",
+          "System tray integration · TR / EN UI"
+        ],
+        "status": [
+          "v1.6.0 Released",
+          "Windows",
+          "CI/CD"
+        ]
+      }
+    },
+    {
+      "id": "standby",
+      "publicationStatus": "published",
+      "shared": {
+        "github": "https://github.com/Layellie/StandbyAndTimer",
+        "year": "2026",
+        "license": "MIT",
+        "stack": [
+          "C#",
+          "WPF",
+          ".NET 10",
+          "MVVM",
+          "Win32 P/Invoke",
+          "Inno Setup"
+        ],
+        "visual": {
+          "mode": "custom",
+          "componentId": "legacy-standby"
+        }
+      },
+      "tr": {
+        "name": "StandbyAndTimer",
+        "type": "Açık Kaynak · Sistem Aracı",
+        "description": "Gelişmiş RAM temizliği ve 0.5 ms sistem timer çözünürlüğü ile giriş gecikmesini düşüren; oyuncular ve ileri kullanıcılar için bir optimizasyon aracı.",
+        "features": [
+          "0.5 ms timer çözünürlüğü kilidi (NtSetTimerResolution)",
+          "Standby bellek temizliği: manuel ve otomatik",
+          "Oyun Modu: yüksek CPU önceliği ve tam affinity",
+          "Sistem tepsisi + Windows başlangıç desteği",
+          "Çift tema (açık / koyu) · TR / EN yerelleştirme",
+          "Yerleşik güncelleme denetleyici (GitHub Release)"
+        ],
+        "status": [
+          "v2.1.0 Yayında",
+          "Windows",
+          "Kurulum Paketi"
+        ]
+      },
+      "en": {
+        "name": "StandbyAndTimer",
+        "type": "Open Source · System Tool",
+        "description": "An optimization tool for gamers and power users that cuts input latency with advanced RAM purging and 0.5 ms system timer resolution.",
+        "features": [
+          "0.5 ms timer resolution lock (NtSetTimerResolution)",
+          "Standby memory purge: manual and automatic",
+          "Game Mode: high CPU priority and full affinity",
+          "System tray + Windows startup support",
+          "Dual themes (light / dark) · TR / EN localization",
+          "Built-in update checker (GitHub Release)"
+        ],
+        "status": [
+          "v2.1.0 Released",
+          "Windows",
+          "Installer"
+        ]
+      }
+    },
+    {
+      "id": "eyehealth",
+      "publicationStatus": "published",
+      "shared": {
+        "github": "https://github.com/Layellie/EyeHealth",
+        "year": "2026",
+        "license": "MIT",
+        "stack": [
+          "C++20",
+          "Qt 6.8"
+        ],
+        "visual": {
+          "mode": "custom",
+          "componentId": "legacy-eyehealth"
+        }
+      },
+      "tr": {
+        "name": "EyeHealth",
+        "type": "Açık Kaynak · Göz Sağlığı",
+        "description": "20-20-20 kuralını masaüstüne taşıyan; tam ekran uygulamalarını algılayan, hafif ve yerel bir Windows mola hatırlatıcısı.",
+        "features": [
+          "Özelleştirilebilir çalışma ve mola süreleri",
+          "Üç modlu tam ekran algılama ve akıllı erteleme",
+          "Tüm monitörlerde geri sayımlı mola perdesi",
+          "Göz sağlığı rehberi ve ilk açılış sihirbazı",
+          "Sistem tepsisi · Windows ile başlatma · uyku algılama",
+          "Canlı dil geçişli Türkçe / İngilizce arayüz"
+        ],
+        "status": [
+          "v1.0.0 Yayında",
+          "Testler Mevcut",
+          "Portable"
+        ]
+      },
+      "en": {
+        "name": "EyeHealth",
+        "type": "Open Source · Eye Care",
+        "description": "A lightweight, native Windows break reminder that brings the 20-20-20 rule to your desktop and responds intelligently to fullscreen apps.",
+        "features": [
+          "Customizable work and break durations",
+          "Three-mode fullscreen detection and smart postponing",
+          "Countdown break overlay across every monitor",
+          "Built-in eye-care guide and first-run wizard",
+          "System tray · Windows startup · sleep awareness",
+          "Live-switching English / Turkish interface"
+        ],
+        "status": [
+          "v1.0.0 Released",
+          "Tests Available",
+          "Portable"
+        ]
+      }
+    }
+  ]
+}

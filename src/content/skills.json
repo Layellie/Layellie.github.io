@@ -1,0 +1,407 @@
+{
+  "schemaVersion": 1,
+  "focusAreas": [
+    {
+      "id": "focus-sistem-optimizasyonu",
+      "shared": {
+        "icon": "Gauge"
+      },
+      "tr": {
+        "title": "Sistem Optimizasyonu",
+        "description": "RAM yönetimi, Standby list temizliği ve 0.5 ms timer çözünürlüğü ile düşük gecikmeli, akıcı bir sistem deneyimi.",
+        "tags": [
+          "RAM Purge",
+          "0.5ms Timer",
+          "Game Mode"
+        ]
+      },
+      "en": {
+        "title": "System Optimization",
+        "description": "A low-latency, smooth system experience through RAM management, Standby list purging and 0.5 ms timer resolution.",
+        "tags": [
+          "RAM Purge",
+          "0.5ms Timer",
+          "Game Mode"
+        ]
+      }
+    },
+    {
+      "id": "focus-donanim-seviyesi-gelistirme",
+      "shared": {
+        "icon": "Cpu"
+      },
+      "tr": {
+        "title": "Donanım Seviyesi Geliştirme",
+        "description": "Win32 P/Invoke, kernel çağrıları ve yerel C++ modülleri ile donanıma yakın, yüksek performanslı geliştirme.",
+        "tags": [
+          "Win32 P/Invoke",
+          "C++ Native",
+          "Kernel API"
+        ]
+      },
+      "en": {
+        "title": "Hardware-Level Development",
+        "description": "High-performance, close-to-the-metal development with Win32 P/Invoke, kernel calls and native C++ modules.",
+        "tags": [
+          "Win32 P/Invoke",
+          "C++ Native",
+          "Kernel API"
+        ]
+      }
+    }
+  ],
+  "skillCards": [
+    {
+      "id": "csharp",
+      "shared": {
+        "icon": "Hash",
+        "certified": true,
+        "width": "wide"
+      },
+      "tr": {
+        "name": "C#",
+        "description": "WPF · .NET 10 · MVVM",
+        "tags": []
+      },
+      "en": {
+        "name": "C#",
+        "description": "WPF · .NET 10 · MVVM",
+        "tags": []
+      }
+    },
+    {
+      "id": "cplusplus",
+      "shared": {
+        "icon": "Binary",
+        "certified": true,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "C++",
+        "description": "C++20 · WinRT · DLL",
+        "tags": []
+      },
+      "en": {
+        "name": "C++",
+        "description": "C++20 · WinRT · DLL",
+        "tags": []
+      }
+    },
+    {
+      "id": "sql",
+      "shared": {
+        "icon": "Database",
+        "certified": true,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "SQL",
+        "description": "Veri modelleme · Sorgu",
+        "tags": []
+      },
+      "en": {
+        "name": "SQL",
+        "description": "Data modeling · Queries",
+        "tags": []
+      }
+    },
+    {
+      "id": "skill-html5",
+      "shared": {
+        "icon": "Code2",
+        "certified": false,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "HTML5",
+        "description": "Semantik · Erişilebilir",
+        "tags": []
+      },
+      "en": {
+        "name": "HTML5",
+        "description": "Semantic · Accessible",
+        "tags": []
+      }
+    },
+    {
+      "id": "skill-css3",
+      "shared": {
+        "icon": "Palette",
+        "certified": false,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "CSS3",
+        "description": "Responsive · Modern UI",
+        "tags": []
+      },
+      "en": {
+        "name": "CSS3",
+        "description": "Responsive · Modern UI",
+        "tags": []
+      }
+    },
+    {
+      "id": "skill-laravel",
+      "shared": {
+        "icon": "Layers",
+        "certified": false,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "Laravel",
+        "description": "PHP · MVC · Eloquent",
+        "tags": []
+      },
+      "en": {
+        "name": "Laravel",
+        "description": "PHP · MVC · Eloquent",
+        "tags": []
+      }
+    },
+    {
+      "id": "skill-node-js",
+      "shared": {
+        "icon": "Network",
+        "certified": false,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "Node.js",
+        "description": "Express · API · Runtime",
+        "tags": []
+      },
+      "en": {
+        "name": "Node.js",
+        "description": "Express · API · Runtime",
+        "tags": []
+      }
+    }
+  ],
+  "additionalGroups": [
+    {
+      "id": "group-diller-veritabani",
+      "shared": {
+        "icon": "Database"
+      },
+      "tr": {
+        "title": "Diller & Veritabanı"
+      },
+      "en": {
+        "title": "Languages & Database"
+      },
+      "items": [
+        {
+          "id": "extra-php",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "PHP"
+          },
+          "en": {
+            "name": "PHP"
+          }
+        },
+        {
+          "id": "extra-ms-sql-server",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "MS SQL Server"
+          },
+          "en": {
+            "name": "MS SQL Server"
+          }
+        },
+        {
+          "id": "extra-mysql",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "MySQL"
+          },
+          "en": {
+            "name": "MySQL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "group-araclar-ide-ler",
+      "shared": {
+        "icon": "Wrench"
+      },
+      "tr": {
+        "title": "Araçlar & IDE'ler"
+      },
+      "en": {
+        "title": "Tools & IDEs"
+      },
+      "items": [
+        {
+          "id": "extra-visual-studio-2022",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "Visual Studio 2022"
+          },
+          "en": {
+            "name": "Visual Studio 2022"
+          }
+        },
+        {
+          "id": "extra-visual-studio-2026-insiders",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "Visual Studio 2026 Insiders"
+          },
+          "en": {
+            "name": "Visual Studio 2026 Insiders"
+          }
+        },
+        {
+          "id": "extra-vs-code",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "VS Code"
+          },
+          "en": {
+            "name": "VS Code"
+          }
+        },
+        {
+          "id": "extra-clion",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "CLion"
+          },
+          "en": {
+            "name": "CLion"
+          }
+        },
+        {
+          "id": "extra-antigravity",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "Antigravity"
+          },
+          "en": {
+            "name": "Antigravity"
+          }
+        }
+      ]
+    },
+    {
+      "id": "group-uzmanlik-egitim",
+      "shared": {
+        "icon": "BrainCircuit"
+      },
+      "tr": {
+        "title": "Uzmanlık & Eğitim"
+      },
+      "en": {
+        "title": "Expertise & Training"
+      },
+      "items": [
+        {
+          "id": "ai-algorithms",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Yapay Zeka & Algoritmalar"
+          },
+          "en": {
+            "name": "AI & Algorithms"
+          }
+        },
+        {
+          "id": "it-fundamentals",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Bilgi Teknolojileri Temelleri"
+          },
+          "en": {
+            "name": "IT Fundamentals"
+          }
+        },
+        {
+          "id": "generative-ai",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Üretken Yapay Zekâ"
+          },
+          "en": {
+            "name": "Generative AI"
+          }
+        },
+        {
+          "id": "anthropic-claude",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Anthropic Claude"
+          },
+          "en": {
+            "name": "Anthropic Claude"
+          }
+        },
+        {
+          "id": "oop",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Nesne Yönelimli Programlama (OOP)"
+          },
+          "en": {
+            "name": "Object-Oriented Programming (OOP)"
+          }
+        }
+      ]
+    },
+    {
+      "id": "group-yabanci-dil",
+      "shared": {
+        "icon": "Languages"
+      },
+      "tr": {
+        "title": "Yabancı Dil"
+      },
+      "en": {
+        "title": "Language"
+      },
+      "items": [
+        {
+          "id": "extra-ingilizce",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "İngilizce"
+          },
+          "en": {
+            "name": "English"
+          }
+        }
+      ]
+    }
+  ]
+}

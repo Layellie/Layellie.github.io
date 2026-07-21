@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 1,
+  "shared": {
+    "identity": {
+      "name": "Samet Kaşmer",
+      "handle": "Layellie",
+      "githubUser": "Layellie",
+      "email": "sametkasmer16@gmail.com",
+      "github": "https://github.com/Layellie",
+      "linkedin": "https://www.linkedin.com/in/samet-ka%C5%9Fmer-0118b13b1/",
+      "statsFallback": {
+        "repos": 3,
+        "stars": 3,
+        "followers": 1
+      }
+    }
+  },
+  "tr": {
+    "nav": {
+      "about": "Hakkımda",
+      "skills": "Yetenekler",
+      "certificates": "Sertifikalar",
+      "projects": "Projeler",
+      "contact": "İletişim",
+      "mail": "Mail at"
+    },
+    "hero": {
+      "available": "Yeni projelere açığım",
+      "location": "Bursa, Türkiye",
+      "role": "Full-Stack Developer & Sistem Geliştirici",
+      "tagline": "Sistem seviyesindeki optimizasyondan ölçeklenebilir web mimarilerine kadar; performansı ölçülebilir biçimde artıran, temiz ve sürdürülebilir yazılımlar tasarlıyorum.",
+      "ctaProjects": "Projelerim",
+      "ctaContact": "İletişim"
+    },
+    "marquee": [
+      "C#",
+      "C++",
+      "SQL",
+      "HTML5",
+      "CSS3",
+      "Laravel",
+      "Node.js",
+      "Sistem Optimizasyonu",
+      "Donanım Geliştirme",
+      "WPF",
+      ".NET 10",
+      "WinRT",
+      "PHP",
+      "MySQL",
+      "Yapay Zeka"
+    ],
+    "about": {
+      "index": "01",
+      "title": "Hakkımda",
+      "kicker": "Yazılım & sistem geliştirme üzerine",
+      "statement": [
+        "Kodun yalnızca çalışması değil; ",
+        "hızlı, verimli ve donanımla uyumlu",
+        " çalışması beni heyecanlandırıyor."
+      ],
+      "paragraphs": [
+        "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
+        "C# ve C++ ile masaüstü uygulamaları; Laravel ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
+        "Sürekli öğrenmeyi bir disiplin olarak benimsedim. BTK Akademi'de tamamladığım eğitimlerle C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar aldım; Bilgisayar Programcılığı bölümünden 3.09 genel not ortalamasıyla mezun olmaya hazırlanıyorum."
+      ],
+      "facts": [
+        {
+          "label": "Eğitim",
+          "value": "Bilgisayar Programcılığı"
+        },
+        {
+          "label": "Okul",
+          "value": "Kütahya Teknik Bilimler MYO"
+        },
+        {
+          "label": "Genel Ortalama",
+          "value": "3.09 / 4.00"
+        },
+        {
+          "label": "Sertifika",
+          "value": "8 · BTK Akademi"
+        },
+        {
+          "label": "Konum",
+          "value": "Bursa, Türkiye"
+        },
+        {
+          "label": "Odak",
+          "value": "Full-Stack Developer"
+        }
+      ]
+    },
+    "skills": {
+      "index": "02",
+      "title": "Yetenekler",
+      "kicker": "Diller, çatılar ve uzmanlık alanları",
+      "moreLabel": "Daha Fazla"
+    },
+    "certificates": {
+      "index": "04",
+      "title": "Sertifikalar",
+      "kicker": "BTK Akademi · doğrulanmış eğitimler ve eşleşen yetenekler",
+      "verified": "Doğrulandı",
+      "validates": "Doğruladığı yetenek",
+      "view": "Görüntüle",
+      "prev": "Önceki",
+      "next": "Sonraki"
+    },
+    "projects": {
+      "index": "03",
+      "title": "Projeler",
+      "kicker": "Açık kaynak masaüstü & sistem araçları",
+      "view": "GitHub'da İncele",
+      "statusLabel": "Proje durumu",
+      "stats": {
+        "repos": "Depo",
+        "stars": "Yıldız",
+        "followers": "Takipçi"
+      },
+      "contributions": "Katkı grafiği",
+      "more": {
+        "title": "GitHub'da daha fazlası",
+        "subtitle": "Profilimden otomatik çekilen diğer açık kaynak repolar",
+        "noDesc": "Açıklama eklenmemiş.",
+        "viewAll": "Tüm repoları GitHub'da gör"
+      }
+    },
+    "contact": {
+      "index": "06",
+      "label": "İletişim",
+      "big": [
+        "Birlikte",
+        "Çalışalım"
+      ],
+      "blurb": "Bir proje fikri, iş birliği ya da yalnızca merhaba demek için — bana bir mesaj bırak. En kısa sürede dönüş yaparım."
+    },
+    "terminal": {
+      "index": "05",
+      "title": "Terminal",
+      "kicker": "Komut yazarak hakkımda daha fazlasını keşfet",
+      "user": "ziyaretci",
+      "host": "layellie",
+      "welcome": "Layellie portföy terminaline hoş geldin.",
+      "hint": "Başlamak için 'help' yaz · geçmiş için ↑ ↓ tuşları",
+      "helpTitle": "Kullanılabilir komutlar",
+      "notFound": "komut bulunamadı",
+      "tryHelp": "'help' yazarak tüm komutları görebilirsin.",
+      "labels": {
+        "langs": "Diller & Çatılar",
+        "focus": "Odak Alanları",
+        "certCount": "doğrulanmış sertifika",
+        "sudo": "ziyaretci sudoers dosyasında yok. Bu olay bildirilecek. 😏"
+      },
+      "cmds": {
+        "help": "bu menüyü gösterir",
+        "whoami": "kim olduğumu gösterir",
+        "about": "kısa künye & bilgiler",
+        "skills": "yeteneklerimi listeler",
+        "projects": "açık kaynak projelerim",
+        "certs": "sertifikalarım",
+        "contact": "iletişim bilgilerim",
+        "social": "sosyal medya hesaplarım",
+        "date": "bugünün tarihi",
+        "clear": "ekranı temizler"
+      }
+    },
+    "footer": {
+      "backToTop": "Başa dön ↑"
+    },
+    "cmd": {
+      "placeholder": "Komut ara veya bir bölüme git…",
+      "empty": "Sonuç yok",
+      "goto": "Bölüm",
+      "lang": "Dil",
+      "copyEmail": "Kopyala",
+      "open": "Aç",
+      "toTop": "Başa dön"
+    },
+    "mock": {
+      "search": "Pano geçmişinde ara…",
+      "ocrCaption": "görselden çıkarılan metin",
+      "ocrEngine": "OCR Motoru · C++20 / WinRT",
+      "reverse": "Tersine Arama",
+      "admin": "Yönetici",
+      "timerRes": "Timer Çözünürlüğü",
+      "locked": "Kilitli",
+      "standbyMem": "Standby Bellek",
+      "cleared": "temizlendi",
+      "gameMode": "Oyun Modu",
+      "on": "Açık",
+      "affinity": "Yüksek öncelik · Tam affinity",
+      "eyeNext": "Sonraki mola",
+      "eyeWork": "Çalışma",
+      "eyeBreak": "Mola",
+      "eyeFullscreen": "Tam ekran algılama",
+      "eyePostpone": "Sessizce ertele",
+      "eyeRunning": "Aktif",
+      "eyeRule": "20-20-20 kuralı",
+      "eyeNative": "Yerel C++ · ~30 MB"
+    }
+  },
+  "en": {
+    "nav": {
+      "about": "About",
+      "skills": "Skills",
+      "certificates": "Certificates",
+      "projects": "Projects",
+      "contact": "Contact",
+      "mail": "Email me"
+    },
+    "hero": {
+      "available": "Open to new projects",
+      "location": "Bursa, Turkey",
+      "role": "Full-Stack Developer & Systems Engineer",
+      "tagline": "From system-level optimization to scalable web architectures — I design clean, maintainable software that improves performance in measurable ways.",
+      "ctaProjects": "My Work",
+      "ctaContact": "Contact"
+    },
+    "marquee": [
+      "C#",
+      "C++",
+      "SQL",
+      "HTML5",
+      "CSS3",
+      "Laravel",
+      "Node.js",
+      "System Optimization",
+      "Hardware Dev",
+      "WPF",
+      ".NET 10",
+      "WinRT",
+      "PHP",
+      "MySQL",
+      "AI"
+    ],
+    "about": {
+      "index": "01",
+      "title": "About",
+      "kicker": "On software & systems development",
+      "statement": [
+        "What excites me isn't just code that works — it's code that runs ",
+        "fast, efficiently and in tune with the hardware",
+        "."
+      ],
+      "paragraphs": [
+        "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
+        "I build desktop applications with C# and C++, and web solutions with Laravel and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
+        "I treat learning as an ongoing discipline: through BTK Akademi I've earned verified certificates in C#, C++, databases, object-oriented programming and generative AI. I'm on track to graduate from the Computer Programming program with a 3.09 GPA."
+      ],
+      "facts": [
+        {
+          "label": "Education",
+          "value": "Computer Programming"
+        },
+        {
+          "label": "School",
+          "value": "Kütahya Vocational School"
+        },
+        {
+          "label": "GPA",
+          "value": "3.09 / 4.00"
+        },
+        {
+          "label": "Certificates",
+          "value": "8 · BTK Akademi"
+        },
+        {
+          "label": "Location",
+          "value": "Bursa, Turkey"
+        },
+        {
+          "label": "Focus",
+          "value": "Full-Stack Developer"
+        }
+      ]
+    },
+    "skills": {
+      "index": "02",
+      "title": "Skills",
+      "kicker": "Languages, frameworks and areas of expertise",
+      "moreLabel": "More"
+    },
+    "certificates": {
+      "index": "04",
+      "title": "Certificates",
+      "kicker": "BTK Akademi · verified training mapped to skills",
+      "verified": "Verified",
+      "validates": "Validates",
+      "view": "View",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "projects": {
+      "index": "03",
+      "title": "Projects",
+      "kicker": "Open-source desktop & system tools",
+      "view": "View on GitHub",
+      "statusLabel": "Project status",
+      "stats": {
+        "repos": "Repos",
+        "stars": "Stars",
+        "followers": "Followers"
+      },
+      "contributions": "Contribution graph",
+      "more": {
+        "title": "More on GitHub",
+        "subtitle": "Other open-source repos pulled automatically from my profile",
+        "noDesc": "No description provided.",
+        "viewAll": "View all repos on GitHub"
+      }
+    },
+    "contact": {
+      "index": "06",
+      "label": "Contact",
+      "big": [
+        "Let's",
+        "Talk."
+      ],
+      "blurb": "Got a project idea, a collaboration, or just want to say hi? Drop me a message — I'll get back to you soon."
+    },
+    "terminal": {
+      "index": "05",
+      "title": "Terminal",
+      "kicker": "Type commands to explore more about me",
+      "user": "visitor",
+      "host": "layellie",
+      "welcome": "Welcome to the Layellie portfolio terminal.",
+      "hint": "Type 'help' to start · use ↑ ↓ for history",
+      "helpTitle": "Available commands",
+      "notFound": "command not found",
+      "tryHelp": "Type 'help' to see all commands.",
+      "labels": {
+        "langs": "Languages & Frameworks",
+        "focus": "Focus Areas",
+        "certCount": "verified certificates",
+        "sudo": "visitor is not in the sudoers file. This incident will be reported. 😏"
+      },
+      "cmds": {
+        "help": "show this menu",
+        "whoami": "who I am",
+        "about": "short profile & facts",
+        "skills": "list my skills",
+        "projects": "my open-source projects",
+        "certs": "my certificates",
+        "contact": "my contact details",
+        "social": "my social accounts",
+        "date": "today's date",
+        "clear": "clear the screen"
+      }
+    },
+    "footer": {
+      "backToTop": "Back to top ↑"
+    },
+    "cmd": {
+      "placeholder": "Search a command or jump to a section…",
+      "empty": "No results",
+      "goto": "Section",
+      "lang": "Language",
+      "copyEmail": "Copy",
+      "open": "Open",
+      "toTop": "Back to top"
+    },
+    "mock": {
+      "search": "Search clipboard history…",
+      "ocrCaption": "text extracted from image",
+      "ocrEngine": "OCR Engine · C++20 / WinRT",
+      "reverse": "Reverse Search",
+      "admin": "Admin",
+      "timerRes": "Timer Resolution",
+      "locked": "Locked",
+      "standbyMem": "Standby Memory",
+      "cleared": "cleared",
+      "gameMode": "Game Mode",
+      "on": "On",
+      "affinity": "High priority · Full affinity",
+      "eyeNext": "Next break",
+      "eyeWork": "Work",
+      "eyeBreak": "Break",
+      "eyeFullscreen": "Fullscreen detection",
+      "eyePostpone": "Postpone silently",
+      "eyeRunning": "Running",
+      "eyeRule": "20-20-20 rule",
+      "eyeNative": "Native C++ · ~30 MB"
+    }
+  }
+}

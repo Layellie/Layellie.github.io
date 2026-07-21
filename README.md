@@ -19,13 +19,15 @@ Motion + Lucide React**.
 - Sticky nav with **scroll-spy**, mobile menu and a scroll progress bar
 - Subtle **falling-meteor** background animation
 - **SEO:** Open Graph / Twitter meta, JSON-LD Person schema, `sitemap.xml` & `robots.txt`
-- All content lives in a single `CONTENT` object — easy to edit
+- Versioned, Zod-validated bilingual JSON content
+- Same-origin secure admin SPA on Cloudflare Workers Static Assets
+- Modular project visual builder with three legacy-compatible presets
 
 ## Getting started
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev:site      # http://localhost:5173
 ```
 
 Production build:
@@ -53,13 +55,33 @@ npm run deploy
 > After connecting a custom domain, update `og:url`, `og:image`,
 > `twitter:image` and `canonical` in `index.html`.
 
-## Editing content
+## Content and secure admin
 
-All text, skills, projects and certificates live in the **`CONTENT`** object
-(with `tr` and `en` trees) at the top of `src/App.jsx`. Language-independent
-data (links, email) lives in **`IDENTITY`**. To add a project, append to
-`CONTENT.<lang>.projects.items`; for a custom visual, map a component by `id`
-in `VISUALS`.
+Projects, certificates, skills and project visuals live in versioned files under
+`src/content/`. Shared fields and `tr`/`en` text stay in the same record and are
+validated at runtime with Zod.
+
+The private admin SPA is served with its API from one Cloudflare Worker origin.
+GitHub OAuth tokens never reach the browser; OAuth state, sessions, exact rate
+limits and the publish lock use a SQLite Durable Object. Publishing creates one
+non-force Git commit and lets the existing Pages workflow deploy it.
+
+Setup and architecture:
+
+- [Admin setup](docs/admin-setup.md)
+- [Admin architecture and security](docs/admin-architecture.md)
+- [Implementation plan](docs/admin-implementation-plan.md)
+
+Validation commands:
+
+```bash
+npm test
+npm run test:worker
+npm run typecheck:worker
+npm run build:site
+npm run build:admin
+npm run build:worker   # Wrangler dry-run; does not deploy
+```
 
 ## Tech stack
 
@@ -70,4 +92,4 @@ in `VISUALS`.
 | Animation | Framer Motion                           |
 | Icons     | Lucide React                            |
 | Fonts     | Clash Display, General Sans (Fontshare) |
-| Hosting   | GitHub Pages (auto-deploy via Actions)  |
+| Hosting   | GitHub Pages + Cloudflare Workers Free  |
