@@ -6,6 +6,34 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://api.github.com/**", (route) => route.fulfill({ status: 403, json: {} }));
 });
 
+test("footer anonymous-analytics control toggles opt-out, localizes and is keyboard accessible", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(SITE_URL);
+  const toggle = page.getByRole("switch");
+  await toggle.scrollIntoViewIfNeeded();
+  // Default: opted in, TR.
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await expect(toggle).toContainText("Anonim analitik: Açık");
+
+  // Keyboard toggles opt-out and persists the flag.
+  await toggle.focus();
+  await expect(toggle).toBeFocused();
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  await expect(toggle).toContainText("Anonim analitik: Kapalı");
+  expect(await page.evaluate(() => localStorage.getItem("layellie.analytics.optout.v1"))).toBe("1");
+
+  // Localizes to English while keeping the current state.
+  await page.locator('[data-header-controls] button[aria-label="Dil değiştir / Switch language"]').click();
+  await expect(toggle).toContainText("Anonymous analytics: Off");
+
+  // Opting back in clears the opt-out flag so a fresh daily identity can form.
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await expect(toggle).toContainText("Anonymous analytics: On");
+  expect(await page.evaluate(() => localStorage.getItem("layellie.analytics.optout.v1"))).toBeNull();
+});
+
 test("admin access stays localized, keyboard accessible and aligned on desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(SITE_URL);

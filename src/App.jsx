@@ -59,7 +59,7 @@ import {
 import ProjectVisual from "./components/project-visuals/ProjectVisual.jsx";
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 import { CONTENT, IDENTITY, portfolioFiles, selectSkillsTicker } from "./content/loadContent.js";
-import { recordPortfolioVisit } from "./analytics/visitor.js";
+import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
 
 const SECTION_IDS = ["hakkimda", "yetenekler", "projeler", "sertifikalar", "iletisim"];
 const NAV_KEYS = [
@@ -1540,6 +1540,37 @@ function Contact() {
 /* ================================================================== */
 /*  FOOTER                                                             */
 /* ================================================================== */
+const ANALYTICS_TOGGLE_TEXT = {
+  tr: { label: "Anonim analitik", on: "Açık", off: "Kapalı", aria: "Anonim analitik ölçümünü aç veya kapat" },
+  en: { label: "Anonymous analytics", on: "On", off: "Off", aria: "Turn anonymous analytics on or off" },
+};
+
+function AnalyticsToggle() {
+  const { lang } = useLang();
+  const text = ANALYTICS_TOGGLE_TEXT[lang] || ANALYTICS_TOGGLE_TEXT.tr;
+  const [enabled, setEnabled] = useState(() => !analyticsOptedOut());
+  const toggle = () => {
+    const next = !enabled;
+    setAnalyticsOptOut(!next);
+    setEnabled(next);
+    // Opting back in mints a fresh daily identity and counts today's visit.
+    if (next) void recordPortfolioVisit();
+  };
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={text.aria}
+      onClick={toggle}
+      className={`inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs transition-colors ${NAV_ACTION_INDICATOR}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${enabled ? "bg-accent" : "bg-muted"}`} />
+      <span>{text.label}: {enabled ? text.on : text.off}</span>
+    </button>
+  );
+}
+
 function Footer() {
   const { t } = useLang();
   return (
@@ -1551,7 +1582,8 @@ function Footer() {
           © 2026 Samet Kaşmer —{" "}
           <span className="text-faint">@{IDENTITY.handle}</span>
         </span>
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-center justify-center gap-5">
+          <AnalyticsToggle />
           <a
             href={IDENTITY.github}
             target="_blank"

@@ -45,6 +45,8 @@ test("admin dashboard and builder use the portfolio visual language", async ({ p
   await expect(page.getByText("Portfolio Control")).toBeVisible();
   await expect(page.getByRole("heading", { name: /İçerik.*Görsel.*Yayın/ })).toBeVisible();
   await expect(page.getByText("Yayındaki projeler")).toBeVisible();
+  await expect(page.getByText(/Ziyaretler günlük ve anonim olarak ölçülür/)).toBeVisible();
+  await expect(page.getByText(/farklı günlerdeki kayıtlar birbirine bağlanmaz/)).toBeVisible();
   await expect(page.getByText("Durable Object publish kilidi")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("admin-dashboard-desktop.png"), fullPage: true });
 

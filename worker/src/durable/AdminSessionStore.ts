@@ -174,7 +174,9 @@ export class AdminSessionStore {
     this.state.storage.sql.exec("DELETE FROM sessions WHERE expires_at<?", now);
     this.state.storage.sql.exec("DELETE FROM publish_locks WHERE expires_at<?", now);
     this.state.storage.sql.exec("DELETE FROM rate_limits WHERE window_start<?", now - 3_600_000);
-    const cutoff = new Date(now - 90 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" });
+    // 35-day retention: covers the dashboard's 30-day window plus a small buffer,
+    // and keeps stored analytics minimal.
+    const cutoff = new Date(now - 35 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" });
     this.state.storage.sql.exec("DELETE FROM analytics_visits WHERE day<?", cutoff);
   }
 

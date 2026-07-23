@@ -1,5 +1,6 @@
 import { env, exports } from "cloudflare:workers";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { istanbulDay } from "../../src/analytics/visitor.js";
 import { portfolioFiles } from "../../src/content/loadContent.js";
 import { encryptToken, sha256 } from "../../worker/src/security/crypto.ts";
 import { TOKEN_REVOKE_TIMEOUT_MS } from "../../worker/src/github/client.ts";
@@ -125,6 +126,25 @@ describe("Worker authentication boundary", () => {
     // A second POST from the same browser/day must not inflate the counter.
     expect((await post()).status).toBe(204);
     expect(await readToday()).toBe(before + 1);
+  });
+
+  it("retains the 30-day dashboard window under the 35-day retention cutoff", async () => {
+    const session = await createSession("retention-window-owner");
+    const today = istanbulDay();
+    const within = istanbulDay(new Date(Date.now() - 29 * 86_400_000));
+    const stale = istanbulDay(new Date(Date.now() - 40 * 86_400_000));
+    await stateCall("analytics.visit", { day: today, visitorHash: "r".repeat(40), deviceCategory: "desktop" });
+    await stateCall("analytics.visit", { day: within, visitorHash: "s".repeat(40), deviceCategory: "mobile" });
+    await stateCall("analytics.visit", { day: stale, visitorHash: "t".repeat(40), deviceCategory: "desktop" });
+    const summary = (await (await stateResponse("analytics.summary", { range: "30d", day: today })).json()).value;
+    // A 29-day-old visit survives cleanup and shows in the dashboard window.
+    expect(summary.days.some((entry) => entry.day === within)).toBe(true);
+    // A 40-day-old visit is beyond retention and never counted.
+    expect(summary.days.some((entry) => entry.day === stale)).toBe(false);
+    expect(summary.total).toBeGreaterThanOrEqual(2);
+    // Reading the summary requires the owner session (kept intact).
+    const authed = await exports.default.fetch(sessionRequest("/api/admin/analytics?range=30d", session));
+    expect(authed.status).toBe(200);
   });
 
   it("rejects malformed analytics requests and does not accept foreign origins", async () => {

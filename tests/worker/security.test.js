@@ -14,7 +14,7 @@ import { portfolioFiles } from "../../src/content/loadContent.js";
 import { createProject, validatePortfolio } from "../../src/admin/data/model.js";
 import { createDraftRecord, restoreDraftRecord } from "../../src/admin/draft/storage.js";
 import { deploymentForCommit, githubFetch } from "../../worker/src/github/client.ts";
-import { decryptToken, encryptToken } from "../../worker/src/security/crypto.ts";
+import { analyticsVisitorHash, decryptToken, encryptToken } from "../../worker/src/security/crypto.ts";
 import { ConfigurationError, getConfig, parseOrigin } from "../../worker/src/security/config.ts";
 import { cookies } from "../../worker/src/security/cookies.ts";
 import { redirect } from "../../worker/src/security/responses.ts";
@@ -65,6 +65,21 @@ describe("Worker security primitives", () => {
     expect(encrypted).not.toContain(token);
     await expect(decryptToken(encrypted, config.sessionSecret)).resolves.toBe(token);
     await expect(decryptToken(encrypted, "y".repeat(40))).rejects.toThrow();
+  });
+
+  it("derives an unlinkable per-day HMAC that never stores or equals the raw UUID", async () => {
+    const uuid = "11111111-1111-4111-8111-111111111111";
+    const monday = await analyticsVisitorHash(uuid, "2026-07-23", config.sessionSecret);
+    const tuesday = await analyticsVisitorHash(uuid, "2026-07-24", config.sessionSecret);
+    // Hash, not raw identity: never equals or contains the UUID.
+    expect(monday).not.toBe(uuid);
+    expect(monday).not.toContain(uuid);
+    // Same UUID on two days yields two unlinkable hashes.
+    expect(monday).not.toBe(tuesday);
+    // Matches the Durable Object's accepted visitor_hash shape.
+    expect(monday).toMatch(/^[A-Za-z0-9_-]{32,128}$/);
+    // A different secret produces a different hash (keyed, not a plain digest).
+    expect(await analyticsVisitorHash(uuid, "2026-07-23", "z".repeat(40))).not.toBe(monday);
   });
 
   it("rejects every GitHub user except the configured immutable id and login", () => {
