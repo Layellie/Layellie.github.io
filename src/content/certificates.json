@@ -42,26 +42,6 @@
       }
     },
     {
-      "id": "new-certificate-2",
-      "shared": {
-        "date": "2026-07-15",
-        "code": "NowfnZZ6vA",
-        "icon": "Award",
-        "file": "/media/certificates/new-certificate-2/hHnFV_CCfBn-qV8L.pdf",
-        "relatedSkillId": null
-      },
-      "tr": {
-        "title": "Git ve GitHub",
-        "issuer": "BTK Akademi",
-        "skillLabel": "Git ve Github"
-      },
-      "en": {
-        "title": "Git and GitHub",
-        "issuer": "BTK Akademi",
-        "skillLabel": "Git and Github"
-      }
-    },
-    {
       "id": "certificate-c-ile-programlamaya-giris",
       "shared": {
         "date": "2026-06-13",
@@ -99,6 +79,26 @@
         "title": "C# Programming",
         "issuer": "BTK Akademi",
         "skillLabel": "C#"
+      }
+    },
+    {
+      "id": "new-certificate-2",
+      "shared": {
+        "date": "2026-07-15",
+        "code": "NowfnZZ6vA",
+        "icon": "Award",
+        "file": "/media/certificates/new-certificate-2/hHnFV_CCfBn-qV8L.pdf",
+        "relatedSkillId": null
+      },
+      "tr": {
+        "title": "Git ve GitHub",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Git ve Github"
+      },
+      "en": {
+        "title": "Git and GitHub",
+        "issuer": "BTK Akademi",
+        "skillLabel": "Git and Github"
       }
     },
     {

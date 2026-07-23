@@ -2,63 +2,6 @@
   "schemaVersion": 1,
   "items": [
     {
-      "id": "clipboard",
-      "publicationStatus": "published",
-      "shared": {
-        "github": "https://github.com/Layellie/AIO-Hybrid-Clipboard",
-        "year": "2026",
-        "license": "MIT",
-        "stack": [
-          "C# 12",
-          ".NET 10",
-          "WPF",
-          "C++20",
-          "WinRT",
-          "P/Invoke"
-        ],
-        "visual": {
-          "mode": "custom",
-          "componentId": "legacy-clipboard"
-        }
-      },
-      "tr": {
-        "name": "AIO-Hybrid-Clipboard",
-        "type": "Açık Kaynak · Masaüstü",
-        "description": "C# ve C++'ı birleştiren, dahili OCR ve tersine görsel-metin aramasına sahip yıldırım hızında hibrit bir pano yöneticisi.",
-        "features": [
-          "Hibrit mimari: C# WPF arayüz + C++20 yerel motor",
-          "Akıllı OCR: WinRT ile görsellerden metin çıkarma",
-          "Tersine OCR araması: görseller içinde metin bulma",
-          "Hızlı yapıştırma kısayolları (ALT+1 / 2 / 3)",
-          "Oturum kalıcılığı ve sürükle-bırak desteği",
-          "Sistem tepsisi entegrasyonu · TR / EN arayüz"
-        ],
-        "status": [
-          "v1.6.0 Yayında",
-          "Windows",
-          "CI/CD"
-        ]
-      },
-      "en": {
-        "name": "AIO-Hybrid-Clipboard",
-        "type": "Open Source · Desktop",
-        "description": "A blazing-fast hybrid clipboard manager that fuses C# and C++, with built-in OCR and reverse image-text search.",
-        "features": [
-          "Hybrid architecture: C# WPF UI + C++20 native engine",
-          "Smart OCR: text extraction from images via WinRT",
-          "Reverse OCR search: find text inside images",
-          "Quick-paste hotkeys (ALT+1 / 2 / 3)",
-          "Session persistence and drag & drop",
-          "System tray integration · TR / EN UI"
-        ],
-        "status": [
-          "v1.6.0 Released",
-          "Windows",
-          "CI/CD"
-        ]
-      }
-    },
-    {
       "id": "standby",
       "publicationStatus": "published",
       "shared": {
@@ -165,6 +108,63 @@
           "v1.0.0 Released",
           "Tests Available",
           "Portable"
+        ]
+      }
+    },
+    {
+      "id": "clipboard",
+      "publicationStatus": "published",
+      "shared": {
+        "github": "https://github.com/Layellie/AIO-Hybrid-Clipboard",
+        "year": "2026",
+        "license": "MIT",
+        "stack": [
+          "C# 12",
+          ".NET 10",
+          "WPF",
+          "C++20",
+          "WinRT",
+          "P/Invoke"
+        ],
+        "visual": {
+          "mode": "custom",
+          "componentId": "legacy-clipboard"
+        }
+      },
+      "tr": {
+        "name": "AIO-Hybrid-Clipboard",
+        "type": "Açık Kaynak · Masaüstü",
+        "description": "C# ve C++'ı birleştiren, dahili OCR ve tersine görsel-metin aramasına sahip yıldırım hızında hibrit bir pano yöneticisi.",
+        "features": [
+          "Hibrit mimari: C# WPF arayüz + C++20 yerel motor",
+          "Akıllı OCR: WinRT ile görsellerden metin çıkarma",
+          "Tersine OCR araması: görseller içinde metin bulma",
+          "Hızlı yapıştırma kısayolları (ALT+1 / 2 / 3)",
+          "Oturum kalıcılığı ve sürükle-bırak desteği",
+          "Sistem tepsisi entegrasyonu · TR / EN arayüz"
+        ],
+        "status": [
+          "v1.6.0 Yayında",
+          "Windows",
+          "CI/CD"
+        ]
+      },
+      "en": {
+        "name": "AIO-Hybrid-Clipboard",
+        "type": "Open Source · Desktop",
+        "description": "A blazing-fast hybrid clipboard manager that fuses C# and C++, with built-in OCR and reverse image-text search.",
+        "features": [
+          "Hybrid architecture: C# WPF UI + C++20 native engine",
+          "Smart OCR: text extraction from images via WinRT",
+          "Reverse OCR search: find text inside images",
+          "Quick-paste hotkeys (ALT+1 / 2 / 3)",
+          "Session persistence and drag & drop",
+          "System tray integration · TR / EN UI"
+        ],
+        "status": [
+          "v1.6.0 Released",
+          "Windows",
+          "CI/CD"
         ]
       }
     }
