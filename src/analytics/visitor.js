@@ -1,5 +1,5 @@
-const VISITOR_KEY = "layellie.analytics.visitor.v1";
-const DAY_KEY = "layellie.analytics.day.v1";
+export const VISITOR_KEY = "layellie.analytics.visitor.v1";
+export const DAY_KEY = "layellie.analytics.day.v1";
 const ISTANBUL = "Europe/Istanbul";
 
 export function istanbulDay(date = new Date()) {
@@ -18,8 +18,12 @@ export async function recordPortfolioVisit({ storage = globalThis.localStorage, 
       visitorId = crypto.randomUUID();
       storage.setItem(VISITOR_KEY, visitorId);
     }
+    const response = await fetcher(`${origin.replace(/\/$/, "")}/api/analytics/visit`, { method: "POST", mode: "cors", credentials: "omit", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId, schemaVersion: 1 }) });
+    // Only remember today's visit once the Worker confirmed it (204/2xx). A blocked,
+    // CORS-failed or 5xx request must retry on the next load instead of silently
+    // suppressing the count for the rest of the day.
+    if (!response?.ok) return false;
     storage.setItem(DAY_KEY, day);
-    await fetcher(`${origin.replace(/\/$/, "")}/api/analytics/visit`, { method: "POST", mode: "cors", credentials: "omit", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId, schemaVersion: 1 }) });
     return true;
   } catch { return false; }
 }

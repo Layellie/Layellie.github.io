@@ -109,6 +109,24 @@ describe("Worker authentication boundary", () => {
     expect(first.headers.get("Access-Control-Allow-Origin")).toBe("https://layellie.github.io");
   });
 
+  it("counts a POSTed visit in the admin summary read from the same Durable Object and stays idempotent", async () => {
+    const session = await createSession("analytics-visibility-owner");
+    const readToday = async () => {
+      const response = await exports.default.fetch(sessionRequest("/api/admin/analytics?range=7d", session));
+      expect(response.status).toBe(200);
+      return (await response.json()).today.uniqueVisitors;
+    };
+    const visitorId = crypto.randomUUID();
+    const post = () => exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0" }, body: JSON.stringify({ visitorId, schemaVersion: 1 }) }));
+
+    const before = await readToday();
+    expect((await post()).status).toBe(204);
+    expect(await readToday()).toBe(before + 1);
+    // A second POST from the same browser/day must not inflate the counter.
+    expect((await post()).status).toBe(204);
+    expect(await readToday()).toBe(before + 1);
+  });
+
   it("rejects malformed analytics requests and does not accept foreign origins", async () => {
     const badBody = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "not-a-uuid", schemaVersion: 1 }) }));
     expect(badBody.status).toBe(400);

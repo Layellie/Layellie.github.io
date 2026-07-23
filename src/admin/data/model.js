@@ -278,8 +278,19 @@ function collectionDiff(before, after) {
   };
 }
 
+function siteTextDiff(before, after) {
+  const changed = [];
+  for (const locale of ["tr", "en"]) {
+    if (JSON.stringify(before?.[locale]?.about) !== JSON.stringify(after?.[locale]?.about)) {
+      changed.push(`${locale}.about`);
+    }
+  }
+  return { added: [], changed, removed: [] };
+}
+
 export function createDiffSummary(base, draft) {
   return {
+    site: siteTextDiff(base.site, draft.site),
     projects: collectionDiff(base.projects.items, draft.projects.items),
     certificates: collectionDiff(base.certificates.items, draft.certificates.items),
     skills: collectionDiff(

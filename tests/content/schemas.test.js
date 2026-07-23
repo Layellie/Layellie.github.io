@@ -3,9 +3,12 @@ import certificates from "../../src/content/certificates.json";
 import projects from "../../src/content/projects.json";
 import site from "../../src/content/site.json";
 import skills from "../../src/content/skills.json";
+import visuals from "../../src/content/visuals.json";
 import {
   certificateMediaPathSchema,
   certificatesFileSchema,
+  normalizeLegacyAboutStatement,
+  parsePortfolioFiles,
   projectScreenshotPathSchema,
   projectsFileSchema,
   safeGithubUrlSchema,
@@ -120,7 +123,10 @@ describe("portfolio schemas", () => {
   it.each([
     ["an empty about section", (value) => { value.tr.about = {}; }],
     ["a missing about statement", (value) => { delete value.tr.about.statement; }],
-    ["an undersized about statement", (value) => { value.tr.about.statement = value.tr.about.statement.slice(0, 2); }],
+    ["an empty about statement list", (value) => { value.tr.about.statement = []; }],
+    ["an about statement segment missing its tone", (value) => { value.tr.about.statement = [{ text: "orphan segment" }]; }],
+    ["an about statement segment with an unknown tone", (value) => { value.tr.about.statement = [{ text: "orphan segment", tone: "rainbow" }]; }],
+    ["a legacy string about statement segment", (value) => { value.tr.about.statement = ["still a legacy string"]; }],
     ["missing about paragraphs", (value) => { delete value.en.about.paragraphs; }],
     ["missing about facts", (value) => { delete value.en.about.facts; }],
     ["a missing navigation label", (value) => { delete value.tr.nav.mail; }],
@@ -134,6 +140,36 @@ describe("portfolio schemas", () => {
     const invalid = structuredClone(site);
     mutate(invalid);
     expect(siteFileSchema.safeParse(invalid).success).toBe(false);
+  });
+
+  describe("legacy About statement migration", () => {
+    const legacyFiles = () => {
+      const files = structuredClone({ site, projects, certificates, skills, visuals });
+      files.site.tr.about.statement = ["A ", "grey", " end."];
+      files.site.en.about.statement = ["A ", "grey", " end."];
+      return files;
+    };
+
+    it("converts legacy string statements into toned segments with a grey middle", () => {
+      const normalized = normalizeLegacyAboutStatement(legacyFiles());
+      expect(normalized.site.tr.about.statement).toEqual([
+        { text: "A ", tone: "normal" },
+        { text: "grey", tone: "muted" },
+        { text: " end.", tone: "normal" },
+      ]);
+    });
+
+    it("parses a legacy document through the shared parser without text loss", () => {
+      const parsed = parsePortfolioFiles(legacyFiles());
+      expect(parsed.site.tr.about.statement.map((segment) => segment.text)).toEqual(["A ", "grey", " end."]);
+      expect(parsed.site.en.about.statement[1].tone).toBe("muted");
+    });
+
+    it("leaves already-migrated segment statements untouched", () => {
+      const files = structuredClone({ site, projects, certificates, skills, visuals });
+      const before = structuredClone(files.site.tr.about.statement);
+      expect(normalizeLegacyAboutStatement(files).site.tr.about.statement).toEqual(before);
+    });
   });
 
   it("rejects a skill ID duplicated across a card and an additional group", () => {

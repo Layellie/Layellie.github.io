@@ -76,6 +76,18 @@ export const skillWidthClass = (width) => SKILL_WIDTH_CLASSES[width] || "";
 const EASE = [0.16, 1, 0.3, 1];
 const WRAP = "mx-auto w-full max-w-[1380px] px-6 md:px-10";
 
+// Shared lime hover + keyboard-focus indicator for the primary nav actions
+// (language, email, login). Reuses the existing login control's approach so the
+// three controls stay visually identical. Tailwind v4 only applies `hover:` on
+// devices that truly support hover, so touch devices never get a stuck highlight.
+const NAV_ACTION_INDICATOR =
+  "hover:border-accent/40 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
+
+// About statement highlight tones → Tailwind colour classes. Mirrors the
+// canonical `statement[].tone` model so the admin editor and the public site
+// stay in sync. `normal` inherits the paragraph's ink colour.
+const STATEMENT_TONE_CLASS = { normal: "", muted: "text-muted", accent: "text-accent" };
+
 const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 
 /* ================================================================== */
@@ -202,7 +214,7 @@ function LangSwitch({ className = "" }) {
     <button
       onClick={() => setLang(lang === "tr" ? "en" : "tr")}
       aria-label="Dil değiştir / Switch language"
-      className={`inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors hover:bg-surface ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors ${NAV_ACTION_INDICATOR} ${className}`}
     >
       <Globe className="h-3.5 w-3.5" />
       {lang === "tr" ? "EN" : "TR"}
@@ -284,13 +296,14 @@ function Navbar() {
             href="/admin/"
             aria-label={t.nav.login}
             data-admin-login="desktop"
-            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas xl:px-4 xl:text-sm"
+            className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs text-muted transition-colors ${NAV_ACTION_INDICATOR} xl:px-4 xl:text-sm`}
           >
             <LogIn className="h-3.5 w-3.5" /> {t.nav.login}
           </a>
           <a
             href={`mailto:${IDENTITY.email}`}
-            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas xl:px-4 xl:text-sm"
+            data-nav-mail="desktop"
+            className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors ${NAV_ACTION_INDICATOR} xl:px-4 xl:text-sm`}
           >
             <Mail className="h-3.5 w-3.5" /> {t.nav.mail}
           </a>
@@ -566,9 +579,9 @@ function About() {
         <div className="lg:col-span-8">
           <Reveal>
             <p className="font-display text-[clamp(1.6rem,3.4vw,2.6rem)] leading-[1.15] tracking-tight">
-              {a.statement[0]}
-              <span className="text-muted">{a.statement[1]}</span>
-              {a.statement[2]}
+              {a.statement.map((segment, i) => (
+                <span key={i} className={STATEMENT_TONE_CLASS[segment.tone] || ""}>{segment.text}</span>
+              ))}
             </p>
           </Reveal>
 

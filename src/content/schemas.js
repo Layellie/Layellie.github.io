@@ -256,9 +256,19 @@ const heroSchema = z.object({
   ctaContact: text(120),
 });
 
+// Highlight tones the About statement segments can use. `normal` inherits the
+// default ink colour, `muted` is the existing grey emphasis and `accent` is the
+// brand lime — all already part of the site palette (no new colours invented).
+export const STATEMENT_TONES = ["normal", "muted", "accent"];
+export const statementToneSchema = z.enum(STATEMENT_TONES);
+const statementSegmentSchema = z.object({
+  text: preservedText(500),
+  tone: statementToneSchema,
+});
+
 const aboutSchema = z.object({
   ...sectionHeadingSchema,
-  statement: z.array(preservedText(500)).min(3).max(6),
+  statement: z.array(statementSegmentSchema).min(1).max(12),
   paragraphs: z.array(text(2400)).min(1).max(12),
   facts: z.array(z.object({ label: text(120), value: text(240) })).min(1).max(20),
 });
@@ -459,8 +469,25 @@ export const portfolioFilesSchema = z.object({
   visuals: visualsFileSchema,
 });
 
+export function normalizeLegacyAboutStatement(files) {
+  const site = files?.site;
+  const legacy = ["tr", "en"].some(
+    (locale) => Array.isArray(site?.[locale]?.about?.statement) && site[locale].about.statement.some((segment) => typeof segment === "string"),
+  );
+  if (!legacy) return files;
+  const normalized = structuredClone(files);
+  for (const locale of ["tr", "en"]) {
+    const statement = normalized.site?.[locale]?.about?.statement;
+    if (!Array.isArray(statement)) continue;
+    normalized.site[locale].about.statement = statement.map((segment, index) =>
+      typeof segment === "string" ? { text: segment, tone: index === 1 ? "muted" : "normal" } : segment,
+    );
+  }
+  return normalized;
+}
+
 export function parsePortfolioFiles(files) {
-  const parsed = portfolioFilesSchema.parse(normalizeLegacyListRowTones(files));
+  const parsed = portfolioFilesSchema.parse(normalizeLegacyAboutStatement(normalizeLegacyListRowTones(files)));
   const skillIds = new Set([
     ...parsed.skills.skillCards.map((item) => item.id),
     ...parsed.skills.additionalGroups.flatMap((group) => group.items.map((item) => item.id)),

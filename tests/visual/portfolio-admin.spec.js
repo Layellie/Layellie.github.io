@@ -60,6 +60,44 @@ test("admin dashboard and builder use the portfolio visual language", async ({ p
   await page.screenshot({ path: testInfo.outputPath("admin-dashboard-tablet.png"), fullPage: true });
 });
 
+test("admin Hakkımda editor opens from the sidebar and edits localized About content", async ({ page }, testInfo) => {
+  await page.route("**/api/session", (route) => route.fulfill({ json: { authenticated: true, user: { id: 12345, login: "Layellie" }, csrfToken: "about-test", expiresAt: Date.now() + 60_000 } }));
+  await page.route("**/api/content", (route) => route.fulfill({ json: { files: portfolioFiles, base: { commitSha: "0123456789abcdef0123456789abcdef01234567", blobShas: {} } } }));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("http://127.0.0.1:4174/");
+  await expect(page.getByText("Portfolio Control")).toBeVisible();
+
+  await page.getByRole("button", { name: "Hakkımda" }).click();
+  await expect(page.getByRole("heading", { name: "Hakkımda bölümünü düzenle" })).toBeVisible();
+  // Canonical TR content is loaded into the editor.
+  await expect(page.getByLabel("Başlık", { exact: true })).toHaveValue("Hakkımda");
+  const firstSegment = page.getByRole("textbox", { name: "Parça 1" });
+  await expect(firstSegment).toHaveValue(/Kodun yalnızca/);
+
+  // The live preview mirrors an edit without touching production data.
+  const preview = page.locator("[data-about-preview]");
+  await expect(preview).toBeVisible();
+  await firstSegment.fill("Denemelik giriş cümlesi");
+  await expect(preview).toContainText("Denemelik giriş cümlesi");
+
+  // Keyboard-accessible tone control keeps the current grey highlight selectable.
+  const greyTone = page.getByRole("group", { name: "Vurgu rengi" }).first().getByRole("button", { name: "Gri" });
+  await greyTone.focus();
+  await expect(greyTone).toBeFocused();
+  await page.screenshot({ path: testInfo.outputPath("admin-about-desktop.png"), fullPage: true });
+
+  // Localization mirrors the certificates/projects editors.
+  await page.getByRole("tab", { name: "English" }).click();
+  await expect(page.getByLabel("Başlık", { exact: true })).toHaveValue("About");
+
+  // Reachable through the mobile navigation drawer.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await page.getByRole("button", { name: "Menüyü aç" }).click();
+  await page.getByRole("button", { name: "Hakkımda" }).click();
+  await expect(page.getByRole("heading", { name: "Hakkımda bölümünü düzenle" })).toBeVisible();
+});
+
 test("admin reveal follows reduced-motion while preserving normal animation", async ({ page }) => {
   await page.route("**/api/session", (route) => route.fulfill({ json: { authenticated: true, user: { id: 12345, login: "Layellie" }, csrfToken: "motion-test", expiresAt: Date.now() + 60_000 } }));
   await page.route("**/api/content", (route) => route.fulfill({ json: { files: portfolioFiles, base: { commitSha: "0123456789abcdef0123456789abcdef01234567", blobShas: {} } } }));

@@ -57,6 +57,61 @@ test("admin access stays localized, keyboard accessible and aligned on desktop",
   expect(tabletHeader.scrollWidth).toBeLessThanOrEqual(tabletHeader.clientWidth);
 });
 
+test("language and email nav actions share the login lime hover/focus indicator on desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(SITE_URL);
+
+  const controls = page.locator("[data-header-controls]");
+  const login = page.locator('[data-admin-login="desktop"]');
+  const lang = controls.locator('button[aria-label="Dil değiştir / Switch language"]');
+  const mail = page.locator('[data-nav-mail="desktop"]');
+  await expect(controls).toBeVisible();
+
+  // `transition-colors` animates the hover colour, so poll until it settles
+  // before reading, otherwise we capture an intermediate value.
+  const hoverColor = async (control) => {
+    await control.hover();
+    let last = null;
+    await expect
+      .poll(async () => {
+        const color = await control.evaluate((element) => getComputedStyle(element).color);
+        const settled = color === last;
+        last = color;
+        return settled;
+      }, { timeout: 3000, intervals: [80, 80, 80, 120] })
+      .toBe(true);
+    await page.mouse.move(0, 0);
+    return last;
+  };
+
+  // Drive real keyboard navigation so `:focus-visible` reliably matches (a
+  // mouse-driven or chained programmatic focus would suppress the ring).
+  const focusViaKeyboard = async (control) => {
+    await control.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    return control.evaluate((element) => element === document.activeElement);
+  };
+
+  // Keyboard focus shows the lime ring on every primary nav action, and hover
+  // turns each control the same accent colour the login control already uses.
+  const runLanguage = async (langLabel) => {
+    for (const control of [login, lang, mail]) {
+      expect(await focusViaKeyboard(control)).toBe(true);
+      await expect(control).toBeFocused();
+      expect(await control.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe("none");
+    }
+    const accent = await hoverColor(login);
+    expect(await hoverColor(lang)).toBe(accent);
+    expect(await hoverColor(mail)).toBe(accent);
+    await expect(login).toHaveText(langLabel);
+  };
+
+  await runLanguage(/Giriş Yap/);
+  await lang.click();
+  await runLanguage(/Log in/);
+});
+
 test("mobile menu exposes a full-width localized admin access target", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(SITE_URL);

@@ -344,6 +344,33 @@ describe("Worker security primitives", () => {
     expect(result.projects.items.some((item) => item.id === deletedId)).toBe(false);
   });
 
+  it("publishes an edited About section as a canonical site.json change", async () => {
+    const snapshot = repositorySnapshot(portfolioFiles, "a");
+    const adminFiles = parseContent(portfolioFiles);
+    adminFiles.site.tr.about.title = "Hakkımda (güncel)";
+    adminFiles.site.tr.about.statement[1].tone = "accent";
+    adminFiles.site.tr.about.facts.push({ label: "Yeni etiket", value: "Yeni değer" });
+    const prepared = await preparePublication(publishPayload(adminFiles, snapshot), new FormData(), snapshot);
+    expect(prepared.changes.some((change) => change.path === "src/content/site.json")).toBe(true);
+    const result = resultingRepositoryFiles(snapshot, prepared.changes);
+    expect(result.site.tr.about.title).toBe("Hakkımda (güncel)");
+    expect(result.site.tr.about.statement[1].tone).toBe("accent");
+    expect(result.site.tr.about.facts.at(-1)).toEqual({ label: "Yeni etiket", value: "Yeni değer" });
+  });
+
+  it("preserves unknown remote fields inside the About tree when publishing a site edit", async () => {
+    const remote = structuredClone(portfolioFiles);
+    remote.site.tr.about.futureAboutMetadata = { layout: "v2" };
+    const snapshot = repositorySnapshot(remote, "a");
+    const adminFiles = parseContent(remote); // Zod strips the unknown key from the client model.
+    expect(adminFiles.site.tr.about.futureAboutMetadata).toBeUndefined();
+    adminFiles.site.tr.about.paragraphs.push("Yayınlanacak yeni paragraf");
+    const prepared = await preparePublication(publishPayload(adminFiles, snapshot), new FormData(), snapshot);
+    const result = resultingRepositoryFiles(snapshot, prepared.changes);
+    expect(result.site.tr.about.futureAboutMetadata).toEqual({ layout: "v2" });
+    expect(result.site.tr.about.paragraphs.at(-1)).toBe("Yayınlanacak yeni paragraf");
+  });
+
   it("rejects the same incomplete project when it is marked as published", async () => {
     const snapshot = repositorySnapshot(portfolioFiles, "a");
     const files = structuredClone(portfolioFiles);

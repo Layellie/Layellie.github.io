@@ -19,6 +19,9 @@ describe("legacy content migration", () => {
     const legacyCompatible = structuredClone(hydrated.content);
     for (const language of Object.values(legacyCompatible)) {
       delete language.nav.login;
+      // The About statement is now a segment model; collapse it back to the
+      // legacy plain-string form to prove no text was lost in migration.
+      language.about.statement = language.about.statement.map((segment) => segment.text);
       for (const skill of language.skills.languages) {
         if (skill.width === "wide") skill.span = "lg:col-span-2";
         delete skill.width;

@@ -55,9 +55,9 @@
       "title": "Hakkımda",
       "kicker": "Yazılım & sistem geliştirme üzerine",
       "statement": [
-        "Kodun yalnızca çalışması değil; ",
-        "hızlı, verimli ve donanımla uyumlu",
-        " çalışması beni heyecanlandırıyor."
+        { "text": "Kodun yalnızca çalışması değil; ", "tone": "normal" },
+        { "text": "hızlı, verimli ve donanımla uyumlu", "tone": "muted" },
+        { "text": " çalışması beni heyecanlandırıyor.", "tone": "normal" }
       ],
       "paragraphs": [
         "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
@@ -240,9 +240,9 @@
       "title": "About",
       "kicker": "On software & systems development",
       "statement": [
-        "What excites me isn't just code that works — it's code that runs ",
-        "fast, efficiently and in tune with the hardware",
-        "."
+        { "text": "What excites me isn't just code that works — it's code that runs ", "tone": "normal" },
+        { "text": "fast, efficiently and in tune with the hardware", "tone": "muted" },
+        { "text": ".", "tone": "normal" }
       ],
       "paragraphs": [
         "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",

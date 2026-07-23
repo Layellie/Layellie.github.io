@@ -227,7 +227,6 @@ export async function preparePublication(payload: PublishPayload, form: FormData
   if (conflictingPaths.length) throw httpError(409, "CONTENT_CONFLICT", "Uzak içerik düzenleme sırasında değişti; sessizce üzerine yazılmadı.", { paths: conflictingPaths });
   const remoteModel = parseContent(snapshot.rawFiles);
   let files = validatePublicationPayload(payload);
-  if (!jsonValuesEqual(files.site, remoteModel.site)) throw httpError(403, "SITE_CONTENT_READ_ONLY", "Bu panel sürümünde genel site metinleri salt okunurdur.");
 
   const mediaChanges: GitChange[] = [];
   const manifests = payload.media || [];
@@ -259,7 +258,7 @@ export async function preparePublication(payload: PublishPayload, form: FormData
   const commitFiles = preserveRemoteExtensions(snapshot.rawFiles, remoteModel, files) as any;
   validatePublicationByteLimits({ jsonBytes: jsonByteUsage(commitFiles), mediaBytes: manifests.map((manifest) => manifest.size) });
   const changes: GitChange[] = [];
-  for (const key of ["projects", "certificates", "skills", "visuals"] as const) {
+  for (const key of ["site", "projects", "certificates", "skills", "visuals"] as const) {
     const content = `${JSON.stringify(commitFiles[key], null, 2)}\n`;
     if (!jsonValuesEqual(commitFiles[key], snapshot.rawFiles[key])) changes.push({ path: CONTENT_PATHS[key], content });
   }
