@@ -24,13 +24,13 @@
     }
   ],
   "vars": {
-    "GITHUB_CLIENT_ID": "REPLACE_WITH_GITHUB_APP_CLIENT_ID",
+    "GITHUB_CLIENT_ID": "Iv23li29QsF89jcQHcom",
     "GITHUB_OWNER": "Layellie",
     "GITHUB_REPOSITORY": "Layellie.github.io",
     "GITHUB_DEFAULT_BRANCH": "main",
     "GITHUB_ALLOWED_USER": "Layellie",
-    "GITHUB_ALLOWED_USER_ID": "REPLACE_WITH_NUMERIC_GITHUB_USER_ID",
-    "ADMIN_ORIGIN": "https://REPLACE_WITH_WORKER_ORIGIN",
+    "GITHUB_ALLOWED_USER_ID": "185601433",
+    "ADMIN_ORIGIN": "https://layellie-portfolio-admin.sametkasmer16.workers.dev",
     "PUBLIC_SITE_ORIGIN": "https://layellie.github.io"
   },
   "observability": {
