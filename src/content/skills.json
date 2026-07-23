@@ -74,7 +74,7 @@
       "shared": {
         "icon": "Binary",
         "certified": true,
-        "width": "normal"
+        "width": "wide"
       },
       "tr": {
         "name": "C++",
@@ -84,24 +84,6 @@
       "en": {
         "name": "C++",
         "description": "C++20 · WinRT · DLL",
-        "tags": []
-      }
-    },
-    {
-      "id": "new-skill",
-      "shared": {
-        "icon": "Eye",
-        "certified": true,
-        "width": "normal"
-      },
-      "tr": {
-        "name": "Siber Güvenlik",
-        "description": "Veri Gizliliği  · Veri Güvenliği  · Tehlikeler",
-        "tags": []
-      },
-      "en": {
-        "name": "Cybersecurity",
-        "description": "Data Privacy · Data Security · Threats",
         "tags": []
       }
     },
@@ -160,24 +142,6 @@
       }
     },
     {
-      "id": "skill-laravel",
-      "shared": {
-        "icon": "Layers",
-        "certified": false,
-        "width": "normal"
-      },
-      "tr": {
-        "name": "Laravel",
-        "description": "PHP · MVC · Eloquent",
-        "tags": []
-      },
-      "en": {
-        "name": "Laravel",
-        "description": "PHP · MVC · Eloquent",
-        "tags": []
-      }
-    },
-    {
       "id": "skill-node-js",
       "shared": {
         "icon": "Network",
@@ -192,6 +156,42 @@
       "en": {
         "name": "Node.js",
         "description": "Express · API · Runtime",
+        "tags": []
+      }
+    },
+    {
+      "id": "new-skill",
+      "shared": {
+        "icon": "Eye",
+        "certified": true,
+        "width": "wide"
+      },
+      "tr": {
+        "name": "Siber Güvenlik",
+        "description": "Veri Gizliliği  · Veri Güvenliği  · Tehlikeler",
+        "tags": []
+      },
+      "en": {
+        "name": "Cybersecurity",
+        "description": "Data Privacy · Data Security · Threats",
+        "tags": []
+      }
+    },
+    {
+      "id": "new-skill-4",
+      "shared": {
+        "icon": "Info",
+        "certified": true,
+        "width": "wide"
+      },
+      "tr": {
+        "name": "Git ve Github",
+        "description": "Sürüm Kontrolü · Branch Yönetimi · GitHub Actions",
+        "tags": []
+      },
+      "en": {
+        "name": "Git and Github",
+        "description": "Version Control · Branch Management · GitHub Actions",
         "tags": []
       }
     }
@@ -346,6 +346,30 @@
       },
       "items": [
         {
+          "id": "oop",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Nesne Yönelimli Programlama (OOP)"
+          },
+          "en": {
+            "name": "Object-Oriented Programming (OOP)"
+          }
+        },
+        {
+          "id": "new-skill-2",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Siber Güvenlik"
+          },
+          "en": {
+            "name": "Cybersecurity"
+          }
+        },
+        {
           "id": "ai-algorithms",
           "shared": {
             "certified": true
@@ -355,18 +379,6 @@
           },
           "en": {
             "name": "AI & Algorithms"
-          }
-        },
-        {
-          "id": "it-fundamentals",
-          "shared": {
-            "certified": true
-          },
-          "tr": {
-            "name": "Bilgi Teknolojileri Temelleri"
-          },
-          "en": {
-            "name": "IT Fundamentals"
           }
         },
         {
@@ -394,27 +406,15 @@
           }
         },
         {
-          "id": "oop",
+          "id": "it-fundamentals",
           "shared": {
             "certified": true
           },
           "tr": {
-            "name": "Nesne Yönelimli Programlama (OOP)"
+            "name": "Bilgi Teknolojileri Temelleri"
           },
           "en": {
-            "name": "Object-Oriented Programming (OOP)"
-          }
-        },
-        {
-          "id": "new-skill-2",
-          "shared": {
-            "certified": true
-          },
-          "tr": {
-            "name": "Siber Güvenlik"
-          },
-          "en": {
-            "name": "Cybersecurity"
+            "name": "IT Fundamentals"
           }
         }
       ]
