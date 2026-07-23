@@ -88,6 +88,24 @@
       }
     },
     {
+      "id": "new-skill",
+      "shared": {
+        "icon": "Eye",
+        "certified": true,
+        "width": "normal"
+      },
+      "tr": {
+        "name": "Siber Güvenlik",
+        "description": "Veri Gizliliği  · Veri Güvenliği  · Tehlikeler",
+        "tags": []
+      },
+      "en": {
+        "name": "Cybersecurity",
+        "description": "Data Privacy · Data Security · Threats",
+        "tags": []
+      }
+    },
+    {
       "id": "sql",
       "shared": {
         "icon": "Database",
@@ -300,6 +318,18 @@
           "en": {
             "name": "Antigravity"
           }
+        },
+        {
+          "id": "new-skill-3",
+          "shared": {
+            "certified": false
+          },
+          "tr": {
+            "name": "Claude Code"
+          },
+          "en": {
+            "name": "Claude Code"
+          }
         }
       ]
     },
@@ -373,6 +403,18 @@
           },
           "en": {
             "name": "Object-Oriented Programming (OOP)"
+          }
+        },
+        {
+          "id": "new-skill-2",
+          "shared": {
+            "certified": true
+          },
+          "tr": {
+            "name": "Siber Güvenlik"
+          },
+          "en": {
+            "name": "Cybersecurity"
           }
         }
       ]
