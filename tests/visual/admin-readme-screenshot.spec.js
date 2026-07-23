@@ -87,7 +87,7 @@ test("README dashboard capture is deterministic and uses only local mock authent
   await expect(page.getByText("Yetenek kartları")).toBeVisible();
   await expect(page.getByText("Görsel presetleri")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Proje görünümü" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Yayın güvenliği" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ziyaret analitiği" })).toBeVisible();
   await expect(page.getByText("@Layellie")).toBeVisible();
 
   await page.evaluate(async () => {

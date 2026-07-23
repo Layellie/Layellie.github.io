@@ -16,6 +16,15 @@ describe("AdminApp", () => {
     expect(screen.getByText("Portfolio Control")).toBeTruthy();
     expect(screen.getByRole("heading", { name: /İçerik.*Görsel.*Yayın/ })).toBeTruthy();
     expect(screen.getByText("Yayındaki projeler")).toBeTruthy();
+    expect(screen.getByText("Ziyaret analitiği")).toBeTruthy();
+    // Publish-safety checklist moved to the Publish Center, not the dashboard.
+    expect(screen.queryByText("Durable Object publish kilidi")).toBeNull();
+  });
+
+  it("relocates the publish-safety checklist into the publish center", () => {
+    render(<AdminApp initialSession={session} initialContent={content} />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Doğrula & yayınla" })[0]);
+    expect(screen.getByRole("heading", { name: "Yayın güvenliği" })).toBeTruthy();
     expect(screen.getByText("Durable Object publish kilidi")).toBeTruthy();
   });
 

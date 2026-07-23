@@ -47,7 +47,9 @@ test("admin dashboard and builder use the portfolio visual language", async ({ p
   await expect(page.getByText("Yayındaki projeler")).toBeVisible();
   await expect(page.getByText(/Ziyaretler günlük ve anonim olarak ölçülür/)).toBeVisible();
   await expect(page.getByText(/farklı günlerdeki kayıtlar birbirine bağlanmaz/)).toBeVisible();
-  await expect(page.getByText("Durable Object publish kilidi")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ziyaret analitiği" })).toBeVisible();
+  // Publish-safety checklist moved off the dashboard into the Publish Center.
+  await expect(page.getByText("Durable Object publish kilidi")).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath("admin-dashboard-desktop.png"), fullPage: true });
 
   await page.getByRole("button", { name: "Görsel oluşturucu" }).click();
@@ -60,6 +62,26 @@ test("admin dashboard and builder use the portfolio visual language", async ({ p
   await page.reload();
   await expect(page.getByText("Portfolio Control")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("admin-dashboard-tablet.png"), fullPage: true });
+});
+
+test("publish center keeps the send button in view above the relocated safety panel", async ({ page }) => {
+  await page.route("**/api/session", (route) => route.fulfill({ json: { authenticated: true, user: { id: 12345, login: "Layellie" }, csrfToken: "publish-layout", expiresAt: Date.now() + 60_000 } }));
+  await page.route("**/api/content", (route) => route.fulfill({ json: { files: portfolioFiles, base: { commitSha: "0123456789abcdef0123456789abcdef01234567", blobShas: {} } } }));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("http://127.0.0.1:4174/");
+  await page.getByRole("button", { name: "Doğrula & yayınla" }).click();
+
+  const send = page.getByRole("button", { name: /GitHub.a gönder ve yayınla/ });
+  await expect(send).toBeVisible();
+  // The user must see the send button without scrolling the page.
+  await expect(send).toBeInViewport();
+
+  // The publish-safety checklist now lives here, below the send button.
+  const safety = page.getByText("Durable Object publish kilidi");
+  await expect(safety).toBeVisible();
+  const sendBox = await send.boundingBox();
+  const safetyBox = await safety.boundingBox();
+  expect(safetyBox.y).toBeGreaterThan(sendBox.y);
 });
 
 test("admin Hakkımda editor opens from the sidebar and edits localized About content", async ({ page }, testInfo) => {
