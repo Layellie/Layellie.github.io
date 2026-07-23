@@ -22,6 +22,26 @@
       }
     },
     {
+      "id": "new-certificate-3",
+      "shared": {
+        "date": "2026-07-23",
+        "code": "41952ce4-30bd-498f-b2c6-51b9a080d30e",
+        "icon": "Award",
+        "file": "/media/certificates/new-certificate-3/oadvGriKIPpOpUZ4.pdf",
+        "relatedSkillId": "new-skill-2"
+      },
+      "tr": {
+        "title": "Siber Güvenlik Temelleri",
+        "issuer": "IBM SkillsBuild",
+        "skillLabel": "Siber Güvenlik"
+      },
+      "en": {
+        "title": "Cybersecurity Fundamentals",
+        "issuer": "IBM SkillsBuild",
+        "skillLabel": "Cybersecurity"
+      }
+    },
+    {
       "id": "new-certificate-2",
       "shared": {
         "date": "2026-07-15",
