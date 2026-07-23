@@ -83,6 +83,66 @@ npm run build:admin
 npm run build:worker   # Wrangler dry-run; does not deploy
 ```
 
+## Portfolio Admin & Publishing Backend
+
+![Portfolio admin dashboard with content counters, project overview, and publishing security controls](docs/assets/portfolio-admin-dashboard.png)
+
+This is not a ready-made CMS or a Decap CMS integration. It is a custom,
+GitHub-backed administration and publishing system built specifically for this
+portfolio. The public portfolio runs on GitHub Pages, while its content remains
+in version-controlled JSON files.
+
+The admin interface is delivered through Cloudflare Worker Static Assets. The
+Worker provides the authentication, validation and publish API boundary, with a
+SQLite Durable Object used only for server-side session, OAuth state,
+rate-limit and publish-lock state. Through a narrowly scoped GitHub App, the
+admin commits content only to the permitted portfolio repository. GitHub
+Actions validates that commit before deploying the public site to GitHub Pages.
+
+Highlights include:
+
+- Projects, certificates and skills CRUD
+- Modular project visual builder and reusable visual presets
+- Live responsive previews
+- Local IndexedDB drafts with undo/redo
+- Drag-and-drop ordering
+- Canonical Zod content validation
+- Media MIME, extension and magic-byte verification
+- GitHub App OAuth owner authorization
+- Atomic GitHub commits
+- SHA conflict detection and three-way merge protection
+- GitHub Actions validation and GitHub Pages deployment
+- Responsive and reduced-motion-aware admin interface
+
+### Architecture
+
+```mermaid
+flowchart LR
+    owner[Portfolio Owner] --> admin[Admin UI]
+    admin --> worker[Cloudflare Worker]
+    worker --> app[GitHub App]
+    app --> repo[GitHub Repository]
+    repo --> actions[GitHub Actions]
+    actions --> pages[GitHub Pages]
+    pages --> portfolio[Public Portfolio]
+```
+
+### Security design
+
+The GitHub App uses minimum repository permissions and its installation is
+limited to the portfolio repository. Owner authorization combines a username
+allowlist with an immutable numeric GitHub ID allowlist. OAuth state and PKCE,
+CSRF and exact-origin validation, and HttpOnly, Secure and SameSite cookies
+protect the browser boundary.
+
+GitHub tokens are encrypted in server-side storage and sessions are
+short-lived. API rate limiting, canonical server-side validation, atomic
+commits, SHA conflict detection and merge protection reduce publishing risk.
+No credentials are stored in this repository. See
+[admin architecture and security](docs/admin-architecture.md) and the
+[admin setup guide](docs/admin-setup.md) for the complete design and operating
+procedure.
+
 ## Tech stack
 
 | Layer     | Technology                              |

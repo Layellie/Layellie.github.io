@@ -27,6 +27,7 @@ describe("legacy content migration", () => {
     expect(hydrated.identity).toEqual(legacy.identity);
     const legacyCompatible = structuredClone(hydrated.content);
     for (const language of Object.values(legacyCompatible)) {
+      delete language.nav.login;
       for (const skill of language.skills.languages) {
         if (skill.width === "wide") skill.span = "lg:col-span-2";
         delete skill.width;

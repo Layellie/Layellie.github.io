@@ -60,8 +60,9 @@ function toIsoDate(value) {
   return `${match[3]}-${match[2]}-${match[1]}`;
 }
 
-function withoutManagedCollections(languageContent) {
+function withoutManagedCollections(languageContent, locale) {
   const result = structuredClone(languageContent);
+  result.nav.login ||= locale === "tr" ? "Giriş Yap" : "Log in";
   delete result.skills.focus;
   delete result.skills.languages;
   delete result.skills.more;
@@ -213,8 +214,8 @@ export function migrateLegacyContent({ identity, content }) {
     site: {
       schemaVersion: 1,
       shared: { identity },
-      tr: withoutManagedCollections(tr),
-      en: withoutManagedCollections(en),
+      tr: withoutManagedCollections(tr, "tr"),
+      en: withoutManagedCollections(en, "en"),
     },
     projects: { schemaVersion: 1, items: projects },
     certificates: { schemaVersion: 1, items: certificates },

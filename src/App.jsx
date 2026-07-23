@@ -44,6 +44,7 @@ import {
   Languages,
   FileText,
   Linkedin,
+  LogIn,
   Sparkles,
   Star,
   FolderGit2,
@@ -245,14 +246,14 @@ function Navbar() {
           </span>
         </a>
 
-        <div className="hidden items-center gap-8 md:flex">
+        <div data-header-controls className="hidden min-w-0 items-center gap-3 xl:flex 2xl:gap-6">
           {NAV_KEYS.map((n) => {
             const isActive = active === n.href.slice(1);
             return (
               <a
                 key={n.href}
                 href={n.href}
-                className={`relative text-sm transition-colors ${
+                className={`relative whitespace-nowrap text-xs transition-colors 2xl:text-sm ${
                   isActive ? "text-ink" : "text-muted hover:text-ink"
                 }`}
               >
@@ -270,7 +271,7 @@ function Navbar() {
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("toggle-cmdk"))}
             aria-label={t.cmd.placeholder}
-            className="hidden items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:bg-surface lg:inline-flex"
+            className="hidden items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:bg-surface 2xl:inline-flex"
           >
             <Search className="h-3.5 w-3.5" />
             <kbd className="font-mono text-[10px] tracking-wide">
@@ -279,14 +280,22 @@ function Navbar() {
           </button>
           <LangSwitch />
           <a
+            href="/admin/"
+            aria-label={t.nav.login}
+            data-admin-login="desktop"
+            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas xl:px-4 xl:text-sm"
+          >
+            <LogIn className="h-3.5 w-3.5" /> {t.nav.login}
+          </a>
+          <a
             href={`mailto:${IDENTITY.email}`}
-            className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm transition-colors hover:bg-surface"
+            className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas xl:px-4 xl:text-sm"
           >
             <Mail className="h-3.5 w-3.5" /> {t.nav.mail}
           </a>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
           <LangSwitch />
           <button
             onClick={() => setOpen(true)}
@@ -302,11 +311,12 @@ function Navbar() {
       <AnimatePresence>
         {open && (
           <motion.div
+            data-mobile-menu
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[70] flex flex-col bg-canvas md:hidden"
+            className="fixed inset-0 z-[70] flex flex-col bg-canvas xl:hidden"
           >
             <div className={`${WRAP} flex h-16 items-center justify-between`}>
               <span className="font-display font-medium">Laye77ie</span>
@@ -333,7 +343,9 @@ function Navbar() {
                 </motion.a>
               ))}
               <motion.a
-                href={`mailto:${IDENTITY.email}`}
+                href="/admin/"
+                aria-label={t.nav.login}
+                data-admin-login="mobile"
                 onClick={() => setOpen(false)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -342,7 +354,21 @@ function Navbar() {
                   ease: EASE,
                   duration: 0.5,
                 }}
-                className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-ink px-5 py-3 text-base text-canvas"
+                className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-5 py-3 text-base font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
+              >
+                <LogIn className="h-4 w-4" /> {t.nav.login}
+              </motion.a>
+              <motion.a
+                href={`mailto:${IDENTITY.email}`}
+                onClick={() => setOpen(false)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.16 + NAV_KEYS.length * 0.06,
+                  ease: EASE,
+                  duration: 0.5,
+                }}
+                className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-base text-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
               >
                 <Mail className="h-4 w-4" /> {IDENTITY.email}
               </motion.a>

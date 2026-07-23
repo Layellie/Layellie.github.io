@@ -243,6 +243,7 @@ const navigationSchema = z.object({
   certificates: text(80),
   projects: text(80),
   contact: text(80),
+  login: text(80),
   mail: text(80),
 });
 
