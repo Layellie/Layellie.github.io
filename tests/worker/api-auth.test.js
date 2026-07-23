@@ -97,6 +97,32 @@ afterEach(() => {
 });
 
 describe("Worker authentication boundary", () => {
+  it("records a browser visit idempotently without exposing analytics data", async () => {
+    const visitorId = "11111111-1111-4111-8111-111111111111";
+    const request = () => new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0" }, body: JSON.stringify({ visitorId, schemaVersion: 1 }) });
+    const first = await exports.default.fetch(request());
+    const second = await exports.default.fetch(request());
+    expect(first.status).toBe(204);
+    expect(await first.text()).toBe("");
+    expect(second.status).toBe(204);
+    expect(first.headers.get("Cache-Control")).toBe("no-store");
+    expect(first.headers.get("Access-Control-Allow-Origin")).toBe("https://layellie.github.io");
+  });
+
+  it("rejects malformed analytics requests and does not accept foreign origins", async () => {
+    const badBody = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "not-a-uuid", schemaVersion: 1 }) }));
+    expect(badBody.status).toBe(400);
+    const foreign = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://evil.example", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "11111111-1111-4111-8111-111111111111", schemaVersion: 1 }) }));
+    expect(foreign.status).toBe(403);
+  });
+
+  it("protects admin analytics behind the existing owner session", async () => {
+    expect((await exports.default.fetch(new Request("https://admin.test/api/admin/analytics?range=7d"))).status).toBe(401);
+    const session = await createSession("analytics-owner");
+    const response = await exports.default.fetch(sessionRequest("/api/admin/analytics?range=7d", session));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ range: "7d", today: { uniqueVisitors: expect.any(Number) } });
+  });
   it("returns malformed origin configuration as CONFIGURATION_ERROR without leaking its value", async () => {
     const invalidValue = "not-a-url-sensitive-value";
     const response = await worker.fetch(new Request("https://admin.test/api/session"), { ...env, ADMIN_ORIGIN: invalidValue });

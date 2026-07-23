@@ -58,7 +58,8 @@ import {
 } from "lucide-react";
 import ProjectVisual from "./components/project-visuals/ProjectVisual.jsx";
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
-import { CONTENT, IDENTITY, portfolioFiles } from "./content/loadContent.js";
+import { CONTENT, IDENTITY, portfolioFiles, selectSkillsTicker } from "./content/loadContent.js";
+import { recordPortfolioVisit } from "./analytics/visitor.js";
 
 const SECTION_IDS = ["hakkimda", "yetenekler", "projeler", "sertifikalar", "iletisim"];
 const NAV_KEYS = [
@@ -526,18 +527,24 @@ function Hero() {
 /* ================================================================== */
 function Marquee() {
   const { t } = useLang();
-  const row = [...t.marquee, ...t.marquee];
+  const items = useMemo(() => selectSkillsTicker(t.skills), [t.skills]);
+  if (!items.length) return null;
   return (
-    <div className="relative overflow-hidden border-y border-line py-5">
-      <div className="flex w-max animate-marquee items-center gap-10 will-change-transform">
-        {row.map((item, i) => (
-          <span key={i} className="flex items-center gap-10">
+    <div className="relative overflow-hidden border-y border-line py-5" aria-label="Yetenekler">
+      <div className="flex w-max items-center gap-10 motion-reduce:w-auto motion-reduce:flex-wrap motion-reduce:justify-center">
+        <div className="flex w-max animate-marquee items-center gap-10 will-change-transform motion-reduce:contents motion-reduce:animate-none">
+          {items.map((item) => (
+          <span key={item.id} className="flex items-center gap-10">
             <span className="font-display text-lg uppercase tracking-wide text-muted">
-              {item}
+              {item.label}
             </span>
             <span className="text-accent">✦</span>
           </span>
         ))}
+        </div>
+        <div className="flex w-max animate-marquee items-center gap-10 will-change:hidden" aria-hidden="true">
+          {items.map((item) => <span key={`copy-${item.id}`} className="flex items-center gap-10"><span className="font-display text-lg uppercase tracking-wide text-muted">{item.label}</span><span className="text-accent">✦</span></span>)}
+        </div>
       </div>
     </div>
   );
@@ -2057,6 +2064,8 @@ export default function App() {
     window.localStorage.setItem("lang", lang);
     document.documentElement.lang = lang;
   }, [lang]);
+
+  useEffect(() => { void recordPortfolioVisit(); }, []);
 
   const t = CONTENT[lang];
 

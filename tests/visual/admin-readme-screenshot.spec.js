@@ -58,6 +58,11 @@ test("README dashboard capture is deterministic and uses only local mock authent
       });
       return;
     }
+    if (url.pathname === "/api/admin/analytics") {
+      mockedRequests.push(url.pathname);
+      await route.fulfill({ json: { range: "7d", today: { uniqueVisitors: 24, desktop: 15, mobileTablet: 9 }, total: 112, days: [{ day: "2026-07-17", uniqueVisitors: 11, desktop: 7, mobileTablet: 4 }, { day: "2026-07-18", uniqueVisitors: 14, desktop: 9, mobileTablet: 5 }, { day: "2026-07-19", uniqueVisitors: 17, desktop: 10, mobileTablet: 7 }, { day: "2026-07-20", uniqueVisitors: 12, desktop: 8, mobileTablet: 4 }, { day: "2026-07-21", uniqueVisitors: 18, desktop: 12, mobileTablet: 6 }, { day: "2026-07-22", uniqueVisitors: 16, desktop: 10, mobileTablet: 6 }, { day: "2026-07-23", uniqueVisitors: 24, desktop: 15, mobileTablet: 9 }] } });
+      return;
+    }
     if (
       url.hostname.endsWith("workers.dev")
       || url.hostname === "github.com"
@@ -90,7 +95,7 @@ test("README dashboard capture is deterministic and uses only local mock authent
     document.documentElement.style.caretColor = "transparent";
   });
   expect(await page.evaluate(() => document.fonts.status)).toBe("loaded");
-  expect([...new Set(mockedRequests)].sort()).toEqual(["/api/content", "/api/session"]);
+  expect([...new Set(mockedRequests)].sort()).toEqual(["/api/admin/analytics", "/api/content", "/api/session"]);
   expect(mockedRequests.filter((pathname) => pathname === "/api/content")).toHaveLength(1);
   expect(mockedRequests.filter((pathname) => pathname === "/api/session").length).toBeGreaterThanOrEqual(1);
   expect(unexpectedAuthRequests).toEqual([]);

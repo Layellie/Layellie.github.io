@@ -5,13 +5,21 @@ import { afterEach, describe, expect, it } from "vitest";
 import { portfolioFiles } from "../../src/content/loadContent.js";
 import SkillsEditor from "../../src/admin/editors/SkillsEditor.jsx";
 
+function editorFixture() {
+  const skills = structuredClone(portfolioFiles.skills);
+  let index = 1;
+  for (const card of skills.skillCards) card.id = `existing-card-${index++}`;
+  for (const group of skills.additionalGroups) for (const item of group.items) item.id = `existing-group-${index++}`;
+  return skills;
+}
+
 afterEach(cleanup);
 
 describe("SkillsEditor global skill IDs", () => {
   it("uses one ID scope across different groups and new skill cards", () => {
     let latestSkills;
     function Harness() {
-      const [skills, setSkills] = useState(() => structuredClone(portfolioFiles.skills));
+      const [skills, setSkills] = useState(editorFixture);
       latestSkills = skills;
       return <SkillsEditor skills={skills} onChange={setSkills} />;
     }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Award,
+  BarChart3,
   Boxes,
   CheckCircle2,
   ClipboardList,
@@ -12,11 +13,14 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Monitor,
   Plus,
   Save,
+  RefreshCw,
   Send,
   ShieldCheck,
   Sparkles,
+  Smartphone,
   Trash2,
   X,
 } from "lucide-react";
@@ -206,14 +210,29 @@ function SectionShell({ eyebrow, title, description, children }) {
 }
 
 function Dashboard({ files, base, onNavigate }) {
+  const [analytics, setAnalytics] = useState({ status: "loading", data: null });
+  const [range, setRange] = useState("7d");
+  const loadAnalytics = async (nextRange = range) => {
+    setAnalytics((current) => ({ ...current, status: "loading" }));
+    try { setAnalytics({ status: "ready", data: await adminApi.analytics(nextRange), updatedAt: new Date() }); } catch { setAnalytics({ status: "error", data: null }); }
+  };
+  useEffect(() => { void loadAnalytics(); }, []);
   const stats = [
     { label: "Yayındaki projeler", value: files.projects.items.filter((item) => item.publicationStatus === "published").length, icon: ClipboardList, to: "projects" },
     { label: "Sertifikalar", value: files.certificates.items.length, icon: Award, to: "certificates" },
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-5"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-3 font-display text-[clamp(2.5rem,6vw,5.6rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-3 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-7 font-display text-5xl font-semibold tracking-tight">{value}</div><div className="mt-2 text-xs text-muted">{label}</div></button>)}</div><div className="mt-8 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]"><Panel className="p-6"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-5 space-y-3">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-4 rounded-2xl border border-line bg-canvas/40 p-4 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><Panel className="p-6"><h2 className="font-display text-2xl font-semibold">Yayın güvenliği</h2><div className="mt-5 space-y-4">{["Worker tarafı yetkilendirme", "SHA çakışma koruması", "Tek atomik Git commit", "Durable Object publish kilidi"].map((item) => <div key={item} className="flex items-center gap-3 text-sm text-muted"><CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />{item}</div>)}</div><Button variant="primary" className="mt-7 w-full" onClick={() => onNavigate("publish")}><Send className="h-4 w-4" />Değişiklikleri incele</Button></Panel></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.35fr_0.65fr_0.9fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><Panel className="p-5"><h2 className="font-display text-2xl font-semibold">Yayın güvenliği</h2><div className="mt-4 space-y-3">{["Worker tarafı yetkilendirme", "SHA çakışma koruması", "Tek atomik Git commit", "Durable Object publish kilidi"].map((item) => <div key={item} className="flex items-center gap-3 text-sm text-muted"><CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />{item}</div>)}</div><Button variant="primary" className="mt-5 w-full" onClick={() => onNavigate("publish")}><Send className="h-4 w-4" />Değişiklikleri incele</Button></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
 }
+
+function AnalyticsPanel({ analytics, range, onRange, onRefresh }) {
+  const data = analytics.data;
+  const maximum = Math.max(1, ...(data?.days || []).map((day) => day.uniqueVisitors));
+  return <Panel className="p-5"><div className="flex items-start justify-between gap-2"><div><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-accent" /><h2 className="font-display text-2xl font-semibold">Ziyaret analitiği</h2></div><p className="mt-1 text-[11px] leading-relaxed text-muted">Aynı tarayıcı günlük bir kez sayılır; farklı tarayıcılar veya silinen site verileri ayrı sayılabilir.</p></div><Button variant="ghost" aria-label="Analitiği yenile" onClick={onRefresh}><RefreshCw className="h-4 w-4" /></Button></div><div className="mt-3 flex gap-2"><Button variant={range === "7d" ? "primary" : "ghost"} onClick={() => onRange("7d")}>7 gün</Button><Button variant={range === "30d" ? "primary" : "ghost"} onClick={() => onRange("30d")}>30 gün</Button></div>{analytics.status === "loading" && <div className="mt-4 text-sm text-muted">Analitik yükleniyor…</div>}{analytics.status === "error" && <div className="mt-4 text-sm text-amber-100">Analitik şu anda alınamadı.</div>}{analytics.status === "ready" && <><div className="mt-4 grid grid-cols-2 gap-2"><AnalyticsStat label="Bugünkü tekil" value={data.today.uniqueVisitors} icon={BarChart3} /><AnalyticsStat label="Masaüstü" value={data.today.desktop} icon={Monitor} /><AnalyticsStat label="Mobil / tablet" value={data.today.mobileTablet} icon={Smartphone} /><AnalyticsStat label="Son 7 gün" value={data.total} icon={CheckCircle2} /></div><div className="mt-4 flex h-16 items-end gap-1" role="img" aria-label={`${data.range} için ziyaretçi trendi, toplam ${data.total}`} >{data.days.map((day) => <div key={day.day} className="min-w-1 flex-1 rounded-t bg-accent/70 transition motion-reduce:transition-none" style={{ height: `${Math.max(6, (day.uniqueVisitors / maximum) * 100)}%` }} title={`${day.day}: ${day.uniqueVisitors}`} />)}</div><div className="mt-2 text-[10px] text-faint">Son güncelleme: {analytics.updatedAt?.toLocaleTimeString("tr-TR")}</div></>}</Panel>;
+}
+
+function AnalyticsStat({ label, value, icon: Icon }) { return <div className="rounded-xl border border-line bg-canvas/40 p-2.5"><Icon className="h-3.5 w-3.5 text-accent" /><div className="mt-2 font-display text-2xl">{value}</div><div className="mt-1 text-[10px] text-muted">{label}</div></div>; }
 
 function ProjectsScreen({ projects, visuals, pendingUploads, publicSiteOrigin, onChange, onUpload }) {
   const [selectedId, setSelectedId] = useState(projects.items[0]?.id);

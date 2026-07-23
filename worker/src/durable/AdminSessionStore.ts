@@ -33,6 +33,14 @@ export class AdminSessionStore {
           owner TEXT NOT NULL,
           expires_at INTEGER NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS analytics_visits (
+          day TEXT NOT NULL,
+          visitor_hash TEXT NOT NULL,
+          device_category TEXT NOT NULL CHECK(device_category IN ('desktop','mobile','tablet')),
+          first_seen_at INTEGER NOT NULL,
+          PRIMARY KEY (day, visitor_hash)
+        );
+        CREATE INDEX IF NOT EXISTS analytics_visits_day_idx ON analytics_visits(day);
       `);
     });
   }
@@ -52,6 +60,8 @@ export class AdminSessionStore {
         case "rate.check": return this.rateCheck(payload, now);
         case "publish.acquire": return this.publishAcquire(payload, now);
         case "publish.release": return this.publishRelease(payload);
+        case "analytics.visit": return this.analyticsVisit(payload, now);
+        case "analytics.summary": return this.analyticsSummary(payload, now);
         default: return this.result(null, 400, "UNKNOWN_OPERATION", "Durum işlemi tanınmıyor.");
       }
     } catch {
@@ -127,6 +137,31 @@ export class AdminSessionStore {
     return this.result({ released: true });
   }
 
+  private analyticsVisit(payload: Record<string, unknown>, now: number): Response {
+    const { day, visitorHash, deviceCategory } = this.strings(payload, ["day", "visitorHash", "deviceCategory"]);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !/^[A-Za-z0-9_-]{32,128}$/.test(visitorHash) || !["desktop", "mobile", "tablet"].includes(deviceCategory)) throw new Error("invalid");
+    return this.state.storage.transactionSync(() => {
+      this.state.storage.sql.exec("INSERT INTO analytics_visits (day,visitor_hash,device_category,first_seen_at) VALUES (?,?,?,?) ON CONFLICT(day,visitor_hash) DO NOTHING", day, visitorHash, deviceCategory, now);
+      return this.result({ recorded: true });
+    });
+  }
+
+  private analyticsSummary(payload: Record<string, unknown>, now: number): Response {
+    const { range } = this.strings(payload, ["range"]);
+    const days = range === "30d" ? 30 : range === "7d" ? 7 : 0;
+    if (!days) throw new Error("invalid");
+    const day = this.strings(payload, ["day"]).day;
+    const rows = this.state.storage.sql.exec<{ day: string; unique_visitors: number; desktop: number; mobile_tablet: number }>("SELECT day, COUNT(*) AS unique_visitors, SUM(CASE WHEN device_category='desktop' THEN 1 ELSE 0 END) AS desktop, SUM(CASE WHEN device_category IN ('mobile','tablet') THEN 1 ELSE 0 END) AS mobile_tablet FROM analytics_visits WHERE day>=? GROUP BY day ORDER BY day", this.daysBefore(day, days - 1)).toArray();
+    const today = rows.find((row) => row.day === day) || { unique_visitors: 0, desktop: 0, mobile_tablet: 0 };
+    return this.result({ range, today: { uniqueVisitors: today.unique_visitors, desktop: today.desktop, mobileTablet: today.mobile_tablet }, total: rows.reduce((sum, row) => sum + row.unique_visitors, 0), days: rows.map((row) => ({ day: row.day, uniqueVisitors: row.unique_visitors, desktop: row.desktop, mobileTablet: row.mobile_tablet })) });
+  }
+
+  private daysBefore(day: string, days: number): string {
+    const date = new Date(`${day}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - days);
+    return date.toISOString().slice(0, 10);
+  }
+
   private enforceRate(key: string, limit: number, periodMs: number, now: number): Response | null {
     const windowStart = Math.floor(now / periodMs) * periodMs;
     const row = this.state.storage.sql.exec<{ count: number }>("INSERT INTO rate_limits (key,window_start,count) VALUES (?,?,1) ON CONFLICT(key,window_start) DO UPDATE SET count=count+1 RETURNING count", key, windowStart).one();
@@ -139,6 +174,8 @@ export class AdminSessionStore {
     this.state.storage.sql.exec("DELETE FROM sessions WHERE expires_at<?", now);
     this.state.storage.sql.exec("DELETE FROM publish_locks WHERE expires_at<?", now);
     this.state.storage.sql.exec("DELETE FROM rate_limits WHERE window_start<?", now - 3_600_000);
+    const cutoff = new Date(now - 90 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" });
+    this.state.storage.sql.exec("DELETE FROM analytics_visits WHERE day<?", cutoff);
   }
 
   private strings(payload: Record<string, unknown>, keys: string[]): Record<string, string> {

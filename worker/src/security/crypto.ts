@@ -24,6 +24,12 @@ export async function sha256(value: string): Promise<string> {
   return base64UrlEncode(await crypto.subtle.digest("SHA-256", encoder.encode(value)));
 }
 
+export async function analyticsVisitorHash(visitorId: string, day: string, secret: string): Promise<string> {
+  const material = await crypto.subtle.importKey("raw", encoder.encode(secret), "HKDF", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: encoder.encode("layellie-portfolio-admin/analytics/v1"), info: encoder.encode("daily-visitor-hmac") }, material, { name: "HMAC", hash: "SHA-256", length: 256 }, false, ["sign"]);
+  return base64UrlEncode(await crypto.subtle.sign("HMAC", key, encoder.encode(`${visitorId}:${day}`)));
+}
+
 export async function pkceChallenge(verifier: string): Promise<string> {
   return sha256(verifier);
 }

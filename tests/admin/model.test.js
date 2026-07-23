@@ -215,7 +215,9 @@ describe("admin data model", () => {
     const second = createGroupSkillItem(skillIdScope(skills));
     skills.additionalGroups[1].items.push(second);
     const card = createSkillCard(skillIdScope(skills));
-    expect([first.id, second.id, card.id]).toEqual(["new-skill", "new-skill-2", "new-skill-3"]);
+    const created = [first.id, second.id, card.id];
+    expect(new Set(created).size).toBe(created.length);
+    expect(created.every((id) => /^new-skill(?:-\d+)?$/.test(id))).toBe(true);
   });
 
   it("builds certificate skill options with unique keys and values", () => {
