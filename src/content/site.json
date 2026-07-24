@@ -70,7 +70,7 @@
       ],
       "paragraphs": [
         "Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimi alıyorum. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
-        "C# ve C++ ile masaüstü uygulamaları; Laravel ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
+        "C# ve C++ ile masaüstü uygulamaları; React ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
         "Sürekli öğrenmeyi bir disiplin olarak benimsedim. BTK Akademi'de tamamladığım eğitimlerle C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar aldım; Bilgisayar Programcılığı bölümünden 3.09 genel not ortalamasıyla mezun olmaya hazırlanıyorum."
       ],
       "facts": [
@@ -264,7 +264,7 @@
       ],
       "paragraphs": [
         "I'm studying Computer Programming at Kütahya Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
-        "I build desktop applications with C# and C++, and web solutions with Laravel and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
+        "I build desktop applications with C# and C++, and web solutions with React and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
         "I treat learning as an ongoing discipline: through BTK Akademi I've earned verified certificates in C#, C++, databases, object-oriented programming and generative AI. I'm on track to graduate from the Computer Programming program with a 3.09 GPA."
       ],
       "facts": [
