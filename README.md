@@ -1,3 +1,5 @@
+![Samet Kaşmer — single-page bilingual portfolio built with React, Vite, Tailwind CSS v4 and Framer Motion](docs/banner.png)
+
 # Samet Kaşmer — Portfolio
 
 Single-page, premium personal portfolio for a **Full-Stack Developer & Systems
