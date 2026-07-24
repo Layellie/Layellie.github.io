@@ -57,15 +57,15 @@
       "statement": [
         {
           "text": "Kodun yalnızca çalışması değil; ",
-          "tone": "accent"
-        },
-        {
-          "text": "hızlı, verimli ve donanımla uyumlu",
           "tone": "muted"
         },
         {
+          "text": "hızlı, verimli ve donanımla uyumlu",
+          "tone": "accent"
+        },
+        {
           "text": " çalışması beni heyecanlandırıyor.",
-          "tone": "normal"
+          "tone": "muted"
         }
       ],
       "paragraphs": [
@@ -251,15 +251,15 @@
       "statement": [
         {
           "text": "What excites me isn't just code that works — it's code that runs ",
-          "tone": "accent"
-        },
-        {
-          "text": "fast, efficiently and in tune with the hardware",
           "tone": "muted"
         },
         {
+          "text": "fast, efficiently and in tune with the hardware",
+          "tone": "accent"
+        },
+        {
           "text": ".",
-          "tone": "normal"
+          "tone": "muted"
         }
       ],
       "paragraphs": [
