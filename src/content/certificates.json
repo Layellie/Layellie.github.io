@@ -42,6 +42,26 @@
       }
     },
     {
+      "id": "new-certificate-4",
+      "shared": {
+        "date": "2026-07-28",
+        "code": "6b0f191b-9875-4396-b375-7c19b10dd6fb",
+        "icon": "Award",
+        "file": "/media/certificates/new-certificate-4/OkDkeDpxlrtCJd-L.pdf",
+        "relatedSkillId": null
+      },
+      "tr": {
+        "title": "Kurumsal Tasarım Odaklı Düşünme (Uygulayıcı)",
+        "issuer": "IBM SkillsBuild",
+        "skillLabel": "Yetenek"
+      },
+      "en": {
+        "title": "Enterprise Design Thinking Practitioner",
+        "issuer": "IBM SkillsBuild",
+        "skillLabel": "Skill"
+      }
+    },
+    {
       "id": "certificate-c-ile-programlamaya-giris",
       "shared": {
         "date": "2026-06-13",
