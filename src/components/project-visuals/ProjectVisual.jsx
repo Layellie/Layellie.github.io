@@ -7,7 +7,7 @@ export default function ProjectVisual({ reference, presets, lang, legacyVisuals 
   if (reference.mode === "screenshot") {
     const source = resolveMediaUrl(reference.path, { publicSiteOrigin, requirePublicOrigin: requirePublicMediaOrigin });
     if (!source) return <UnknownModuleFallback module={{ id: "media-origin", type: "screenshot" }} reason="Public media origin is not configured" />;
-    return <div className="overflow-hidden rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40"><img src={source} alt={reference.alt?.[lang] || reference.alt?.tr || ""} className={`aspect-[4/3] w-full ${reference.objectFit === "cover" ? "object-cover" : "object-contain"}`} loading="lazy" /></div>;
+    return <div className="overflow-hidden rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40"><img src={source} alt={reference.alt?.[lang] || reference.alt?.tr || ""} className={`aspect-[4/3] w-full ${reference.objectFit === "cover" ? "object-cover" : "object-contain"}`} width="800" height="600" loading="lazy" decoding="async" /></div>;
   }
 
   if (reference.mode === "custom") {

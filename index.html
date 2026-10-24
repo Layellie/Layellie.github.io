@@ -51,11 +51,9 @@
     />
     <meta name="twitter:image" content="https://layellie.github.io/og.png" />
 
-    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-    <link
-      href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=general-sans@400,500,600,700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Fontlar kendi sunucumuzda (render-blocking harici CSS yok) -->
+    <link rel="preload" href="/fonts/generalsans-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/clashdisplay-600.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Yapısal veri: Google'a kişiyi ve takma adları tanıtır -->
     <script type="application/ld+json">

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Self-hosted fontlar (Fontshare, ITF Free Font License) */
+@font-face { font-family: "General Sans"; src: url("/fonts/generalsans-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/generalsans-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/generalsans-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "General Sans"; src: url("/fonts/generalsans-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
 /* ------------------------------------------------------------------ */
 /*  Tasarım token'ları — Tailwind v4 @theme                            */
 /*  Yüksek kontrastlı, monokrom dark mode + ince bir akıl yeşili aksan */
@@ -48,14 +58,17 @@ body {
   width: 10px;
   height: 10px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-canvas);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #2a2a30;
   border-radius: 999px;
   border: 2px solid var(--color-canvas);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #3a3a42;
 }
@@ -65,10 +78,12 @@ body {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
 }
+
 .animate-marquee {
   animation: marquee 60s linear infinite;
 }
@@ -78,12 +93,10 @@ body {
   position: absolute;
   width: 1.5px;
   border-radius: 9999px;
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.24) 16%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(to top,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.24) 16%,
+      rgba(255, 255, 255, 0) 100%);
   opacity: 0;
   transform: translate3d(0, -10vh, 0) rotate(20deg);
   animation-name: meteor-fall;
@@ -97,12 +110,15 @@ body {
     transform: translate3d(0, -10vh, 0) rotate(20deg);
     opacity: 0;
   }
+
   8% {
     opacity: 0.45;
   }
+
   88% {
     opacity: 0.45;
   }
+
   100% {
     transform: translate3d(-22vw, 112vh, 0) rotate(20deg);
     opacity: 0;
@@ -114,9 +130,11 @@ body {
   html {
     scroll-behavior: auto;
   }
+
   .animate-marquee {
     animation: none;
   }
+
   .meteor {
     display: none;
   }

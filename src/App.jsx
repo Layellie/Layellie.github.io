@@ -399,15 +399,14 @@ function Navbar() {
 /* ================================================================== */
 const headlineParent = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.35 } },
+  show: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } },
 };
 const charChild = {
-  hidden: { y: "120%", opacity: 0, filter: "blur(14px)" },
+  hidden: { y: "110%", opacity: 0 },
   show: {
     y: 0,
     opacity: 1,
-    filter: "blur(0px)",
-    transition: { duration: 1.4, ease: EASE },
+    transition: { duration: 0.8, ease: EASE },
   },
 };
 
@@ -460,7 +459,7 @@ function Hero() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.4, delay: 0.15, ease: EASE }}
-            className="pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full opacity-[0.16] blur-[100px]"
+            className="pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full opacity-[0.16] blur-[60px] md:blur-[100px]"
             style={{
               background:
                 "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)",
@@ -503,7 +502,7 @@ function Hero() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.05, duration: 1.3, ease: EASE }}
+          transition={{ delay: 0.3, duration: 0.9, ease: EASE }}
           className="mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between"
         >
           <div className="max-w-xl">
@@ -1217,6 +1216,9 @@ function ContributionGraph() {
             src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
             alt={t.projects.contributions}
             loading="lazy"
+            decoding="async"
+            width="720"
+            height="112"
             onError={() => setOk(false)}
             className="w-full min-w-[680px] opacity-90"
           />
@@ -1614,7 +1616,11 @@ function Footer() {
 /* ================================================================== */
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
-function Meteors({ count = 10 }) {
+function Meteors({ count: countProp }) {
+  // Mobilde daha az meteor: GPU/pil yükünü ve ana iş parçacığı maliyetini düşürür
+  const count =
+    countProp ??
+    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 3 : 10);
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => ({
@@ -2130,7 +2136,7 @@ export default function App() {
       <Meteors />
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-[60] opacity-[0.035]"
+        className="pointer-events-none fixed inset-0 z-[60] hidden opacity-[0.035] md:block"
         style={{ backgroundImage: NOISE }}
       />
 
