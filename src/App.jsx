@@ -480,12 +480,43 @@ function useScrollSpy(ids) {
   return active;
 }
 
-// GitHub canlı verisi: istatistikler + repo listesi (tek fetch ile paylaşılır)
+// GitHub canlı verisi: istatistikler + repo listesi (localStorage önbellek + canlı fetch)
+const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v1";
+const GITHUB_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
+
+function getCachedGithubData(fallback) {
+  if (typeof window === "undefined") return { stats: fallback, repos: [] };
+  try {
+    const raw = window.localStorage.getItem(GITHUB_CACHE_KEY);
+    if (!raw) return { stats: fallback, repos: [] };
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.stats) {
+      return {
+        stats: {
+          repos: typeof parsed.stats.repos === "number" ? parsed.stats.repos : fallback.repos,
+          stars: typeof parsed.stats.stars === "number" ? parsed.stats.stars : fallback.stars,
+          followers: typeof parsed.stats.followers === "number" ? parsed.stats.followers : fallback.followers,
+        },
+        repos: Array.isArray(parsed.repos) ? parsed.repos : [],
+        timestamp: typeof parsed.timestamp === "number" ? parsed.timestamp : 0,
+      };
+    }
+  } catch {
+    /* localStorage erişim/ayrıştırma hatası → yok say */
+  }
+  return { stats: fallback, repos: [] };
+}
+
 function useGithub(user, fallback) {
-  const [data, setData] = useState({ stats: fallback, repos: [] });
+  const [data, setData] = useState(() => getCachedGithubData(fallback));
   useEffect(() => {
     let active = true;
     const cancelIdle = whenIdle(async () => {
+      const cached = getCachedGithubData(fallback);
+      // Önbellek tazeyse (30 dk dolmadıysa) gereksiz GitHub API istek kotası harcama
+      if (cached.timestamp && Date.now() - cached.timestamp < GITHUB_CACHE_TTL && cached.repos.length > 0) {
+        return;
+      }
       try {
         const [reposRes, userRes] = await Promise.all([
           fetch(`https://api.github.com/users/${user}/repos?per_page=100&sort=updated`),
@@ -497,19 +528,28 @@ function useGithub(user, fallback) {
         const list = Array.isArray(repos) ? repos : [];
         const stars = list.reduce((s, r) => s + (r.stargazers_count || 0), 0);
         if (active) {
-          setData({
+          const freshData = {
             stats: {
               repos: u.public_repos ?? fallback.repos,
               stars: list.length ? stars : fallback.stars,
               followers: u.followers ?? fallback.followers,
             },
             repos: list,
-          });
+          };
+          setData(freshData);
+          try {
+            window.localStorage.setItem(
+              GITHUB_CACHE_KEY,
+              JSON.stringify({ ...freshData, timestamp: Date.now() })
+            );
+          } catch {
+            /* kota veya gizlilik kısıtı */
+          }
         }
       } catch {
-        /* ağ hatası → yedek değerlerde kal */
+        /* ağ hatası → yedek veya önbellekte kal */
       }
-    }, 4000);
+    }, 2500);
     return () => {
       active = false;
       cancelIdle();
