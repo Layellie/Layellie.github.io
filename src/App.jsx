@@ -893,42 +893,44 @@ function About() {
         <SectionHeader index={a.index} title={a.title} kicker={a.kicker} />
       </Reveal>
 
-      <div className="mt-16 grid grid-cols-1 gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-8">
-          <Reveal>
-            <p className="font-display text-[clamp(1.6rem,3.4vw,2.6rem)] leading-[1.15] tracking-tight">
-              {a.statement.map((segment, i) => (
-                <span key={i} className={STATEMENT_TONE_CLASS[segment.tone] || ""}>{segment.text}</span>
-              ))}
-            </p>
-          </Reveal>
-
-          <div className="mt-10 max-w-2xl space-y-5 leading-relaxed text-muted md:text-lg">
-            {a.paragraphs.map((p, i) => (
-              <Reveal key={i} delay={0.05 + i * 0.05}>
-                <p>{p}</p>
-              </Reveal>
+      <div className="mt-16">
+        <Reveal>
+          <p className="max-w-4xl font-display text-[clamp(1.6rem,3.4vw,2.6rem)] leading-[1.15] tracking-tight">
+            {a.statement.map((segment, i) => (
+              <span key={i} className={STATEMENT_TONE_CLASS[segment.tone] || ""}>{segment.text}</span>
             ))}
-          </div>
-        </div>
+          </p>
+        </Reveal>
 
-        <div className="lg:col-span-4">
-          <Reveal delay={0.1} y={0} x={70}>
-            <TiltCard maxTilt={5} className="rounded-2xl">
-              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
-                {a.facts.map((f) => (
-                  <div key={f.label} className="bg-surface p-6">
-                    <div className="text-xs uppercase tracking-wider text-faint">
-                      {f.label}
+        <div className="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-7">
+            <div className="space-y-5 leading-relaxed text-muted md:text-lg">
+              {a.paragraphs.map((p, i) => (
+                <Reveal key={i} delay={0.05 + i * 0.05}>
+                  <p>{p}</p>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5">
+            <Reveal delay={0.1} y={0} x={70}>
+              <TiltCard maxTilt={5} className="rounded-2xl">
+                <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+                  {a.facts.map((f) => (
+                    <div key={f.label} className="bg-surface p-6">
+                      <div className="text-xs uppercase tracking-wider text-faint">
+                        {f.label}
+                      </div>
+                      <div className="mt-2 font-display text-lg leading-snug">
+                        {f.value}
+                      </div>
                     </div>
-                    <div className="mt-2 font-display text-lg leading-snug">
-                      {f.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </TiltCard>
-          </Reveal>
+                  ))}
+                </div>
+              </TiltCard>
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>
