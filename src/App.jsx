@@ -1736,25 +1736,28 @@ function Footer() {
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
 function Meteors({ count: countProp }) {
-  // Mobilde daha az meteor: GPU/pil yükünü ve ana iş parçacığı maliyetini düşürür
+  // Mobilde 8, masaüstünde 16 meteor; negatif gecikmeyle sayfa açıldığı an gökyüzünde kayıyor olurlar
   const count =
     countProp ??
-    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 3 : 10);
+    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 8 : 16);
   const meteors = useMemo(
     () =>
-      Array.from({ length: count }, () => ({
-        left: Math.random() * 100, // %
-        top: -10 - Math.random() * 30, // % (ekranın üstünde başlar)
-        delay: Math.random() * 8, // s
-        duration: 3.5 + Math.random() * 6, // s
-        tail: 110 + Math.random() * 170, // px — izin uzunluğu
-      })),
+      Array.from({ length: count }, () => {
+        const duration = 3.2 + Math.random() * 4.5;
+        return {
+          left: Math.random() * 100, // %
+          top: -5 - Math.random() * 25, // %
+          delay: -(Math.random() * duration), // Negatif delay: sayfa açılır açılmaz havada süzülüyor olurlar
+          duration,
+          tail: 110 + Math.random() * 150, // px
+        };
+      }),
     [count]
   );
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      className="pointer-events-none fixed inset-0 z-[1] overflow-hidden"
     >
       {meteors.map((m, i) => (
         <span
@@ -1764,8 +1767,8 @@ function Meteors({ count: countProp }) {
             left: `${m.left}%`,
             top: `${m.top}%`,
             height: `${m.tail}px`,
-            animationDelay: `${m.delay}s`,
-            animationDuration: `${m.duration}s`,
+            animationDelay: `${m.delay.toFixed(2)}s`,
+            animationDuration: `${m.duration.toFixed(2)}s`,
           }}
         />
       ))}

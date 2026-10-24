@@ -94,12 +94,15 @@ body {
   position: absolute;
   width: 1.5px;
   border-radius: 9999px;
-  background: linear-gradient(to top,
-      rgba(255, 255, 255, 0.55) 0%,
-      rgba(255, 255, 255, 0.24) 16%,
-      rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(214, 255, 63, 0.75) 20%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: drop-shadow(0 0 5px rgba(214, 255, 63, 0.45));
   opacity: 0;
-  transform: translate3d(0, -10vh, 0) rotate(20deg);
+  transform: translate3d(0, 0, 0) rotate(20deg);
   animation-name: meteor-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
@@ -108,20 +111,20 @@ body {
 
 @keyframes meteor-fall {
   0% {
-    transform: translate3d(0, -10vh, 0) rotate(20deg);
+    transform: translate3d(0, 0, 0) rotate(20deg);
     opacity: 0;
   }
 
   8% {
-    opacity: 0.45;
+    opacity: 0.8;
   }
 
-  88% {
-    opacity: 0.45;
+  85% {
+    opacity: 0.8;
   }
 
   100% {
-    transform: translate3d(-22vw, 112vh, 0) rotate(20deg);
+    transform: translate3d(-22vw, 115vh, 0) rotate(20deg);
     opacity: 0;
   }
 }
