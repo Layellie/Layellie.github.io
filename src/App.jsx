@@ -203,7 +203,7 @@ function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = fal
 
 
 /* ================================================================== */
-/*  İnteraktif efektler: Manyetik Buton & Scramble Text               */
+/*  İnteraktif efektler: 3D Tilt, Manyetik Buton & Scramble Text       */
 /* ================================================================== */
 const SCRAMBLE_GLYPHS = "01#@<>[]/\\_—*^!~{}=";
 
@@ -289,6 +289,57 @@ function ScrambleText({ text, className = "" }) {
     >
       {displayText}
     </span>
+  );
+}
+
+function useTilt(maxTilt = 6) {
+  const ref = useRef(null);
+
+  const onPointerMove = useCallback((e) => {
+    const el = ref.current;
+    if (
+      !el ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia("(pointer: coarse)").matches ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches))
+    ) {
+      return;
+    }
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    el.style.setProperty("--tilt-x", `${(-y * maxTilt).toFixed(2)}deg`);
+    el.style.setProperty("--tilt-y", `${(x * maxTilt).toFixed(2)}deg`);
+    el.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--glare-opacity", "1");
+  }, [maxTilt]);
+
+  const onPointerLeave = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.setProperty("--tilt-x", "0deg");
+    el.style.setProperty("--tilt-y", "0deg");
+    el.style.setProperty("--glare-opacity", "0");
+  }, []);
+
+  return { ref, onPointerMove, onPointerLeave };
+}
+
+function TiltCard({ children, className = "", maxTilt = 6 }) {
+  const { ref, onPointerMove, onPointerLeave } = useTilt(maxTilt);
+  return (
+    <div
+      ref={ref}
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
+      className={`tilt-card ${className}`}
+    >
+      <div className="tilt-inner relative h-full w-full">
+        {children}
+        <div className="tilt-glare" />
+      </div>
+    </div>
   );
 }
 
@@ -818,7 +869,8 @@ function About() {
 
         <div className="lg:col-span-4">
           <Reveal delay={0.1} y={0} x={70}>
-            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+            <TiltCard maxTilt={5} className="rounded-2xl">
+              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
                 {a.facts.map((f) => (
                   <div key={f.label} className="bg-surface p-6">
                     <div className="text-xs uppercase tracking-wider text-faint">
@@ -830,6 +882,7 @@ function About() {
                   </div>
                 ))}
               </div>
+            </TiltCard>
           </Reveal>
         </div>
       </div>
@@ -899,7 +952,9 @@ function Skills() {
       <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">
         {s.focus.map((f, i) => (
           <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
-            <FeatureCard item={f} />
+            <TiltCard maxTilt={5} className="rounded-2xl">
+              <FeatureCard item={f} />
+            </TiltCard>
           </Reveal>
         ))}
       </div>
@@ -919,7 +974,8 @@ function Skills() {
       </div>
 
       <Reveal delay={0.1}>
-        <div className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
+        <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
+          <div className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
             <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
               <Sparkles className="h-3.5 w-3.5" /> {s.moreLabel}
             </div>
@@ -952,6 +1008,7 @@ function Skills() {
             })}
           </div>
         </div>
+        </TiltCard>
       </Reveal>
     </section>
   );
@@ -1093,7 +1150,9 @@ function Certificates() {
                 data-card
                 className="shrink-0 snap-start basis-[85%] sm:basis-[47%] lg:basis-[31.5%]"
               >
-                <CertificateCard cert={cert} labels={labels} />
+                <TiltCard maxTilt={6} className="rounded-2xl">
+                  <CertificateCard cert={cert} labels={labels} />
+                </TiltCard>
               </div>
             ))}
           </div>
@@ -1434,7 +1493,8 @@ function GithubStats({ stats }) {
   ];
   return (
     <Reveal>
-      <div className="mt-16 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+      <TiltCard maxTilt={4} className="mt-16 rounded-2xl">
+        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
           {cards.map((c) => (
           <a
             key={c.label}
@@ -1453,7 +1513,8 @@ function GithubStats({ stats }) {
             </div>
           </a>
         ))}
-      </div>
+        </div>
+      </TiltCard>
     </Reveal>
   );
 }
@@ -1466,10 +1527,11 @@ function ContributionGraph() {
   if (!ok) return null;
   return (
     <Reveal>
-      <div
-        ref={containerRef}
-        className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
-      >
+      <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
+        <div
+          ref={containerRef}
+          className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
+        >
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
             <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
           </div>
@@ -1489,7 +1551,8 @@ function ContributionGraph() {
               <div className="h-[112px] w-full min-w-[680px]" aria-hidden="true" />
             )}
           </div>
-      </div>
+        </div>
+      </TiltCard>
     </Reveal>
   );
 }
@@ -1571,7 +1634,9 @@ function MoreRepos({ repos, labels }) {
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {repos.map((r) => (
-            <RepoCard key={r.id} repo={r} noDesc={labels.noDesc} />
+            <TiltCard key={r.id} maxTilt={5} className="rounded-2xl">
+              <RepoCard repo={r} noDesc={labels.noDesc} />
+            </TiltCard>
           ))}
         </div>
 
@@ -1598,7 +1663,8 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
   const { lang } = useLang();
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
-      <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
+      <TiltCard maxTilt={3} className="rounded-3xl">
+        <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
           <DeferredProjectVisual
             reference={project.visual}
@@ -1680,7 +1746,8 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             </MagneticButton>
           </div>
         </div>
-      </article>
+        </article>
+      </TiltCard>
     </Reveal>
   );
 }
