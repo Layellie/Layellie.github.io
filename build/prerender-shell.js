@@ -63,7 +63,7 @@ export function renderInitialShellHtml({ identity, tr }) {
     `<span class="inline-flex items-center gap-1 text-muted"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> ${escapeHtml(hero.location)}</span>`,
     "</div>",
     '<div class="relative">',
-    '<div aria-hidden="true" class="hero-glow pointer-events-none absolute -left-[12%] top-1/2 -z-10 h-[160%] w-[70%] -translate-y-1/2 rounded-full" style="background:radial-gradient(closest-side, rgba(214,255,63,0.55) 0%, rgba(214,255,63,0.18) 45%, rgba(214,255,63,0.04) 72%, transparent 100%)"></div>',
+    '<div aria-hidden="true" class="hero-glow pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full blur-[60px] md:blur-[100px]" style="background:radial-gradient(circle, var(--color-accent) 0%, transparent 70%)"></div>',
     `<h1 aria-label="${escapeHtml(identity.name)}." class="relative font-display text-[clamp(3.25rem,14vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]">`,
     `<span aria-hidden="true" class="block overflow-hidden pb-[0.08em]"><span class="block">${renderAnimatedWord("Samet", 0)}</span></span>`,
     `<span aria-hidden="true" class="block overflow-hidden pb-[0.08em]"><span class="block">${renderAnimatedWord("Kaşmer", 5)}<span class="hero-char inline-block text-accent" style="--i:11"><span class="hero-dot inline-block">.</span></span></span></span>`,

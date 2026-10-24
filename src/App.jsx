@@ -553,10 +553,10 @@ function Hero() {
         <div className="relative">
           <div
             aria-hidden
-            className="hero-glow pointer-events-none absolute -left-[12%] top-1/2 -z-10 h-[160%] w-[70%] -translate-y-1/2 rounded-full"
+            className="hero-glow pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full blur-[60px] md:blur-[100px]"
             style={{
               background:
-                "radial-gradient(closest-side, rgba(214,255,63,0.55) 0%, rgba(214,255,63,0.18) 45%, rgba(214,255,63,0.04) 72%, transparent 100%)",
+                "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)",
             }}
           />
           <h1
@@ -2260,7 +2260,7 @@ export default function App() {
             "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
         }}
       />
-      {mountStage >= 6 && <Meteors />}
+      <Meteors />
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[60] hidden opacity-[0.035] md:block"
