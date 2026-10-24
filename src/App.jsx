@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -200,13 +201,150 @@ function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = fal
   );
 }
 
+
+/* ================================================================== */
+/*  İnteraktif efektler: 3D Tilt, Manyetik Buton & Scramble Text       */
+/* ================================================================== */
+const SCRAMBLE_GLYPHS = "01#@<>[]/\\_—*^!~{}=";
+
+function useScrambleText(originalText) {
+  const [displayText, setDisplayText] = useState(originalText);
+  const animatingRef = useRef(false);
+
+  const trigger = useCallback(() => {
+    if (animatingRef.current || !originalText) return;
+    animatingRef.current = true;
+    let iteration = 0;
+    const totalIterations = originalText.length * 2.5;
+
+    const interval = setInterval(() => {
+      setDisplayText(() =>
+        originalText
+          .split("")
+          .map((char, index) => {
+            if (char === " " || char === "\n") return char;
+            if (index < iteration / 2.5) {
+              return originalText[index];
+            }
+            return SCRAMBLE_GLYPHS[Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)];
+          })
+          .join("")
+      );
+
+      iteration += 1;
+      if (iteration >= totalIterations) {
+        clearInterval(interval);
+        setDisplayText(originalText);
+        animatingRef.current = false;
+      }
+    }, 25);
+  }, [originalText]);
+
+  return { displayText, trigger };
+}
+
+function ScrambleText({ text, className = "" }) {
+  const { displayText, trigger } = useScrambleText(text);
+  return (
+    <span
+      onPointerEnter={trigger}
+      className={`inline-block cursor-default ${className}`}
+    >
+      {displayText}
+    </span>
+  );
+}
+
+function useTilt(maxTilt = 6) {
+  const ref = useRef(null);
+
+  const onPointerMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el || (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches)) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    el.style.setProperty("--tilt-x", `${(-y * maxTilt).toFixed(2)}deg`);
+    el.style.setProperty("--tilt-y", `${(x * maxTilt).toFixed(2)}deg`);
+    el.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
+    el.style.setProperty("--glare-opacity", "1");
+  }, [maxTilt]);
+
+  const onPointerLeave = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.setProperty("--tilt-x", "0deg");
+    el.style.setProperty("--tilt-y", "0deg");
+    el.style.setProperty("--glare-opacity", "0");
+  }, []);
+
+  return { ref, onPointerMove, onPointerLeave };
+}
+
+function TiltCard({ children, className = "", maxTilt = 6 }) {
+  const { ref, onPointerMove, onPointerLeave } = useTilt(maxTilt);
+  return (
+    <div
+      ref={ref}
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
+      className={`tilt-card ${className}`}
+    >
+      <div className="tilt-inner relative h-full w-full">
+        {children}
+        <div className="tilt-glare" />
+      </div>
+    </div>
+  );
+}
+
+function useMagnetic(strength = 0.28) {
+  const ref = useRef(null);
+
+  const onPointerMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el || (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches)) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - (rect.left + rect.width / 2)) * strength;
+    const y = (e.clientY - (rect.top + rect.height / 2)) * strength;
+    el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+  }, [strength]);
+
+  const onPointerLeave = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transform = "translate3d(0, 0, 0)";
+  }, []);
+
+  return { ref, onPointerMove, onPointerLeave };
+}
+
+function MagneticButton({ children, className = "", href, onClick, ...rest }) {
+  const { ref, onPointerMove, onPointerLeave } = useMagnetic(0.24);
+  const Tag = href ? "a" : "button";
+  return (
+    <Tag
+      ref={ref}
+      href={href}
+      onClick={onClick}
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
+      className={`magnetic-item inline-flex ${className}`}
+      {...rest}
+    >
+      {children}
+    </Tag>
+  );
+}
+
 function SectionHeader({ index, title, kicker }) {
   return (
     <div className="flex items-end justify-between gap-6 border-b border-line pb-6">
       <div className="flex items-baseline gap-4">
         <span className="font-mono text-sm text-accent">({index})</span>
         <h2 className="font-display text-[clamp(2rem,5.5vw,3.75rem)] font-semibold leading-none tracking-tight">
-          {title}
+          <ScrambleText text={title} />
         </h2>
       </div>
       {kicker && (
@@ -592,19 +730,19 @@ function Hero() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <a
+            <MagneticButton
               href="#projeler"
-              className="group inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:opacity-90"
+              className="group items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:opacity-90"
             >
               {t.hero.ctaProjects}
               <ArrowDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
-            </a>
-            <a
+            </MagneticButton>
+            <MagneticButton
               href="#iletisim"
-              className="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 text-sm font-medium transition hover:bg-surface"
+              className="items-center gap-2 rounded-full border border-line px-6 py-3 text-sm font-medium transition hover:bg-surface"
             >
               {t.hero.ctaContact}
-            </a>
+            </MagneticButton>
           </div>
         </div>
       </div>
@@ -722,19 +860,21 @@ function FeatureCard({ item }) {
 
 function SkillTile({ item, certifiedLabel }) {
   return (
-    <div className="group h-full rounded-2xl border border-line bg-surface/40 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-[#34343c] hover:bg-surface">
-      <div className="flex items-start justify-between">
-        <SafeIcon name={item.icon} className="h-7 w-7 text-muted transition-colors group-hover:text-accent" />
-        {item.certified && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-            <BadgeCheck className="h-3 w-3" /> {certifiedLabel}
-          </span>
-        )}
+    <div className="border-beam-box group h-full transition-all duration-500 hover:-translate-y-1">
+      <div className="relative z-10 flex h-full flex-col rounded-[15px] bg-[#0c0c0f] p-6">
+        <div className="flex items-start justify-between">
+          <SafeIcon name={item.icon} className="h-7 w-7 text-muted transition-colors group-hover:text-accent" />
+          {item.certified && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
+              <BadgeCheck className="h-3 w-3" /> {certifiedLabel}
+            </span>
+          )}
+        </div>
+        <div className="mt-8 font-display text-2xl tracking-tight md:text-3xl">
+          {item.name}
+        </div>
+        <div className="mt-1.5 text-sm text-faint">{item.note}</div>
       </div>
-      <div className="mt-8 font-display text-2xl tracking-tight md:text-3xl">
-        {item.name}
-      </div>
-      <div className="mt-1.5 text-sm text-faint">{item.note}</div>
     </div>
   );
 }
@@ -752,7 +892,9 @@ function Skills() {
       <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">
         {s.focus.map((f, i) => (
           <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
-            <FeatureCard item={f} />
+            <TiltCard maxTilt={5}>
+              <FeatureCard item={f} />
+            </TiltCard>
           </Reveal>
         ))}
       </div>
@@ -946,7 +1088,9 @@ function Certificates() {
                 data-card
                 className="shrink-0 snap-start basis-[85%] sm:basis-[47%] lg:basis-[31.5%]"
               >
-                <CertificateCard cert={cert} labels={labels} />
+                <TiltCard maxTilt={7}>
+                  <CertificateCard cert={cert} labels={labels} />
+                </TiltCard>
               </div>
             ))}
           </div>
@@ -1424,7 +1568,9 @@ function MoreRepos({ repos, labels }) {
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {repos.map((r) => (
-            <RepoCard key={r.id} repo={r} noDesc={labels.noDesc} />
+            <TiltCard key={r.id} maxTilt={5}>
+              <RepoCard repo={r} noDesc={labels.noDesc} />
+            </TiltCard>
           ))}
         </div>
 
@@ -1474,7 +1620,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
           </div>
 
           <h3 className="mt-5 font-display text-[clamp(2rem,4.5vw,3.25rem)] font-semibold leading-[0.95] tracking-tight">
-            {project.name}
+            <ScrambleText text={project.name} />
           </h3>
 
           <div className="mt-4 flex flex-wrap gap-2" aria-label={statusLabel}>
@@ -1522,15 +1668,15 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
           </div>
 
           <div className="mt-8">
-            <a
+            <MagneticButton
               href={project.github}
               target="_blank"
               rel="noreferrer"
-              className="group/btn inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
+              className="group/btn items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
             >
               <Github className="h-4 w-4" /> {viewLabel}
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
-            </a>
+            </MagneticButton>
           </div>
         </div>
       </article>
