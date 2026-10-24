@@ -2255,22 +2255,14 @@ export default function App() {
       <ScrollProgress />
       {mountStage >= 6 && <CommandPalette />}
 
-      {/* En arka plan katmanı: radial yeşil ışıltı + parlak beyaz meteorlar + metin okunurluğunu koruyan derinlik örtüsü */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
-          }}
-        />
-        <Meteors />
-        {/* Meteorları sayfanın en arka derinliğine gömerek metinlerin kontrastını ve okunurluğunu %100 korur */}
-        <div className="pointer-events-none absolute inset-0 bg-canvas/35" />
-      </div>
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background:
+            "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
+        }}
+      />
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[60] hidden opacity-[0.035] md:block"
@@ -2280,6 +2272,14 @@ export default function App() {
       <Navbar />
 
       <main className="relative z-10">
+        {/* Meteorlar yalnızca ilk ekranda (Hero/gökyüzü) süzülür; absolute olduğu için aşağı kaydırınca kullanıcıyla birlikte aşağı inmez, en üstte kalır */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-screen min-h-[640px] overflow-hidden -z-10"
+        >
+          <Meteors />
+        </div>
+
         <Hero />
         {mountStage >= 1 && (
           <>
