@@ -278,83 +278,12 @@ body {
   }
 }
 /* ================================================================== */
-/*  3D Tilt, Manyetik Butonlar & Scramble Box                          */
+/*  Manyetik Butonlar & Border Beam (Hafif ve 60fps)                  */
 /* ================================================================== */
-.scramble-box {
-  display: inline-grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-  align-items: baseline;
-}
-
-.scramble-anchor {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  visibility: hidden;
-  pointer-events: none;
-  user-select: none;
-}
-
-.scramble-display {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  width: 100%;
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .tilt-card {
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    height: 100%;
-  }
-
-  .tilt-inner {
-    height: 100%;
-    width: 100%;
-    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    will-change: transform;
-    border-radius: inherit;
-    overflow: hidden;
-  }
-
-  .tilt-glare {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    opacity: var(--glare-opacity, 0);
-    background: radial-gradient(
-      circle 450px at var(--glare-x, 50%) var(--glare-y, 50%),
-      rgba(214, 255, 63, 0.14),
-      transparent 75%
-    );
-    transition: opacity 0.35s ease;
-  }
-
-  .magnetic-zone {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .magnetic-hit-area {
-    position: absolute;
-    inset: -28px;
-    pointer-events: auto;
-    z-index: -1;
-  }
-
   .magnetic-item {
     transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
-  }
-}
-
-@media (pointer: coarse), (hover: none) {
-  .magnetic-hit-area {
-    display: none;
   }
 }
 

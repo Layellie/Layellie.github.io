@@ -203,7 +203,7 @@ function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = fal
 
 
 /* ================================================================== */
-/*  İnteraktif efektler: 3D Tilt, Manyetik Buton & Scramble Text       */
+/*  İnteraktif efektler: Manyetik Buton & Scramble Text               */
 /* ================================================================== */
 const SCRAMBLE_GLYPHS = "01#@<>[]/\\_—*^!~{}=";
 
@@ -214,10 +214,10 @@ function useScrambleText(originalText) {
 
   useEffect(() => {
     setDisplayText(originalText);
+    animatingRef.current = false;
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
-      animatingRef.current = false;
     }
   }, [originalText]);
 
@@ -234,10 +234,10 @@ function useScrambleText(originalText) {
     let frame = 0;
     // 35ms per tick:
     // Lead phase (full chaos/scramble across all characters): 8 frames (~280ms)
-    // Resolve phase (left-to-right deobfuscate): 20 to 28 frames (~700ms - 980ms)
-    // Total duration: ~1.0s to 1.25s
+    // Resolve phase (left-to-right deobfuscate): 16 to 24 frames (~560ms - 840ms)
+    // Total duration: ~0.9s to 1.1s (visible, cinematic, smooth)
     const leadFrames = 8;
-    const resolveFrames = Math.max(16, Math.min(28, Math.round(originalText.length * 1.4)));
+    const resolveFrames = Math.max(16, Math.min(24, Math.round(originalText.length * 1.2)));
     const totalFrames = leadFrames + resolveFrames;
 
     if (timerRef.current) clearInterval(timerRef.current);
@@ -245,27 +245,27 @@ function useScrambleText(originalText) {
     timerRef.current = setInterval(() => {
       frame += 1;
 
-      setDisplayText(() => {
-        const progress = frame <= leadFrames
-          ? 0
-          : (frame - leadFrames) / resolveFrames;
+      const progress = frame <= leadFrames
+        ? 0
+        : (frame - leadFrames) / resolveFrames;
 
-        const resolvedCount = Math.floor(progress * originalText.length);
+      const resolvedCount = Math.floor(progress * originalText.length);
 
-        return originalText
-          .split("")
-          .map((char, index) => {
-            // Keep spaces, linebreaks, hyphens, and common punctuation stable so layout never shifts
-            if (char === " " || char === "\n" || char === "-" || char === "." || char === "(" || char === ")" || char === "_") {
-              return char;
-            }
-            if (index < resolvedCount) {
-              return originalText[index];
-            }
-            return SCRAMBLE_GLYPHS[Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)];
-          })
-          .join("");
-      });
+      const nextText = originalText
+        .split("")
+        .map((char, index) => {
+          // Keep spaces, linebreaks, hyphens, and punctuation fixed so line wrapping never shifts
+          if (char === " " || char === "\n" || char === "-" || char === "_" || char === "." || char === "(" || char === ")" || char === "/") {
+            return char;
+          }
+          if (index < resolvedCount) {
+            return originalText[index];
+          }
+          return SCRAMBLE_GLYPHS[Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)];
+        })
+        .join("");
+
+      setDisplayText(nextText);
 
       if (frame >= totalFrames) {
         clearInterval(timerRef.current);
@@ -283,75 +283,20 @@ function ScrambleText({ text, className = "" }) {
   const { displayText, trigger } = useScrambleText(text);
   return (
     <span
+      onMouseEnter={trigger}
       onPointerEnter={trigger}
-      className={`scramble-box cursor-default ${className}`}
+      className={`inline-block cursor-default select-none ${className}`}
     >
-      <span className="scramble-anchor" aria-hidden="true">
-        {text}
-      </span>
-      <span className="scramble-display">
-        {displayText}
-      </span>
+      {displayText}
     </span>
   );
 }
 
-function useTilt(maxTilt = 6) {
+function useMagnetic(strength = 0.32) {
   const ref = useRef(null);
 
   const onPointerMove = useCallback((e) => {
     const el = ref.current;
-    if (
-      !el ||
-      (typeof window !== "undefined" &&
-        (window.matchMedia("(pointer: coarse)").matches ||
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches))
-    ) {
-      return;
-    }
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.setProperty("--tilt-x", `${(-y * maxTilt).toFixed(2)}deg`);
-    el.style.setProperty("--tilt-y", `${(x * maxTilt).toFixed(2)}deg`);
-    el.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
-    el.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
-    el.style.setProperty("--glare-opacity", "1");
-  }, [maxTilt]);
-
-  const onPointerLeave = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.setProperty("--tilt-x", "0deg");
-    el.style.setProperty("--tilt-y", "0deg");
-    el.style.setProperty("--glare-opacity", "0");
-  }, []);
-
-  return { ref, onPointerMove, onPointerLeave };
-}
-
-function TiltCard({ children, className = "", maxTilt = 6 }) {
-  const { ref, onPointerMove, onPointerLeave } = useTilt(maxTilt);
-  return (
-    <div
-      ref={ref}
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
-      className={`tilt-card ${className}`}
-    >
-      <div className="tilt-inner relative h-full w-full">
-        {children}
-        <div className="tilt-glare" />
-      </div>
-    </div>
-  );
-}
-
-function MagneticButton({ children, className = "", href, onClick, ...rest }) {
-  const btnRef = useRef(null);
-
-  const onPointerMove = useCallback((e) => {
-    const el = btnRef.current;
     if (
       !el ||
       (typeof window !== "undefined" &&
@@ -366,37 +311,37 @@ function MagneticButton({ children, className = "", href, onClick, ...rest }) {
     const dx = e.clientX - centerX;
     const dy = e.clientY - centerY;
 
-    const maxPull = 16;
-    const pullX = Math.max(-maxPull, Math.min(maxPull, dx * 0.35));
-    const pullY = Math.max(-maxPull, Math.min(maxPull, dy * 0.35));
+    const maxPull = 15;
+    const pullX = Math.max(-maxPull, Math.min(maxPull, dx * strength));
+    const pullY = Math.max(-maxPull, Math.min(maxPull, dy * strength));
     el.style.transform = `translate3d(${pullX.toFixed(1)}px, ${pullY.toFixed(1)}px, 0)`;
-  }, []);
+  }, [strength]);
 
   const onPointerLeave = useCallback(() => {
-    const el = btnRef.current;
+    const el = ref.current;
     if (!el) return;
     el.style.transform = "translate3d(0, 0, 0)";
   }, []);
 
+  return { ref, onPointerMove, onPointerLeave };
+}
+
+function MagneticButton({ children, className = "", href, onClick, ...rest }) {
+  const { ref, onPointerMove, onPointerLeave } = useMagnetic(0.32);
   const Tag = href ? "a" : "button";
 
   return (
-    <span
+    <Tag
+      ref={ref}
+      href={href}
+      onClick={onClick}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
-      className="magnetic-zone relative inline-flex items-center justify-center"
+      className={`magnetic-item inline-flex ${className}`}
+      {...rest}
     >
-      <span className="magnetic-hit-area" aria-hidden="true" />
-      <Tag
-        ref={btnRef}
-        href={href}
-        onClick={onClick}
-        className={`magnetic-item inline-flex ${className}`}
-        {...rest}
-      >
-        {children}
-      </Tag>
-    </span>
+      {children}
+    </Tag>
   );
 }
 
@@ -873,8 +818,7 @@ function About() {
 
         <div className="lg:col-span-4">
           <Reveal delay={0.1} y={0} x={70}>
-            <TiltCard maxTilt={5} className="rounded-2xl">
-              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
                 {a.facts.map((f) => (
                   <div key={f.label} className="bg-surface p-6">
                     <div className="text-xs uppercase tracking-wider text-faint">
@@ -886,7 +830,6 @@ function About() {
                   </div>
                 ))}
               </div>
-            </TiltCard>
           </Reveal>
         </div>
       </div>
@@ -956,9 +899,7 @@ function Skills() {
       <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">
         {s.focus.map((f, i) => (
           <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
-            <TiltCard maxTilt={5}>
-              <FeatureCard item={f} />
-            </TiltCard>
+            <FeatureCard item={f} />
           </Reveal>
         ))}
       </div>
@@ -978,8 +919,7 @@ function Skills() {
       </div>
 
       <Reveal delay={0.1}>
-        <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
-          <div className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
+        <div className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
             <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
               <Sparkles className="h-3.5 w-3.5" /> {s.moreLabel}
             </div>
@@ -1012,7 +952,6 @@ function Skills() {
             })}
           </div>
         </div>
-        </TiltCard>
       </Reveal>
     </section>
   );
@@ -1154,9 +1093,7 @@ function Certificates() {
                 data-card
                 className="shrink-0 snap-start basis-[85%] sm:basis-[47%] lg:basis-[31.5%]"
               >
-                <TiltCard maxTilt={7}>
-                  <CertificateCard cert={cert} labels={labels} />
-                </TiltCard>
+                <CertificateCard cert={cert} labels={labels} />
               </div>
             ))}
           </div>
@@ -1497,8 +1434,7 @@ function GithubStats({ stats }) {
   ];
   return (
     <Reveal>
-      <TiltCard maxTilt={4} className="mt-16 rounded-2xl">
-        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+      <div className="mt-16 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
           {cards.map((c) => (
           <a
             key={c.label}
@@ -1517,8 +1453,7 @@ function GithubStats({ stats }) {
             </div>
           </a>
         ))}
-        </div>
-      </TiltCard>
+      </div>
     </Reveal>
   );
 }
@@ -1531,11 +1466,10 @@ function ContributionGraph() {
   if (!ok) return null;
   return (
     <Reveal>
-      <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
-        <div
-          ref={containerRef}
-          className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
-        >
+      <div
+        ref={containerRef}
+        className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
+      >
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
             <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
           </div>
@@ -1555,8 +1489,7 @@ function ContributionGraph() {
               <div className="h-[112px] w-full min-w-[680px]" aria-hidden="true" />
             )}
           </div>
-        </div>
-      </TiltCard>
+      </div>
     </Reveal>
   );
 }
@@ -1638,9 +1571,7 @@ function MoreRepos({ repos, labels }) {
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {repos.map((r) => (
-            <TiltCard key={r.id} maxTilt={5}>
-              <RepoCard repo={r} noDesc={labels.noDesc} />
-            </TiltCard>
+            <RepoCard key={r.id} repo={r} noDesc={labels.noDesc} />
           ))}
         </div>
 
@@ -1667,8 +1598,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
   const { lang } = useLang();
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
-      <TiltCard maxTilt={3} className="rounded-3xl">
-        <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
+      <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
           <DeferredProjectVisual
             reference={project.visual}
@@ -1750,8 +1680,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             </MagneticButton>
           </div>
         </div>
-        </article>
-      </TiltCard>
+      </article>
     </Reveal>
   );
 }
