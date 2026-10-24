@@ -1298,24 +1298,33 @@ function GithubStats({ stats }) {
 function ContributionGraph() {
   const { t } = useLang();
   const [ok, setOk] = useState(true);
+  const containerRef = useRef(null);
+  const near = useNearViewport(containerRef, "350px 0px");
   if (!ok) return null;
   return (
     <Reveal>
-      <div className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
+      <div
+        ref={containerRef}
+        className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
+      >
         <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
           <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
         </div>
         <div className="mt-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <img
-            src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
-            alt={t.projects.contributions}
-            loading="lazy"
-            decoding="async"
-            width="720"
-            height="112"
-            onError={() => setOk(false)}
-            className="w-full min-w-[680px] opacity-90"
-          />
+          {near ? (
+            <img
+              src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
+              alt={t.projects.contributions}
+              loading="lazy"
+              decoding="async"
+              width="720"
+              height="112"
+              onError={() => setOk(false)}
+              className="w-full min-w-[680px] opacity-90"
+            />
+          ) : (
+            <div className="h-[112px] w-full min-w-[680px]" aria-hidden="true" />
+          )}
         </div>
       </div>
     </Reveal>
