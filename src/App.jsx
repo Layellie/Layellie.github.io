@@ -5,17 +5,12 @@ import {
   useMemo,
   createContext,
   useContext,
+  lazy,
+  Suspense,
 } from "react";
 import { selectMoreGithubRepositories } from "./content/githubUrls.js";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useSpring,
-  useTransform,
-  useInView,
-  animate,
-} from "framer-motion";
+// framer-motion kullanılmaz: tüm animasyonlar saf CSS + IntersectionObserver ile
+// çalıştırılarak ~120 KB kütüphane maliyeti ve ana iş parçacığı yükü kaldırılmıştır.
 import {
   ArrowUpRight,
   ArrowDown,
@@ -56,10 +51,73 @@ import {
   Monitor,
   BellRing,
 } from "lucide-react";
-import ProjectVisual from "./components/project-visuals/ProjectVisual.jsx";
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
-import { CONTENT, IDENTITY, portfolioFiles, selectSkillsTicker } from "./content/loadContent.js";
+// Public site: içerik build sırasında doğrulanıp hazır JSON olarak gömülür (bkz. build/precomputed-content.js),
+// bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
+import { CONTENT, IDENTITY, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
 import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
+
+// Proje görselleri (Zod şemalarıyla doğrulanan MockupRenderer) ekran dışında olduğundan ayrı chunk'ta yüklenir.
+const ProjectVisual = lazy(() => import("./components/project-visuals/ProjectVisual.jsx"));
+
+// Tarayıcı boştayken çalıştır (ilk boyama / etkileşimi bloklamasın).
+function whenIdle(callback, timeout = 2500) {
+  if (typeof window === "undefined") return () => {};
+  if ("requestIdleCallback" in window) {
+    const id = window.requestIdleCallback(callback, { timeout });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = window.setTimeout(callback, 200);
+  return () => window.clearTimeout(id);
+}
+
+// Verilen öğe görünüme yaklaşana kadar `false`, sonra kalıcı olarak `true` döner.
+function useNearViewport(ref, rootMargin = "600px 0px") {
+  const [near, setNear] = useState(() => typeof IntersectionObserver === "undefined");
+  useEffect(() => {
+    if (near || !ref.current) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setNear(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [near, ref, rootMargin]);
+  return near;
+}
+
+function DeferredProjectVisual(props) {
+  const { reference, legacyVisuals = {} } = props;
+  const ref = useRef(null);
+  const near = useNearViewport(ref, "1200px 0px");
+
+  // Bilinen custom legacy görseller doğrudan App.jsx içinde tanımlı olduğu için
+  // ayrı chunk beklemeksizin hemen render edilir.
+  if (reference?.mode === "custom" && legacyVisuals[reference.componentId]) {
+    const Legacy = legacyVisuals[reference.componentId];
+    return <Legacy />;
+  }
+
+  const placeholder = (
+    <div aria-hidden className="aspect-[4/3] w-full rounded-2xl border border-line bg-elevated/60" />
+  );
+  return (
+    <div ref={ref}>
+      {near ? (
+        <Suspense fallback={placeholder}>
+          <ProjectVisual {...props} />
+        </Suspense>
+      ) : (
+        placeholder
+      )}
+    </div>
+  );
+}
 
 const SECTION_IDS = ["hakkimda", "yetenekler", "projeler", "sertifikalar", "iletisim"];
 const NAV_KEYS = [
@@ -100,16 +158,44 @@ const useLang = () => useContext(LangCtx);
 /*  Yardımcı bileşenler ve hook'lar                                    */
 /* ================================================================== */
 function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = false }) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(
+    () => typeof IntersectionObserver === "undefined"
+  );
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          if (once) observer.disconnect();
+        } else if (!once) {
+          setInView(false);
+        }
+      },
+      { rootMargin: "-80px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [once]);
+
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y, x }}
-      whileInView={{ opacity: 1, y: 0, x: 0 }}
-      viewport={{ once, margin: "-80px" }}
-      transition={{ duration: 1.4, delay, ease: EASE }}
+    <div
+      ref={ref}
+      className={`reveal ${inView ? "is-inview " : ""}${className}`}
+      style={{
+        "--rx": `${x}px`,
+        "--ry": `${y}px`,
+        "--rdelay": `${delay}s`,
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -131,18 +217,38 @@ function SectionHeader({ index, title, kicker }) {
   );
 }
 
+// Kaydırma ilerleme çubuğu: framer-motion'ın scroll/spring hook'ları yerine
+// rAF ile throttle edilmiş hafif bir dinleyici (ilk JS paketini küçültür).
 function ScrollProgress() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 30,
-    mass: 0.3,
-  });
+  const ref = useRef(null);
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const el = ref.current;
+      if (!el) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      el.style.transform = `scaleX(${progress})`;
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
   return (
-    <motion.div
+    <div
+      ref={ref}
       aria-hidden
-      style={{ scaleX }}
-      className="fixed inset-x-0 top-0 z-[80] h-[2px] origin-left bg-accent"
+      style={{ transform: "scaleX(0)" }}
+      className="fixed inset-x-0 top-0 z-[80] h-[2px] origin-left bg-accent will-change-transform"
     />
   );
 }
@@ -173,7 +279,7 @@ function useGithub(user, fallback) {
   const [data, setData] = useState({ stats: fallback, repos: [] });
   useEffect(() => {
     let active = true;
-    (async () => {
+    const cancelIdle = whenIdle(async () => {
       try {
         const [reposRes, userRes] = await Promise.all([
           fetch(`https://api.github.com/users/${user}/repos?per_page=100&sort=updated`),
@@ -197,9 +303,10 @@ function useGithub(user, fallback) {
       } catch {
         /* ağ hatası → yedek değerlerde kal */
       }
-    })();
+    }, 4000);
     return () => {
       active = false;
+      cancelIdle();
     };
   }, [user, fallback]);
   return data;
@@ -272,8 +379,7 @@ function Navbar() {
               >
                 {t.nav[n.key]}
                 {isActive && (
-                  <motion.span
-                    layoutId="nav-active"
+                  <span
                     className="absolute -bottom-1.5 left-0 right-0 mx-auto h-1 w-1 rounded-full bg-accent"
                   />
                 )}
@@ -322,74 +428,54 @@ function Navbar() {
       </nav>
       </header>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            data-mobile-menu
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[70] flex flex-col bg-canvas xl:hidden"
-          >
-            <div className={`${WRAP} flex h-16 items-center justify-between`}>
-              <span className="font-display font-medium">Laye77ie</span>
-              <button
+      {open && (
+        <div
+          data-mobile-menu
+          className="overlay-fade fixed inset-0 z-[70] flex flex-col bg-canvas xl:hidden"
+        >
+          <div className={`${WRAP} flex h-16 items-center justify-between`}>
+            <span className="font-display font-medium">Laye77ie</span>
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Kapat"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className={`${WRAP} flex flex-1 flex-col justify-center gap-2`}>
+            {NAV_KEYS.map((n, i) => (
+              <a
+                key={n.href}
+                href={n.href}
                 onClick={() => setOpen(false)}
-                aria-label="Kapat"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line"
+                style={{ "--nav-delay": `${0.1 + i * 0.06}s` }}
+                className="mobile-nav-item font-display text-4xl tracking-tight text-ink/90 transition-colors hover:text-accent"
               >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className={`${WRAP} flex flex-1 flex-col justify-center gap-2`}>
-              {NAV_KEYS.map((n, i) => (
-                <motion.a
-                  key={n.href}
-                  href={n.href}
-                  onClick={() => setOpen(false)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.06, ease: EASE, duration: 0.5 }}
-                  className="font-display text-4xl tracking-tight text-ink/90 transition-colors hover:text-accent"
-                >
-                  {t.nav[n.key]}
-                </motion.a>
-              ))}
-              <motion.a
-                href="/admin/"
-                aria-label={t.nav.login}
-                data-admin-login="mobile"
-                onClick={() => setOpen(false)}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.1 + NAV_KEYS.length * 0.06,
-                  ease: EASE,
-                  duration: 0.5,
-                }}
-                className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-5 py-3 text-base font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
-              >
-                <LogIn className="h-4 w-4" /> {t.nav.login}
-              </motion.a>
-              <motion.a
-                href={`mailto:${IDENTITY.email}`}
-                onClick={() => setOpen(false)}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.16 + NAV_KEYS.length * 0.06,
-                  ease: EASE,
-                  duration: 0.5,
-                }}
-                className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-base text-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
-              >
-                <Mail className="h-4 w-4" /> {IDENTITY.email}
-              </motion.a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                {t.nav[n.key]}
+              </a>
+            ))}
+            <a
+              href="/admin/"
+              aria-label={t.nav.login}
+              data-admin-login="mobile"
+              onClick={() => setOpen(false)}
+              style={{ "--nav-delay": `${0.1 + NAV_KEYS.length * 0.06}s` }}
+              className="mobile-nav-item mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-5 py-3 text-base font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
+            >
+              <LogIn className="h-4 w-4" /> {t.nav.login}
+            </a>
+            <a
+              href={`mailto:${IDENTITY.email}`}
+              onClick={() => setOpen(false)}
+              style={{ "--nav-delay": `${0.16 + NAV_KEYS.length * 0.06}s` }}
+              className="mobile-nav-item mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-base text-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
+            >
+              <Mail className="h-4 w-4" /> {IDENTITY.email}
+            </a>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -397,37 +483,45 @@ function Navbar() {
 /* ================================================================== */
 /*  HERO                                                               */
 /* ================================================================== */
-const headlineParent = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } },
-};
-const charChild = {
-  hidden: { y: "110%", opacity: 0 },
-  show: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.8, ease: EASE },
-  },
-};
-
+// Hero girişi saf CSS keyframes ile animasyonlanır (bkz. index.css .hero-*):
+// framer-motion yüklenmeden ilk boyamada görünür, LCP'yi JS'e bağlı bırakmaz.
 // İsmi harf harf, maskeli yükselme efektiyle render eder.
-function AnimatedWord({ text }) {
+function AnimatedWord({ text, offset = 0 }) {
   return text.split("").map((ch, i) => (
-    <motion.span key={i} variants={charChild} className="inline-block">
+    <span key={i} className="hero-char inline-block" style={{ "--i": offset + i }}>
       {ch}
-    </motion.span>
+    </span>
   ));
 }
 
 function Hero() {
   const { t } = useLang();
   const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 130]);
-  const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0]);
+  const parallaxRef = useRef(null);
+
+  // Hafif parallax: bölüm yukarı çıkarken içerik 130px kayar ve solar (rAF + passive scroll).
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const section = ref.current;
+      const inner = parallaxRef.current;
+      if (!section || !inner) return;
+      const progress = Math.min(1, Math.max(0, window.scrollY / (section.offsetHeight || 1)));
+      inner.style.transform = `translate3d(0, ${(progress * 130).toFixed(1)}px, 0)`;
+      inner.style.opacity = String(Math.max(0, 1 - progress / 0.85));
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   return (
     <section
@@ -435,12 +529,10 @@ function Hero() {
       ref={ref}
       className={`${WRAP} relative flex min-h-screen flex-col justify-center pb-16 pt-28`}
     >
-      <motion.div style={{ y, opacity }}>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.15, ease: EASE }}
-          className="mb-8 flex flex-wrap items-center gap-3 text-sm"
+      <div ref={parallaxRef}>
+        <div
+          className="hero-rise mb-8 flex flex-wrap items-center gap-3 text-sm"
+          style={{ "--hero-dur": "0.7s" }}
         >
           <span className="relative flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
@@ -451,24 +543,18 @@ function Hero() {
           <span className="inline-flex items-center gap-1 text-muted">
             <MapPin className="h-3.5 w-3.5" /> {t.hero.location}
           </span>
-        </motion.div>
+        </div>
 
         <div className="relative">
-          <motion.div
+          <div
             aria-hidden
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.4, delay: 0.15, ease: EASE }}
-            className="pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full opacity-[0.16] blur-[60px] md:blur-[100px]"
+            className="hero-glow pointer-events-none absolute -left-[12%] top-1/2 -z-10 h-[160%] w-[70%] -translate-y-1/2 rounded-full"
             style={{
               background:
-                "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)",
+                "radial-gradient(closest-side, rgba(214,255,63,0.55) 0%, rgba(214,255,63,0.18) 45%, rgba(214,255,63,0.04) 72%, transparent 100%)",
             }}
           />
-          <motion.h1
-            variants={headlineParent}
-            initial="hidden"
-            animate="show"
+          <h1
             aria-label={`${IDENTITY.name}.`}
             className="relative font-display text-[clamp(3.25rem,14vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]"
           >
@@ -479,31 +565,18 @@ function Hero() {
             </span>
             <span aria-hidden className="block overflow-hidden pb-[0.08em]">
               <span className="block">
-                <AnimatedWord text="Kaşmer" />
-                <motion.span variants={charChild} className="inline-block text-accent">
-                  <motion.span
-                    className="inline-block"
-                    animate={{ opacity: [1, 0.4, 1], scale: [1, 1.15, 1] }}
-                    transition={{
-                      duration: 2.6,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 1.7,
-                    }}
-                  >
-                    .
-                  </motion.span>
-                </motion.span>
+                <AnimatedWord text="Kaşmer" offset={5} />
+                <span className="hero-char inline-block text-accent" style={{ "--i": 11 }}>
+                  <span className="hero-dot inline-block">.</span>
+                </span>
               </span>
             </span>
-          </motion.h1>
+          </h1>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.9, ease: EASE }}
-          className="mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between"
+        <div
+          className="hero-rise mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between"
+          style={{ "--hero-delay": "0.15s", "--hero-dur": "0.7s" }}
         >
           <div className="max-w-xl">
             <p className="font-display text-xl tracking-tight md:text-2xl">
@@ -528,8 +601,8 @@ function Hero() {
               {t.hero.ctaContact}
             </a>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </section>
   );
 }
@@ -1148,22 +1221,43 @@ const LEGACY_VISUALS = {
 /*  GitHub canlı istatistik şeridi                                     */
 /* ================================================================== */
 // Görünüme girince 0'dan hedef değere sayan animasyonlu sayaç.
+// framer-motion'ın animate/useInView'i yerine IntersectionObserver + rAF (ilk JS paketini küçültür).
 function Counter({ value, duration = 2.4 }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { margin: "-40px" });
+  const [inView, setInView] = useState(false);
   const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: "-40px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!inView) {
       setDisplay(0);
-      return;
+      return undefined;
     }
-    const controls = animate(0, value, {
-      duration,
-      ease: EASE,
-      onUpdate: (v) => setDisplay(Math.round(v)),
-    });
-    return () => controls.stop();
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / (duration * 1000));
+      const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t); // ~ easeOutExpo (EASE ile aynı karakter)
+      setDisplay(Math.round(value * eased));
+      if (t < 1) frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
   }, [inView, value, duration]);
+
   return <span ref={ref}>{display}</span>;
 }
 
@@ -1334,7 +1428,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
     <Reveal y={0} x={reverse ? 90 : -90}>
       <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
-          <ProjectVisual
+          <DeferredProjectVisual
             reference={project.visual}
             presets={portfolioFiles.visuals.presets}
             lang={lang}
@@ -1783,27 +1877,19 @@ function CommandPalette() {
   };
 
   return (
-    <AnimatePresence>
+    <>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-[90] flex items-start justify-center px-4 pt-[12vh]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+        <div
+          className="overlay-fade fixed inset-0 z-[90] flex items-start justify-center px-4 pt-[12vh]"
         >
           <div
             className="absolute inset-0 bg-canvas/70 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <motion.div
+          <div
             role="dialog"
             aria-modal="true"
-            initial={{ opacity: 0, y: -14, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: EASE }}
-            className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-black/50"
+            className="modal-pop relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-black/50"
           >
             <div className="flex items-center gap-3 border-b border-line px-4">
               <Search className="h-4 w-4 shrink-0 text-faint" />
@@ -1851,10 +1937,10 @@ function CommandPalette() {
                 })
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
 
@@ -2116,7 +2202,8 @@ export default function App() {
     document.documentElement.lang = lang;
   }, [lang]);
 
-  useEffect(() => { void recordPortfolioVisit(); }, []);
+  // Analitik kaydı, ilk boyamadan sonra boş zamanda başlar.
+  useEffect(() => whenIdle(() => { void recordPortfolioVisit(); }, 3000), []);
 
   const t = CONTENT[lang];
 

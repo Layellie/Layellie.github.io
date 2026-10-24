@@ -125,6 +125,123 @@ body {
   }
 }
 
+/* Hero girişi: saf CSS (framer-motion yüklenmeden ilk boyamada görünür) */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-char {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 110%, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-glow {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.16;
+  }
+}
+
+@keyframes hero-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(1.15);
+  }
+}
+
+.hero-rise {
+  animation: hero-rise var(--hero-dur, 0.8s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--hero-delay, 0s);
+}
+
+.hero-char {
+  animation: hero-char 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.03s + var(--i, 0) * 0.03s);
+}
+
+.hero-glow {
+  opacity: 0.16;
+  animation: hero-glow 1s ease-out 0.1s both;
+}
+
+.hero-dot {
+  animation: hero-dot 2.6s ease-in-out 1.4s infinite;
+}
+
+/* Bölüm ve kart giriş animasyonları (IntersectionObserver ile tetiklenir, framer-motion gerektirmez) */
+.reveal {
+  opacity: 0;
+  transform: translate3d(var(--rx, 0px), var(--ry, 28px), 0);
+  transition:
+    opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1) var(--rdelay, 0s),
+    transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) var(--rdelay, 0s);
+}
+
+.reveal.is-inview {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Mobil menü ve komut paleti açılış geçişleri */
+@keyframes overlay-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.overlay-fade {
+  animation: overlay-fade 0.25s ease-out both;
+}
+
+.modal-pop {
+  animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mobile-nav-item {
+  animation: hero-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--nav-delay, 0.1s);
+}
+
 /* Erişilebilirlik: hareketi azalt */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -137,5 +254,21 @@ body {
 
   .meteor {
     display: none;
+  }
+
+  .hero-rise,
+  .hero-char,
+  .hero-glow,
+  .hero-dot,
+  .overlay-fade,
+  .modal-pop,
+  .mobile-nav-item {
+    animation: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

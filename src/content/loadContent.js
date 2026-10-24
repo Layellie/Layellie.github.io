@@ -4,6 +4,10 @@ import certificatesJson from "./certificates.json";
 import skillsJson from "./skills.json";
 import visualsJson from "./visuals.json";
 import { parsePortfolioFiles } from "./schemas.js";
+import { buildContentView } from "./contentView.js";
+
+export { buildContentView };
+export { selectSkillsTicker } from "./skillsTicker.js";
 
 export const portfolioFiles = parsePortfolioFiles({
   site: siteJson,
@@ -12,94 +16,6 @@ export const portfolioFiles = parsePortfolioFiles({
   skills: skillsJson,
   visuals: visualsJson,
 });
-
-function displayDate(isoDate) {
-  const [year, month, day] = isoDate.split("-");
-  return `${day}.${month}.${year}`;
-}
-
-function tickerKey(value) {
-  return value.normalize("NFKC").trim().toLocaleLowerCase("tr-TR");
-}
-
-export function selectSkillsTicker(skills) {
-  const seenIds = new Set();
-  const seenLabels = new Set();
-  const result = [];
-  const add = (item) => {
-    const label = typeof item?.name === "string" ? item.name.trim() : "";
-    const id = typeof item?.id === "string" ? item.id.trim() : "";
-    if (!label || label.length > 120 || (id && seenIds.has(id))) return;
-    const labelKey = tickerKey(label);
-    if (!labelKey || seenLabels.has(labelKey)) return;
-    if (id) seenIds.add(id);
-    seenLabels.add(labelKey);
-    result.push({ id: id || `skill-${result.length}`, label });
-  };
-  for (const card of skills?.languages || []) add(card);
-  for (const group of skills?.more || []) for (const item of group.items || []) add(item);
-  return result;
-}
-
-export function buildContentView(files, { includeVisual = true } = {}) {
-  const parsed = parsePortfolioFiles(files);
-  const content = {};
-
-  for (const lang of ["tr", "en"]) {
-    const language = structuredClone(parsed.site[lang]);
-    language.skills.focus = parsed.skills.focusAreas.map((item) => ({
-      icon: item.shared.icon,
-      title: item[lang].title,
-      desc: item[lang].description,
-      tags: item[lang].tags,
-    }));
-    language.skills.languages = parsed.skills.skillCards.map((item) => ({
-      name: item[lang].name,
-      icon: item.shared.icon,
-      note: item[lang].description,
-      width: item.shared.width,
-      ...(item.shared.certified ? { certified: true } : {}),
-    }));
-    language.skills.more = parsed.skills.additionalGroups.map((group) => ({
-      group: group[lang].title,
-      icon: group.shared.icon,
-      items: group.items.map((item) => ({
-        name: item[lang].name,
-        ...(item.shared.certified ? { certified: true } : {}),
-      })),
-    }));
-    language.certificates.items = parsed.certificates.items.map((item) => ({
-      title: item[lang].title,
-      issuer: item[lang].issuer,
-      date: displayDate(item.shared.date),
-      code: item.shared.code,
-      skill: item[lang].skillLabel,
-      icon: item.shared.icon,
-      file: item.shared.file,
-    }));
-    language.projects.items = parsed.projects.items
-      .filter((item) => item.publicationStatus === "published")
-      .map((item) => ({
-        id: item.id,
-        name: item[lang].name,
-        type: item[lang].type,
-        year: item.shared.year,
-        license: item.shared.license,
-        github: item.shared.github,
-        description: item[lang].description,
-        features: item[lang].features,
-        status: item[lang].status,
-        stack: item.shared.stack,
-        ...(includeVisual ? { visual: item.shared.visual } : {}),
-      }));
-    content[lang] = language;
-  }
-
-  return {
-    identity: parsed.site.shared.identity,
-    content,
-  };
-}
 
 const hydrated = buildContentView(portfolioFiles);
 

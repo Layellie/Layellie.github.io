@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { tailwindSourceScope } from "./build/tailwind-source-scope.js";
 import { adminRedirectPlugin } from "./build/admin-redirect.js";
+import { precomputedContentPlugin } from "./build/precomputed-content.js";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,5 +13,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     adminRedirectPlugin(),
+    precomputedContentPlugin(),
   ],
 });
