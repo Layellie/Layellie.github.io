@@ -89,18 +89,18 @@ body {
   animation: marquee 60s linear infinite;
 }
 
-/* Meteor / yıldız kayması — yukarıdan aşağı inip iz bırakan zarif saf beyaz çizgiler */
+/* Meteor / yıldız kayması — sayfanın en arkasında süzülen saf beyaz çizgiler */
 .meteor {
   position: absolute;
   width: 1.5px;
   border-radius: 9999px;
   background: linear-gradient(
     to top,
-    rgba(255, 255, 255, 0.75) 0%,
-    rgba(255, 255, 255, 0.22) 20%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.45) 24%,
     rgba(255, 255, 255, 0) 100%
   );
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
   opacity: 0;
   transform: translate3d(0, 0, 0) rotate(20deg);
   animation-name: meteor-fall;
@@ -116,11 +116,11 @@ body {
   }
 
   8% {
-    opacity: 0.45;
+    opacity: 0.75;
   }
 
   85% {
-    opacity: 0.45;
+    opacity: 0.75;
   }
 
   100% {

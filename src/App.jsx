@@ -1736,20 +1736,20 @@ function Footer() {
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
 function Meteors({ count: countProp }) {
-  // Arka planda sakin, metinlerin okunmasını engellemeyen saf beyaz meteorlar
+  // Sayfanın en arkasında süzülen parlak saf beyaz meteorlar
   const count =
     countProp ??
-    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 5 : 9);
+    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 6 : 12);
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => {
-        const duration = 4.2 + Math.random() * 4.5;
+        const duration = 3.8 + Math.random() * 4.2;
         return {
           left: Math.random() * 100, // %
           top: -5 - Math.random() * 25, // %
-          delay: -(Math.random() * duration), // Negatif delay: sayfa açılır açılmaz havada süzülüyor olurlar
+          delay: -(Math.random() * duration), // Negatif delay: sayfa açıldığı an süzülüyor olurlar
           duration,
-          tail: 100 + Math.random() * 120, // px
+          tail: 110 + Math.random() * 140, // px
         };
       }),
     [count]
@@ -1757,7 +1757,7 @@ function Meteors({ count: countProp }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[1] overflow-hidden opacity-60"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       {meteors.map((m, i) => (
         <span
@@ -2255,15 +2255,22 @@ export default function App() {
       <ScrollProgress />
       {mountStage >= 6 && <CommandPalette />}
 
+      {/* En arka plan katmanı: radial yeşil ışıltı + parlak beyaz meteorlar + metin okunurluğunu koruyan derinlik örtüsü */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
-        }}
-      />
-      <Meteors />
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
+          }}
+        />
+        <Meteors />
+        {/* Meteorları sayfanın en arka derinliğine gömerek metinlerin kontrastını ve okunurluğunu %100 korur */}
+        <div className="pointer-events-none absolute inset-0 bg-canvas/35" />
+      </div>
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[60] hidden opacity-[0.035] md:block"
