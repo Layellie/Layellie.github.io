@@ -210,34 +210,70 @@ const SCRAMBLE_GLYPHS = "01#@<>[]/\\_—*^!~{}=";
 function useScrambleText(originalText) {
   const [displayText, setDisplayText] = useState(originalText);
   const animatingRef = useRef(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    setDisplayText(originalText);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+      animatingRef.current = false;
+    }
+  }, [originalText]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   const trigger = useCallback(() => {
     if (animatingRef.current || !originalText) return;
     animatingRef.current = true;
-    let iteration = 0;
-    const totalIterations = originalText.length * 2.5;
 
-    const interval = setInterval(() => {
-      setDisplayText(() =>
-        originalText
+    let frame = 0;
+    // 35ms per tick:
+    // Lead phase (full chaos/scramble across all characters): 8 frames (~280ms)
+    // Resolve phase (left-to-right deobfuscate): 20 to 28 frames (~700ms - 980ms)
+    // Total duration: ~1.0s to 1.25s
+    const leadFrames = 8;
+    const resolveFrames = Math.max(16, Math.min(28, Math.round(originalText.length * 1.4)));
+    const totalFrames = leadFrames + resolveFrames;
+
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      frame += 1;
+
+      setDisplayText(() => {
+        const progress = frame <= leadFrames
+          ? 0
+          : (frame - leadFrames) / resolveFrames;
+
+        const resolvedCount = Math.floor(progress * originalText.length);
+
+        return originalText
           .split("")
           .map((char, index) => {
-            if (char === " " || char === "\n") return char;
-            if (index < iteration / 2.5) {
+            // Keep spaces, linebreaks, hyphens, and common punctuation stable so layout never shifts
+            if (char === " " || char === "\n" || char === "-" || char === "." || char === "(" || char === ")" || char === "_") {
+              return char;
+            }
+            if (index < resolvedCount) {
               return originalText[index];
             }
             return SCRAMBLE_GLYPHS[Math.floor(Math.random() * SCRAMBLE_GLYPHS.length)];
           })
-          .join("")
-      );
+          .join("");
+      });
 
-      iteration += 1;
-      if (iteration >= totalIterations) {
-        clearInterval(interval);
+      if (frame >= totalFrames) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
         setDisplayText(originalText);
         animatingRef.current = false;
       }
-    }, 25);
+    }, 35);
   }, [originalText]);
 
   return { displayText, trigger };
@@ -248,9 +284,14 @@ function ScrambleText({ text, className = "" }) {
   return (
     <span
       onPointerEnter={trigger}
-      className={`inline-block cursor-default ${className}`}
+      className={`scramble-box cursor-default ${className}`}
     >
-      {displayText}
+      <span className="scramble-anchor" aria-hidden="true">
+        {text}
+      </span>
+      <span className="scramble-display">
+        {displayText}
+      </span>
     </span>
   );
 }
@@ -260,7 +301,14 @@ function useTilt(maxTilt = 6) {
 
   const onPointerMove = useCallback((e) => {
     const el = ref.current;
-    if (!el || (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches)) return;
+    if (
+      !el ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia("(pointer: coarse)").matches ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches))
+    ) {
+      return;
+    }
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -299,42 +347,56 @@ function TiltCard({ children, className = "", maxTilt = 6 }) {
   );
 }
 
-function useMagnetic(strength = 0.28) {
-  const ref = useRef(null);
+function MagneticButton({ children, className = "", href, onClick, ...rest }) {
+  const btnRef = useRef(null);
 
   const onPointerMove = useCallback((e) => {
-    const el = ref.current;
-    if (!el || (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches)) return;
+    const el = btnRef.current;
+    if (
+      !el ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia("(pointer: coarse)").matches ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches))
+    ) {
+      return;
+    }
     const rect = el.getBoundingClientRect();
-    const x = (e.clientX - (rect.left + rect.width / 2)) * strength;
-    const y = (e.clientY - (rect.top + rect.height / 2)) * strength;
-    el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-  }, [strength]);
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = e.clientX - centerX;
+    const dy = e.clientY - centerY;
+
+    const maxPull = 16;
+    const pullX = Math.max(-maxPull, Math.min(maxPull, dx * 0.35));
+    const pullY = Math.max(-maxPull, Math.min(maxPull, dy * 0.35));
+    el.style.transform = `translate3d(${pullX.toFixed(1)}px, ${pullY.toFixed(1)}px, 0)`;
+  }, []);
 
   const onPointerLeave = useCallback(() => {
-    const el = ref.current;
+    const el = btnRef.current;
     if (!el) return;
     el.style.transform = "translate3d(0, 0, 0)";
   }, []);
 
-  return { ref, onPointerMove, onPointerLeave };
-}
-
-function MagneticButton({ children, className = "", href, onClick, ...rest }) {
-  const { ref, onPointerMove, onPointerLeave } = useMagnetic(0.24);
   const Tag = href ? "a" : "button";
+
   return (
-    <Tag
-      ref={ref}
-      href={href}
-      onClick={onClick}
+    <span
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
-      className={`magnetic-item inline-flex ${className}`}
-      {...rest}
+      className="magnetic-zone relative inline-flex items-center justify-center"
     >
-      {children}
-    </Tag>
+      <span className="magnetic-hit-area" aria-hidden="true" />
+      <Tag
+        ref={btnRef}
+        href={href}
+        onClick={onClick}
+        className={`magnetic-item inline-flex ${className}`}
+        {...rest}
+      >
+        {children}
+      </Tag>
+    </span>
   );
 }
 
@@ -811,18 +873,20 @@ function About() {
 
         <div className="lg:col-span-4">
           <Reveal delay={0.1} y={0} x={70}>
-            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
-              {a.facts.map((f) => (
-                <div key={f.label} className="bg-surface p-6">
-                  <div className="text-xs uppercase tracking-wider text-faint">
-                    {f.label}
+            <TiltCard maxTilt={5} className="rounded-2xl">
+              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+                {a.facts.map((f) => (
+                  <div key={f.label} className="bg-surface p-6">
+                    <div className="text-xs uppercase tracking-wider text-faint">
+                      {f.label}
+                    </div>
+                    <div className="mt-2 font-display text-lg leading-snug">
+                      {f.value}
+                    </div>
                   </div>
-                  <div className="mt-2 font-display text-lg leading-snug">
-                    {f.value}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </TiltCard>
           </Reveal>
         </div>
       </div>
@@ -914,10 +978,11 @@ function Skills() {
       </div>
 
       <Reveal delay={0.1}>
-        <div className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
-            <Sparkles className="h-3.5 w-3.5" /> {s.moreLabel}
-          </div>
+        <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
+          <div className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
+              <Sparkles className="h-3.5 w-3.5" /> {s.moreLabel}
+            </div>
           <div className="mt-6 divide-y divide-line">
             {s.more.map((g) => {
               return (
@@ -947,6 +1012,7 @@ function Skills() {
             })}
           </div>
         </div>
+        </TiltCard>
       </Reveal>
     </section>
   );
@@ -1431,8 +1497,9 @@ function GithubStats({ stats }) {
   ];
   return (
     <Reveal>
-      <div className="mt-16 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
-        {cards.map((c) => (
+      <TiltCard maxTilt={4} className="mt-16 rounded-2xl">
+        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+          {cards.map((c) => (
           <a
             key={c.label}
             href={IDENTITY.github}
@@ -1450,7 +1517,8 @@ function GithubStats({ stats }) {
             </div>
           </a>
         ))}
-      </div>
+        </div>
+      </TiltCard>
     </Reveal>
   );
 }
@@ -1463,30 +1531,32 @@ function ContributionGraph() {
   if (!ok) return null;
   return (
     <Reveal>
-      <div
-        ref={containerRef}
-        className="mt-5 rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
-      >
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
-          <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
+      <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
+        <div
+          ref={containerRef}
+          className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
+        >
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
+            <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
+          </div>
+          <div className="mt-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {near ? (
+              <img
+                src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
+                alt={t.projects.contributions}
+                loading="lazy"
+                decoding="async"
+                width="720"
+                height="112"
+                onError={() => setOk(false)}
+                className="w-full min-w-[680px] opacity-90"
+              />
+            ) : (
+              <div className="h-[112px] w-full min-w-[680px]" aria-hidden="true" />
+            )}
+          </div>
         </div>
-        <div className="mt-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {near ? (
-            <img
-              src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
-              alt={t.projects.contributions}
-              loading="lazy"
-              decoding="async"
-              width="720"
-              height="112"
-              onError={() => setOk(false)}
-              className="w-full min-w-[680px] opacity-90"
-            />
-          ) : (
-            <div className="h-[112px] w-full min-w-[680px]" aria-hidden="true" />
-          )}
-        </div>
-      </div>
+      </TiltCard>
     </Reveal>
   );
 }
@@ -1597,7 +1667,8 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
   const { lang } = useLang();
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
-      <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
+      <TiltCard maxTilt={3} className="rounded-3xl">
+        <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
           <DeferredProjectVisual
             reference={project.visual}
@@ -1679,7 +1750,8 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             </MagneticButton>
           </div>
         </div>
-      </article>
+        </article>
+      </TiltCard>
     </Reveal>
   );
 }
@@ -1735,9 +1807,9 @@ function CopyEmail({ email }) {
     }
   };
   return (
-    <button
+    <MagneticButton
       onClick={copy}
-      className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
+      className="items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
     >
       <Mail className="h-4 w-4" />
       <span className="font-mono">{email}</span>
@@ -1746,7 +1818,7 @@ function CopyEmail({ email }) {
       ) : (
         <Copy className="h-4 w-4 text-faint" />
       )}
-    </button>
+    </MagneticButton>
   );
 }
 
@@ -1781,22 +1853,22 @@ function Contact() {
           <p className="max-w-md leading-relaxed text-muted">{c.blurb}</p>
           <div className="flex flex-wrap items-center gap-3">
             <CopyEmail email={IDENTITY.email} />
-            <a
+            <MagneticButton
               href={IDENTITY.github}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
+              className="items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
             >
               <Github className="h-4 w-4" /> GitHub
-            </a>
-            <a
+            </MagneticButton>
+            <MagneticButton
               href={IDENTITY.linkedin}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
+              className="items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
             >
               <Linkedin className="h-4 w-4" /> LinkedIn
-            </a>
+            </MagneticButton>
           </div>
         </div>
       </Reveal>
