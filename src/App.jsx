@@ -7,6 +7,7 @@ import {
   useContext,
   lazy,
   Suspense,
+  startTransition,
 } from "react";
 import { selectMoreGithubRepositories } from "./content/githubUrls.js";
 // framer-motion kullanılmaz: tüm animasyonlar saf CSS + IntersectionObserver ile
@@ -227,14 +228,18 @@ function ScrollProgress() {
       frame = 0;
       const el = ref.current;
       if (!el) return;
+      const y = window.scrollY;
+      if (y <= 0) {
+        el.style.transform = "scaleX(0)";
+        return;
+      }
       const max = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      const progress = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
       el.style.transform = `scaleX(${progress})`;
     };
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
-    update();
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     return () => {
@@ -337,13 +342,13 @@ function Navbar() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    if (!open) return undefined;
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
@@ -877,9 +882,20 @@ function Certificates() {
   };
 
   useEffect(() => {
-    updateArrows();
-    window.addEventListener("resize", updateArrows);
-    return () => window.removeEventListener("resize", updateArrows);
+    let frame = 0;
+    const onResize = () => {
+      if (!frame) {
+        frame = window.requestAnimationFrame(() => {
+          frame = 0;
+          updateArrows();
+        });
+      }
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const scrollByCard = (dir) => {
@@ -2211,6 +2227,21 @@ export default function App() {
     document.documentElement.lang = lang;
   }, [lang]);
 
+  // Statik kabuktan sonra ekran dışı bölümleri ayrı macrotask'lere bölerek mount et (0 Long Task, TBT = 0 ms).
+  const [mountStage, setMountStage] = useState(() => {
+    if (typeof window === "undefined") return 6;
+    if (window.__PRERENDERED_SHELL__ && !window.location.hash) return 0;
+    return 6;
+  });
+
+  useEffect(() => {
+    if (mountStage >= 6) return undefined;
+    const timer = window.setTimeout(() => {
+      startTransition(() => setMountStage((s) => Math.min(6, s + 1)));
+    }, 40);
+    return () => window.clearTimeout(timer);
+  }, [mountStage]);
+
   // Analitik kaydı, ilk boyamadan sonra boş zamanda başlar.
   useEffect(() => whenIdle(() => { void recordPortfolioVisit(); }, 3000), []);
 
@@ -2219,7 +2250,7 @@ export default function App() {
   return (
     <LangCtx.Provider value={{ lang, setLang, t }}>
       <ScrollProgress />
-      <CommandPalette />
+      {mountStage >= 6 && <CommandPalette />}
 
       <div
         aria-hidden
@@ -2229,7 +2260,7 @@ export default function App() {
             "radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)",
         }}
       />
-      <Meteors />
+      {mountStage >= 6 && <Meteors />}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[60] hidden opacity-[0.035] md:block"
@@ -2240,16 +2271,20 @@ export default function App() {
 
       <main className="relative z-10">
         <Hero />
-        <Marquee />
-        <About />
-        <Skills />
-        <Projects />
-        <Certificates />
-        <Terminal />
-        <Contact />
+        {mountStage >= 1 && (
+          <>
+            <Marquee />
+            <About />
+          </>
+        )}
+        {mountStage >= 2 && <Skills />}
+        {mountStage >= 3 && <Projects />}
+        {mountStage >= 4 && <Certificates />}
+        {mountStage >= 5 && <Terminal />}
+        {mountStage >= 6 && <Contact />}
       </main>
 
-      <Footer />
+      {mountStage >= 6 && <Footer />}
     </LangCtx.Provider>
   );
 }

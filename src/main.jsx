@@ -9,6 +9,7 @@ const rootEl = document.getElementById("root");
 // React mount olduğunda Hero giriş animasyonunun sıfırlanıp tekrar başlamaması
 // için ilk boyamadan (FCP) beri geçen süreyi negatif animation-delay olarak aktar.
 if (rootEl?.firstElementChild && typeof performance !== "undefined") {
+  window.__PRERENDERED_SHELL__ = true;
   const fcpEntry = performance.getEntriesByName?.("first-contentful-paint")?.[0];
   const startTime = fcpEntry ? fcpEntry.startTime : 0;
   const elapsedSec = Math.max(0, (performance.now() - startTime) / 1000);

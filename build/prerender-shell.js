@@ -22,6 +22,9 @@ function renderAnimatedWord(text, offset = 0) {
     .join("");
 }
 
+const GLOBE_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>';
+
 /**
  * Hero + üst bar için statik başlangıç HTML'i üretir.
  * Tarayıcı JS'i indirmeden ilk boyamada (FCP + LCP) "Samet Kaşmer." başlığını
@@ -41,12 +44,12 @@ export function renderInitialShellHtml({ identity, tr }) {
     `<a href="#projeler" class="relative whitespace-nowrap text-xs transition-colors 2xl:text-sm text-muted hover:text-ink">${escapeHtml(nav.projects)}</a>`,
     `<a href="#sertifikalar" class="relative whitespace-nowrap text-xs transition-colors 2xl:text-sm text-muted hover:text-ink">${escapeHtml(nav.certificates)}</a>`,
     `<a href="#iletisim" class="relative whitespace-nowrap text-xs transition-colors 2xl:text-sm text-muted hover:text-ink">${escapeHtml(nav.contact)}</a>`,
-    '<button type="button" aria-label="Dil değiştir / Switch language" class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors">EN</button>',
+    `<button type="button" aria-label="Dil değiştir / Switch language" class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors">${GLOBE_SVG}EN</button>`,
     `<a href="/admin/" aria-label="${escapeHtml(nav.login)}" data-admin-login="desktop" class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs text-muted transition-colors xl:px-4 xl:text-sm">${escapeHtml(nav.login)}</a>`,
     `<a href="mailto:${escapeHtml(identity.email)}" data-nav-mail="desktop" class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors xl:px-4 xl:text-sm">${escapeHtml(nav.mail)}</a>`,
     "</div>",
     '<div class="flex items-center gap-2 xl:hidden">',
-    '<button type="button" aria-label="Dil değiştir / Switch language" class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors">EN</button>',
+    `<button type="button" aria-label="Dil değiştir / Switch language" class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors">${GLOBE_SVG}EN</button>`,
     '<button type="button" aria-label="Menü" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>',
     "</div>",
     "</nav></header>",
