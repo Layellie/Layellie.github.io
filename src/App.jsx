@@ -1736,20 +1736,20 @@ function Footer() {
 /*  Arka plan: meteor / yıldız kayması animasyonu                      */
 /* ================================================================== */
 function Meteors({ count: countProp }) {
-  // Mobilde 8, masaüstünde 16 meteor; negatif gecikmeyle sayfa açıldığı an gökyüzünde kayıyor olurlar
+  // Arka planda sakin, metinlerin okunmasını engellemeyen saf beyaz meteorlar
   const count =
     countProp ??
-    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 8 : 16);
+    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 5 : 9);
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => {
-        const duration = 3.2 + Math.random() * 4.5;
+        const duration = 4.2 + Math.random() * 4.5;
         return {
           left: Math.random() * 100, // %
           top: -5 - Math.random() * 25, // %
           delay: -(Math.random() * duration), // Negatif delay: sayfa açılır açılmaz havada süzülüyor olurlar
           duration,
-          tail: 110 + Math.random() * 150, // px
+          tail: 100 + Math.random() * 120, // px
         };
       }),
     [count]
@@ -1757,7 +1757,7 @@ function Meteors({ count: countProp }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[1] overflow-hidden"
+      className="pointer-events-none fixed inset-0 z-[1] overflow-hidden opacity-60"
     >
       {meteors.map((m, i) => (
         <span
