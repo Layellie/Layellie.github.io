@@ -1,3 +1,27 @@
+/* ================================================================== */
+/*  Scramble Text Yükseklik Sabitleyici (Sıfır Kart Boyu Oynaması)     */
+/* ================================================================== */
+.scramble-lock {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
+}
+
+.scramble-base {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.scramble-text {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-word;
+}
+
 @import "tailwindcss";
 
 /* Self-hosted fontlar (Fontshare, ITF Free Font License) */

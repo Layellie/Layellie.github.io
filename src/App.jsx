@@ -205,7 +205,7 @@ function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = fal
 /* ================================================================== */
 /*  İnteraktif efektler: 3D Tilt, Manyetik Buton & Scramble Text       */
 /* ================================================================== */
-const SCRAMBLE_GLYPHS = "01#@<>[]/\\_—*^!~{}=";
+const SCRAMBLE_GLYPHS = "01#<>[]/\\_*^!~{}=";
 
 function useScrambleText(originalText) {
   const [displayText, setDisplayText] = useState(originalText);
@@ -285,9 +285,14 @@ function ScrambleText({ text, className = "" }) {
     <span
       onMouseEnter={trigger}
       onPointerEnter={trigger}
-      className={`inline-block cursor-default select-none ${className}`}
+      className={`scramble-lock cursor-default select-none ${className}`}
     >
-      {displayText}
+      <span className="scramble-base" aria-hidden="true">
+        {text}
+      </span>
+      <span className="scramble-text">
+        {displayText}
+      </span>
     </span>
   );
 }
