@@ -2,6 +2,46 @@
   "schemaVersion": 1,
   "items": [
     {
+      "id": "new-certificate-6",
+      "shared": {
+        "date": "2026-10-08",
+        "code": "76856993764004",
+        "icon": "Award",
+        "file": "/media/certificates/new-certificate-6/DJ5wa4oiZpEQl9GO.pdf",
+        "relatedSkillId": "generative-ai"
+      },
+      "tr": {
+        "title": "AI4Future (İleri Seviye)",
+        "issuer": "Kodluyoruz & IBM SkillsBuild",
+        "skillLabel": "Üretken Yapay Zeka"
+      },
+      "en": {
+        "title": "AI4Future (Advanced Level)",
+        "issuer": "Kodluyoruz & IBM SkillsBuild",
+        "skillLabel": "Generative AI"
+      }
+    },
+    {
+      "id": "new-certificate-5",
+      "shared": {
+        "date": "2026-08-30",
+        "code": "74428173705319",
+        "icon": "Award",
+        "file": "/media/certificates/new-certificate-5/0P9kYsSDCnKGREjS.pdf",
+        "relatedSkillId": "new-skill-2"
+      },
+      "tr": {
+        "title": "CyberStart 2.0 (Temel Seviye)",
+        "issuer": "Kodluyoruz & IBM SkillsBuild",
+        "skillLabel": "Siber Güvenlik"
+      },
+      "en": {
+        "title": "CyberStart 2.0 (Beginner Level)",
+        "issuer": "Kodluyoruz & IBM SkillsBuild",
+        "skillLabel": "Cyber Security"
+      }
+    },
+    {
       "id": "new-certificate",
       "shared": {
         "date": "2026-07-22",
