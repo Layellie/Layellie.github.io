@@ -82,10 +82,65 @@ export function renderInitialShellHtml({ identity, tr }) {
 }
 
 /**
+ * Yapay zeka arama motorları ve LLM tarayıcıları için standart `llms.txt` üretir.
+ * İçerik doğrudan `src/content/*.json` dosyalarından geldiği için admin paneli
+ * güncellemelerinde otomatik olarak taze kalır.
+ */
+export function renderLlmsTxt({ identity, tr, en }) {
+  const siteUrl = "https://layellie.github.io";
+  const lines = [
+    `# ${identity.name} (${identity.handle})`,
+    "",
+    `> ${en.hero.role} (${tr.hero.role}) — ${en.hero.location}. ${en.hero.tagline}`,
+    "",
+    "## About",
+    "",
+    ...en.about.paragraphs,
+    "",
+    "### Key Facts",
+    ...en.about.facts.map((f) => `- **${f.label}:** ${f.value}`),
+    "",
+    "## Skills",
+    "",
+    "### Focus Areas",
+    ...en.skills.focus.map((f) => `- **${f.title}:** ${f.desc} (${f.tags.join(", ")})`),
+    "",
+    "### Core Technologies",
+    ...en.skills.languages.map((l) => `- **${l.name}:** ${l.note}`),
+    "",
+    "### Additional Tools & Stack",
+    ...en.skills.more.map((g) => `- **${g.group}:** ${g.items.map((it) => it.name).join(", ")}`),
+    "",
+    "## Open-Source Projects",
+    "",
+    ...en.projects.items.map(
+      (p) =>
+        `- [${p.name}](${p.github}): ${p.description} (Stack: ${p.stack.join(", ")}; License: ${p.license}; Year: ${p.year})`,
+    ),
+    "",
+    "## Verified Certificates",
+    "",
+    ...tr.certificates.items.map(
+      (c) => `- ${c.title} — ${c.issuer} (${c.skill}, ${c.date})`,
+    ),
+    "",
+    "## Links",
+    "",
+    `- [Portfolio](${siteUrl}/): Main portfolio website (Turkish & English)`,
+    `- [GitHub](${identity.github}): Open-source repositories and contributions`,
+    `- [LinkedIn](${identity.linkedin}): Professional profile`,
+    `- [Sitemap](${siteUrl}/sitemap.xml): XML sitemap`,
+    "",
+  ];
+  return `${lines.join("\n")}`;
+}
+
+/**
  * Public site build'inde:
  * 1) `index.html` içindeki harici `.css` dosyasını `<style>` olarak inline eder (0 render-blocking CSS isteği).
  * 2) İlk ekranın (Navbar + Hero) statik HTML'ini `<div id="root">` içine gömer; böylece FCP ve LCP
  *    JavaScript indirilmesini/çalışmasını beklemeden ilk HTML paketiyle anında boyanır.
+ * 3) Güncel portfolyo içeriğinden `llms.txt` dosyasını otomatik üretir.
  */
 export function inlineAndPrerenderShellPlugin() {
   let root = process.cwd();
@@ -156,6 +211,16 @@ export function inlineAndPrerenderShellPlugin() {
       }
 
       htmlAsset.source = html;
+
+      this.emitFile({
+        type: "asset",
+        fileName: "llms.txt",
+        source: renderLlmsTxt({
+          identity: view.identity,
+          tr: view.content.tr,
+          en: view.content.en,
+        }),
+      });
     },
   };
 }
