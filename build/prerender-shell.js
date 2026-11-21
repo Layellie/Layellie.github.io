@@ -46,7 +46,7 @@ export function renderInitialShellHtml({ identity, tr }) {
     `<a href="#iletisim" class="relative whitespace-nowrap text-xs transition-colors 2xl:text-sm text-muted hover:text-ink">${escapeHtml(nav.contact)}</a>`,
     `<button type="button" aria-label="Dil değiştir / Switch language" class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors">${GLOBE_SVG}EN</button>`,
     `<a href="/admin/" aria-label="${escapeHtml(nav.login)}" data-admin-login="desktop" class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs text-muted transition-colors xl:px-4 xl:text-sm">${escapeHtml(nav.login)}</a>`,
-    `<a href="mailto:${escapeHtml(identity.email)}" data-nav-mail="desktop" class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors xl:px-4 xl:text-sm">${escapeHtml(nav.mail)}</a>`,
+    `<a href="#iletisim" data-nav-mail="desktop" class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors xl:px-4 xl:text-sm">${escapeHtml(nav.mail)}</a>`,
     "</div>",
     '<div class="flex items-center gap-2 xl:hidden">',
     `<button type="button" aria-label="Dil değiştir / Switch language" class="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium transition-colors">${GLOBE_SVG}EN</button>`,
@@ -65,13 +65,13 @@ export function renderInitialShellHtml({ identity, tr }) {
     '<div class="relative">',
     '<div aria-hidden="true" class="hero-glow pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full blur-[60px] md:blur-[100px]" style="background:radial-gradient(circle, var(--color-accent) 0%, transparent 70%)"></div>',
     `<h1 aria-label="${escapeHtml(identity.name)}." class="relative font-display text-[clamp(3.25rem,14vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]">`,
-    `<span aria-hidden="true" class="block overflow-hidden pb-[0.08em]"><span class="block">${renderAnimatedWord("Samet", 0)}</span></span>`,
+    `<span aria-hidden="true" class="block overflow-hidden pb-[0.08em]"><span class="block">${renderAnimatedWord("Samet", 0)}</span></span><span class="sr-only"> </span>`,
     `<span aria-hidden="true" class="block overflow-hidden pb-[0.08em]"><span class="block">${renderAnimatedWord("Kaşmer", 5)}<span class="hero-char inline-block text-accent" style="--i:11"><span class="hero-dot inline-block">.</span></span></span></span>`,
     "</h1>",
     "</div>",
     '<div class="hero-rise mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between" style="--hero-delay:0.15s;--hero-dur:0.7s">',
     '<div class="max-w-xl">',
-    `<p class="font-display text-xl tracking-tight md:text-2xl">${escapeHtml(hero.role)}</p>`,
+    `<h2 class="font-display text-xl tracking-tight md:text-2xl">${escapeHtml(hero.role)}</h2>`,
     `<p class="mt-3 leading-relaxed text-muted md:text-lg">${escapeHtml(hero.tagline)}</p>`,
     "</div>",
     '<div class="flex flex-wrap items-center gap-4">',
@@ -138,6 +138,22 @@ export function inlineAndPrerenderShellPlugin() {
         '<div id="root"></div>',
         `<div id="root">${shellHtml}</div>`,
       );
+
+      // Vite'ın <head>'e eklediği module script etiketini </body> öncesine taşı (0 render-blocking head kaynağı).
+      const movedScripts = [];
+      html = html.replace(
+        /\s*<script\s+type=["']module["'][^>]*src=["'][^"']+["'][^>]*><\/script>/gi,
+        (match) => {
+          movedScripts.push(match.trim());
+          return "";
+        },
+      );
+      if (movedScripts.length) {
+        html = html.replace(
+          "</body>",
+          `    ${movedScripts.join("\n    ")}\n  </body>`,
+        );
+      }
 
       htmlAsset.source = html;
     },

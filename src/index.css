@@ -14,6 +14,18 @@
   user-select: none;
 }
 
+.scramble-base::before {
+  content: attr(data-text);
+}
+
+.ui-label::after {
+  content: attr(data-label);
+}
+
+.email-at::before {
+  content: "@";
+}
+
 .scramble-text {
   position: absolute;
   inset: 0;
@@ -306,22 +318,15 @@ body {
 /* ================================================================== */
 @media (hover: hover) and (pointer: fine) {
   .tilt-card {
-    perspective: 1000px;
-    height: 100%;
-  }
-
-  .tilt-inner {
-    height: 100%;
-    width: 100%;
+    position: relative;
     transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     transform: perspective(1000px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
     will-change: transform;
-    border-radius: inherit;
-    position: relative;
   }
 
-  .tilt-glare {
-    pointer-events: none !important;
+  .tilt-card::after {
+    content: "";
+    pointer-events: none;
     position: absolute;
     inset: 0;
     border-radius: inherit;

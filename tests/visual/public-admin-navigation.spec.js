@@ -47,7 +47,7 @@ test("admin access stays localized, keyboard accessible and aligned on desktop",
   await expect(login).toHaveAttribute("aria-label", "Giriş Yap");
   await expect(login.evaluate((element) => element.parentElement?.hasAttribute("data-header-controls"))).resolves.toBe(true);
   await expect(login.evaluate((element) => element.previousElementSibling?.tagName)).resolves.toBe("BUTTON");
-  await expect(login.evaluate((element) => element.nextElementSibling?.getAttribute("href")?.startsWith("mailto:"))).resolves.toBe(true);
+  await expect(login.evaluate((element) => element.nextElementSibling?.getAttribute("data-nav-mail"))).resolves.toBe("desktop");
 
   await login.focus();
   await expect(login).toBeFocused();

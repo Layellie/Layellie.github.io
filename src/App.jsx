@@ -157,6 +157,100 @@ const LangCtx = createContext(null);
 const useLang = () => useContext(LangCtx);
 
 /* ================================================================== */
+/*  Tekrarlayan SVG ikonları için tek sprite (DOM node tasarrufu)      */
+/* ================================================================== */
+function IconSprite() {
+  return (
+    <svg aria-hidden="true" style={{ display: "none" }}>
+      <defs>
+        <symbol id="ic-badge-check" viewBox="0 0 24 24">
+          <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+          <path d="m9 12 2 2 4-4" />
+        </symbol>
+        <symbol id="ic-award" viewBox="0 0 24 24">
+          <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
+          <circle cx="12" cy="8" r="6" />
+        </symbol>
+        <symbol id="ic-calendar" viewBox="0 0 24 24">
+          <path d="M8 2v4" />
+          <path d="M16 2v4" />
+          <rect width="18" height="18" x="3" y="4" rx="2" />
+          <path d="M3 10h18" />
+        </symbol>
+        <symbol id="ic-hash" viewBox="0 0 24 24">
+          <line x1="4" x2="20" y1="9" y2="9" />
+          <line x1="4" x2="20" y1="15" y2="15" />
+          <line x1="10" x2="8" y1="3" y2="21" />
+          <line x1="16" x2="14" y1="3" y2="21" />
+        </symbol>
+        <symbol id="ic-file-text" viewBox="0 0 24 24">
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+          <path d="M10 9H8" />
+          <path d="M16 13H8" />
+          <path d="M16 17H8" />
+        </symbol>
+        <symbol id="ic-arrow-up-right" viewBox="0 0 24 24">
+          <path d="M7 7h10v10" />
+          <path d="M7 17 17 7" />
+        </symbol>
+        <symbol id="ic-check" viewBox="0 0 24 24">
+          <path d="M20 6 9 17l-5-5" />
+        </symbol>
+        <symbol id="ic-github" viewBox="0 0 24 24">
+          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+          <path d="M9 18c-4.51 2-5-2-7-2" />
+        </symbol>
+        <symbol id="ic-star" viewBox="0 0 24 24">
+          <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
+        </symbol>
+        <symbol id="ic-folder-git-2" viewBox="0 0 24 24">
+          <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5" />
+          <circle cx="13" cy="12" r="2" />
+          <path d="M18 19c-2.8 0-5-2.2-5-5v8" />
+          <circle cx="20" cy="19" r="2" />
+        </symbol>
+      </defs>
+    </svg>
+  );
+}
+
+function SpriteIcon({ id, className = "h-4 w-4" }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <use href={`#ic-${id}`} />
+    </svg>
+  );
+}
+
+// Spam botlarına karşı e-postayı DOM'da plaintext (@) bırakmadan göster / aç.
+function openMailto(email) {
+  if (typeof window === "undefined" || !email) return;
+  window.location.href = ["mail", "to:", email].join("");
+}
+
+function ObfuscatedEmail({ email, className = "" }) {
+  const [user, domain] = String(email || "").split("@");
+  if (!domain) return <span className={className}>{email}</span>;
+  return (
+    <span className={className}>
+      {user}
+      <span className="email-at" aria-hidden="true" />
+      {domain}
+    </span>
+  );
+}
+
+/* ================================================================== */
 /*  Yardımcı bileşenler ve hook'lar                                    */
 /* ================================================================== */
 function Reveal({ children, className = "", delay = 0, y = 28, x = 0, once = false }) {
@@ -287,9 +381,7 @@ function ScrambleText({ text, className = "" }) {
       onPointerEnter={trigger}
       className={`scramble-lock cursor-default select-none ${className}`}
     >
-      <span className="scramble-base" aria-hidden="true">
-        {text}
-      </span>
+      <span className="scramble-base" aria-hidden="true" data-text={text} />
       <span className="scramble-text">
         {displayText}
       </span>
@@ -331,7 +423,7 @@ function useTilt(maxTilt = 6) {
   return { ref, onPointerMove, onPointerLeave };
 }
 
-function TiltCard({ children, className = "", maxTilt = 6 }) {
+function TiltCard({ children, className = "", maxTilt = 6, ...rest }) {
   const { ref, onPointerMove, onPointerLeave } = useTilt(maxTilt);
   return (
     <div
@@ -339,11 +431,9 @@ function TiltCard({ children, className = "", maxTilt = 6 }) {
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
       className={`tilt-card ${className}`}
+      {...rest}
     >
-      <div className="tilt-inner relative h-full w-full">
-        {children}
-        <div className="tilt-glare" />
-      </div>
+      {children}
     </div>
   );
 }
@@ -507,9 +597,10 @@ function getCachedGithubData(fallback) {
   return { stats: fallback, repos: [] };
 }
 
-function useGithub(user, fallback) {
+function useGithub(user, fallback, enabled = true) {
   const [data, setData] = useState(() => getCachedGithubData(fallback));
   useEffect(() => {
+    if (!enabled) return undefined;
     let active = true;
     const cancelIdle = whenIdle(async () => {
       const cached = getCachedGithubData(fallback);
@@ -549,12 +640,12 @@ function useGithub(user, fallback) {
       } catch {
         /* ağ hatası → yedek veya önbellekte kal */
       }
-    }, 2500);
+    }, 1500);
     return () => {
       active = false;
       cancelIdle();
     };
-  }, [user, fallback]);
+  }, [user, fallback, enabled]);
   return data;
 }
 
@@ -653,7 +744,11 @@ function Navbar() {
             <LogIn className="h-3.5 w-3.5" /> {t.nav.login}
           </a>
           <a
-            href={`mailto:${IDENTITY.email}`}
+            href="#iletisim"
+            onClick={(e) => {
+              e.preventDefault();
+              openMailto(IDENTITY.email);
+            }}
             data-nav-mail="desktop"
             className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-xs transition-colors ${NAV_ACTION_INDICATOR} xl:px-4 xl:text-sm`}
           >
@@ -712,12 +807,16 @@ function Navbar() {
               <LogIn className="h-4 w-4" /> {t.nav.login}
             </a>
             <a
-              href={`mailto:${IDENTITY.email}`}
-              onClick={() => setOpen(false)}
+              href="#iletisim"
+              onClick={(e) => {
+                e.preventDefault();
+                setOpen(false);
+                openMailto(IDENTITY.email);
+              }}
               style={{ "--nav-delay": `${0.16 + NAV_KEYS.length * 0.06}s` }}
               className="mobile-nav-item mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-base text-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-inset"
             >
-              <Mail className="h-4 w-4" /> {IDENTITY.email}
+              <Mail className="h-4 w-4" /> <ObfuscatedEmail email={IDENTITY.email} />
             </a>
           </div>
         </div>
@@ -809,6 +908,7 @@ function Hero() {
                 <AnimatedWord text="Samet" />
               </span>
             </span>
+            <span className="sr-only"> </span>
             <span aria-hidden className="block overflow-hidden pb-[0.08em]">
               <span className="block">
                 <AnimatedWord text="Kaşmer" offset={5} />
@@ -825,9 +925,9 @@ function Hero() {
           style={{ "--hero-delay": "0.15s", "--hero-dur": "0.7s" }}
         >
           <div className="max-w-xl">
-            <p className="font-display text-xl tracking-tight md:text-2xl">
+            <h2 className="font-display text-xl tracking-tight md:text-2xl">
               {t.hero.role}
-            </p>
+            </h2>
             <p className="mt-3 leading-relaxed text-muted md:text-lg">
               {t.hero.tagline}
             </p>
@@ -865,16 +965,23 @@ function Marquee() {
       <div className="flex w-max items-center gap-10 motion-reduce:w-auto motion-reduce:flex-wrap motion-reduce:justify-center">
         <div className="flex w-max animate-marquee items-center gap-10 will-change-transform motion-reduce:contents motion-reduce:animate-none">
           {items.map((item) => (
-          <span key={item.id} className="flex items-center gap-10">
-            <span className="font-display text-lg uppercase tracking-wide text-muted">
+            <span
+              key={item.id}
+              className="inline-flex items-center gap-10 font-display text-lg uppercase tracking-wide text-muted after:text-accent after:content-['✦']"
+            >
               {item.label}
             </span>
-            <span className="text-accent">✦</span>
-          </span>
-        ))}
+          ))}
         </div>
         <div className="flex w-max animate-marquee items-center gap-10 will-change:hidden" aria-hidden="true">
-          {items.map((item) => <span key={`copy-${item.id}`} className="flex items-center gap-10"><span className="font-display text-lg uppercase tracking-wide text-muted">{item.label}</span><span className="text-accent">✦</span></span>)}
+          {items.map((item) => (
+            <span
+              key={`copy-${item.id}`}
+              className="inline-flex items-center gap-10 font-display text-lg uppercase tracking-wide text-muted after:text-accent after:content-['✦']"
+            >
+              {item.label}
+            </span>
+          ))}
         </div>
       </div>
     </div>
@@ -947,7 +1054,7 @@ function FeatureCard({ item }) {
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-elevated text-accent transition-transform duration-500 group-hover:-rotate-6">
           <SafeIcon name={item.icon} className="h-6 w-6" />
         </div>
-        <ArrowUpRight className="h-5 w-5 text-faint transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-ink" />
+        <SpriteIcon id="arrow-up-right" className="h-5 w-5 text-faint transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-ink" />
       </div>
       <h3 className="mt-8 font-display text-2xl tracking-tight">{item.title}</h3>
       <p className="mt-3 leading-relaxed text-muted">{item.desc}</p>
@@ -972,8 +1079,11 @@ function SkillTile({ item, certifiedLabel }) {
         <div className="flex items-start justify-between">
           <SafeIcon name={item.icon} className="h-7 w-7 text-muted transition-colors group-hover:text-accent" />
           {item.certified && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-              <BadgeCheck className="h-3 w-3" /> {certifiedLabel}
+            <span
+              className="ui-label inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent"
+              data-label={certifiedLabel}
+            >
+              <SpriteIcon id="badge-check" className="h-3 w-3" />
             </span>
           )}
         </div>
@@ -999,7 +1109,7 @@ function Skills() {
       <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">
         {s.focus.map((f, i) => (
           <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
-            <TiltCard maxTilt={5} className="rounded-2xl">
+            <TiltCard maxTilt={5} className="h-full rounded-2xl">
               <FeatureCard item={f} />
             </TiltCard>
           </Reveal>
@@ -1045,7 +1155,7 @@ function Skills() {
                       >
                         {it.name}
                         {it.certified && (
-                          <BadgeCheck className="h-3.5 w-3.5 text-accent" />
+                          <SpriteIcon id="badge-check" className="h-3.5 w-3.5 text-accent" />
                         )}
                       </span>
                     ))}
@@ -1070,14 +1180,17 @@ export function CertificateCard({ cert, labels }) {
       href={cert.file}
       target="_blank"
       rel="noreferrer"
-      className="group flex h-full flex-col rounded-2xl border border-line bg-surface/40 p-7 transition-all duration-500 hover:-translate-y-1 hover:border-[#34343c] hover:bg-surface"
+      className="group flex h-full flex-1 flex-col rounded-2xl border border-line bg-surface/40 p-7 transition-all duration-500 hover:-translate-y-1 hover:border-[#34343c] hover:bg-surface"
     >
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-elevated text-accent">
           <SafeIcon name={cert.icon} fallback="Award" className="h-6 w-6" />
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent">
-          <BadgeCheck className="h-3.5 w-3.5" /> {labels.verified}
+        <span
+          className="ui-label inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent"
+          data-label={labels.verified}
+        >
+          <SpriteIcon id="badge-check" className="h-3.5 w-3.5" />
         </span>
       </div>
 
@@ -1086,30 +1199,28 @@ export function CertificateCard({ cert, labels }) {
       </h3>
 
       <div className="mt-2 flex items-center gap-2 text-sm text-muted">
-        <Award className="h-4 w-4 text-faint" /> {cert.issuer}
+        <SpriteIcon id="award" className="h-4 w-4 text-faint" /> {cert.issuer}
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-faint">
         <span className="inline-flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5" /> {cert.date}
+          <SpriteIcon id="calendar" className="h-3.5 w-3.5" /> {cert.date}
         </span>
         <span className="inline-flex items-center gap-1.5 font-mono">
-          <Hash className="h-3.5 w-3.5" /> {cert.code}
+          <SpriteIcon id="hash" className="h-3.5 w-3.5" /> {cert.code}
         </span>
       </div>
 
       <div className="mt-auto border-t border-line pt-5">
-        <div className="text-[10px] uppercase tracking-wider text-faint">
-          {labels.validates}
-        </div>
+        <div className="ui-label text-[10px] uppercase tracking-wider text-faint" data-label={labels.validates} />
         <div className="mt-2 flex items-center justify-between gap-3">
           <span className="inline-flex items-center rounded-full bg-ink px-3 py-1 text-sm font-medium text-canvas">
             {cert.skill}
           </span>
           <span className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors group-hover:text-ink">
-            <FileText className="h-4 w-4" />
-            {labels.view}
-            <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            <SpriteIcon id="file-text" className="h-4 w-4" />
+            <span className="ui-label" data-label={labels.view} />
+            <SpriteIcon id="arrow-up-right" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </span>
         </div>
       </div>
@@ -1192,15 +1303,14 @@ function Certificates() {
             className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {c.items.map((cert) => (
-              <div
+              <TiltCard
                 key={cert.code}
-                data-card
-                className="shrink-0 snap-start basis-[85%] sm:basis-[47%] lg:basis-[31.5%]"
+                data-card=""
+                maxTilt={6}
+                className="flex shrink-0 snap-start basis-[85%] flex-col rounded-2xl sm:basis-[47%] lg:basis-[31.5%]"
               >
-                <TiltCard maxTilt={6} className="rounded-2xl">
-                  <CertificateCard cert={cert} labels={labels} />
-                </TiltCard>
-              </div>
+                <CertificateCard cert={cert} labels={labels} />
+              </TiltCard>
             ))}
           </div>
 
@@ -1636,10 +1746,10 @@ function RepoCard({ repo, noDesc }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2 font-medium">
-          <FolderGit2 className="h-4 w-4 shrink-0 text-accent" />
+          <SpriteIcon id="folder-git-2" className="h-4 w-4 shrink-0 text-accent" />
           <span className="truncate">{repo.name}</span>
         </div>
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
+        <SpriteIcon id="arrow-up-right" className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
       </div>
 
       <p className="mt-3 line-clamp-2 flex-1 text-sm text-muted">
@@ -1657,7 +1767,7 @@ function RepoCard({ repo, noDesc }) {
           </span>
         )}
         <span className="inline-flex items-center gap-1">
-          <Star className="h-3.5 w-3.5" /> {repo.stargazers_count}
+          <SpriteIcon id="star" className="h-3.5 w-3.5" /> {repo.stargazers_count}
         </span>
         {license && (
           <span className="ml-auto rounded-full border border-line px-2 py-0.5">
@@ -1681,7 +1791,7 @@ function MoreRepos({ repos, labels }) {
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {repos.map((r) => (
-            <TiltCard key={r.id} maxTilt={5} className="rounded-2xl">
+            <TiltCard key={r.id} maxTilt={5} className="h-full rounded-2xl">
               <RepoCard repo={r} noDesc={labels.noDesc} />
             </TiltCard>
           ))}
@@ -1694,8 +1804,8 @@ function MoreRepos({ repos, labels }) {
             rel="noreferrer"
             className="group/btn inline-flex items-center gap-2 text-sm font-medium text-muted transition-colors hover:text-ink"
           >
-            <Github className="h-4 w-4" /> {labels.viewAll}
-            <ArrowUpRight className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
+            <SpriteIcon id="github" className="h-4 w-4" /> {labels.viewAll}
+            <SpriteIcon id="arrow-up-right" className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
           </a>
         </div>
       </div>
@@ -1741,17 +1851,12 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             {project.status.map((status, i) => (
               <span
                 key={status}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium before:inline-block before:h-1.5 before:w-1.5 before:rounded-full before:content-[''] ${
                   i === 0
-                    ? "border-accent/25 bg-accent/10 text-accent"
-                    : "border-line bg-canvas/40 text-muted"
+                    ? "border-accent/25 bg-accent/10 text-accent before:bg-accent"
+                    : "border-line bg-canvas/40 text-muted before:bg-faint"
                 }`}
               >
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    i === 0 ? "bg-accent" : "bg-faint"
-                  }`}
-                />
                 {status}
               </span>
             ))}
@@ -1764,8 +1869,8 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
           <ul className="mt-6 grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
             {project.features.map((f) => (
               <li key={f} className="flex items-start gap-2.5 text-sm text-ink/85">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <span>{f}</span>
+                <SpriteIcon id="check" className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                {f}
               </li>
             ))}
           </ul>
@@ -1786,10 +1891,12 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
               href={project.github}
               target="_blank"
               rel="noreferrer"
+              aria-label={`${project.name} — ${viewLabel}`}
               className="group/btn items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
             >
-              <Github className="h-4 w-4" /> {viewLabel}
-              <ArrowUpRight className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
+              <SpriteIcon id="github" className="h-4 w-4" />
+              <span className="ui-label" data-label={viewLabel} />
+              <SpriteIcon id="arrow-up-right" className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
             </MagneticButton>
           </div>
         </div>
@@ -1802,13 +1909,15 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
 function Projects() {
   const { t } = useLang();
   const p = t.projects;
-  const { stats, repos } = useGithub(IDENTITY.githubUser, IDENTITY.statsFallback);
+  const sectionRef = useRef(null);
+  const near = useNearViewport(sectionRef, "400px 0px");
+  const { stats, repos } = useGithub(IDENTITY.githubUser, IDENTITY.statsFallback, near);
 
   // Flagship projeler elde küratörlü; geri kalan repolar otomatik listelenir.
   const moreRepos = useMemo(() => selectMoreGithubRepositories(repos, p.items), [repos, p.items]);
 
   return (
-    <section id="projeler" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
+    <section ref={sectionRef} id="projeler" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
       <Reveal>
         <SectionHeader index={p.index} title={p.title} kicker={p.kicker} />
       </Reveal>
@@ -1855,7 +1964,7 @@ function CopyEmail({ email }) {
       className="items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
     >
       <Mail className="h-4 w-4" />
-      <span className="font-mono">{email}</span>
+      <ObfuscatedEmail email={email} className="font-mono" />
       {copied ? (
         <Check className="h-4 w-4 text-accent" />
       ) : (
@@ -1878,7 +1987,14 @@ function Contact() {
       </Reveal>
 
       <Reveal delay={0.05}>
-        <a href={`mailto:${IDENTITY.email}`} className="group mt-10 block">
+        <a
+          href="#iletisim"
+          onClick={(e) => {
+            e.preventDefault();
+            openMailto(IDENTITY.email);
+          }}
+          className="group mt-10 block"
+        >
           <span className="block font-display text-[clamp(3rem,13vw,11.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]">
             {c.big[0]}
           </span>
@@ -2513,6 +2629,7 @@ export default function App() {
 
   return (
     <LangCtx.Provider value={{ lang, setLang, t }}>
+      <IconSprite />
       <ScrollProgress />
       {mountStage >= 6 && <CommandPalette />}
 
