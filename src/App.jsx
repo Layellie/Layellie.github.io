@@ -989,6 +989,54 @@ function Marquee() {
 /* ================================================================== */
 /*  HAKKIMDA                                                           */
 /* ================================================================== */
+function TimelineItem({ item, side }) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(
+    () => typeof IntersectionObserver === "undefined"
+  );
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: "-60px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <li
+      ref={ref}
+      className={`tl-item ${side === "left" ? "tl-left" : "tl-right"} ${inView ? "is-inview " : ""}${
+        item.active
+          ? "tl-active border-accent/40 bg-gradient-to-br from-accent/[0.08] via-surface/80 to-surface/40 shadow-[0_18px_50px_-32px_rgba(214,255,63,0.4)]"
+          : "border-line bg-surface/50 hover:border-accent/40 hover:bg-surface hover:shadow-[0_18px_45px_-30px_rgba(214,255,63,0.3)]"
+      } rounded-2xl border p-6`}
+    >
+      <time
+        className={`inline-block rounded-full border px-3 py-0.5 font-mono text-[11px] uppercase tracking-wider ${
+          item.active
+            ? "border-accent/40 bg-accent/15 text-accent"
+            : "border-line bg-elevated/80 text-accent"
+        }`}
+      >
+        {item.period} · {item.tag}
+      </time>
+      <h3 className="mt-3 font-display text-lg leading-snug tracking-tight text-ink md:text-xl">
+        {item.title}
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        {item.detail}
+      </p>
+    </li>
+  );
+}
+
 function About() {
   const { t } = useLang();
   const a = t.about;
@@ -1035,42 +1083,24 @@ function About() {
       </div>
 
       {timelineItems.length > 0 && (
-        <Reveal delay={0.08} className="mt-20 border-t border-line pt-14">
+        <div className="mt-20 border-t border-line pt-14">
           {a.timelineHeading && (
-            <p className="font-mono text-xs uppercase tracking-wider text-faint md:text-center">
-              {a.timelineHeading}
-            </p>
+            <Reveal>
+              <p className="font-mono text-xs uppercase tracking-wider text-faint md:text-center">
+                {a.timelineHeading}
+              </p>
+            </Reveal>
           )}
           <ol className="timeline-track mt-10 space-y-6 md:space-y-8">
             {timelineItems.map((item, i) => (
-              <li
+              <TimelineItem
                 key={`${item.period}-${item.title}-${i}`}
-                style={{ "--td": `${i * 80}ms` }}
-                className={`tl-item ${i % 2 === 0 ? "tl-left" : "tl-right"} ${
-                  item.active
-                    ? "tl-active border-accent/40 bg-gradient-to-br from-accent/[0.08] via-surface/80 to-surface/40 shadow-[0_18px_50px_-32px_rgba(214,255,63,0.4)]"
-                    : "border-line bg-surface/50 hover:border-accent/40 hover:bg-surface hover:shadow-[0_18px_45px_-30px_rgba(214,255,63,0.3)]"
-                } rounded-2xl border p-6 hover:-translate-y-1`}
-              >
-                <time
-                  className={`inline-block rounded-full border px-3 py-0.5 font-mono text-[11px] uppercase tracking-wider ${
-                    item.active
-                      ? "border-accent/40 bg-accent/15 text-accent"
-                      : "border-line bg-elevated/80 text-accent"
-                  }`}
-                >
-                  {item.period} · {item.tag}
-                </time>
-                <h3 className="mt-3 font-display text-lg leading-snug tracking-tight text-ink md:text-xl">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  {item.detail}
-                </p>
-              </li>
+                item={item}
+                side={i % 2 === 0 ? "left" : "right"}
+              />
             ))}
           </ol>
-        </Reveal>
+        </div>
       )}
     </section>
   );
