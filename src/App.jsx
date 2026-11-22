@@ -961,7 +961,7 @@ function Marquee() {
   const items = useMemo(() => selectSkillsTicker(t.skills), [t.skills]);
   if (!items.length) return null;
   return (
-    <div className="relative overflow-hidden border-y border-line py-5" aria-label="Yetenekler">
+    <div role="region" className="relative overflow-hidden border-y border-line py-5" aria-label={t.skills.title}>
       <div className="flex w-max items-center gap-10 motion-reduce:w-auto motion-reduce:flex-wrap motion-reduce:justify-center">
         <div className="flex w-max animate-marquee items-center gap-10 will-change-transform motion-reduce:contents motion-reduce:animate-none">
           {items.map((item) => (
@@ -1847,7 +1847,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             <ScrambleText text={project.name} />
           </h3>
 
-          <div className="mt-4 flex flex-wrap gap-2" aria-label={statusLabel}>
+          <div role="group" className="mt-4 flex flex-wrap gap-2" aria-label={statusLabel}>
             {project.status.map((status, i) => (
               <span
                 key={status}

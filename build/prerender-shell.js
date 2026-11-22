@@ -136,11 +136,85 @@ export function renderLlmsTxt({ identity, tr, en }) {
 }
 
 /**
+ * Güncel portfolyo içeriğinden Schema.org `@graph` JSON-LD üretir
+ * (Person + WebSite + yayınlı açık kaynak projeler için SoftwareSourceCode).
+ */
+export function renderStructuredData({ identity, tr, en }) {
+  const siteUrl = "https://layellie.github.io/";
+  const personId = `${siteUrl}#person`;
+  const knowsAbout = [
+    ...new Set([
+      ...tr.skills.languages.map((l) => l.name),
+      ...tr.skills.focus.map((f) => f.title),
+    ]),
+  ];
+
+  const graph = [
+    {
+      "@type": "Person",
+      "@id": personId,
+      name: identity.name,
+      alternateName: [identity.handle, "Laye77ie", "Samet Kasmer"],
+      url: siteUrl,
+      image: `${siteUrl}og.png`,
+      jobTitle: tr.hero.role,
+      sameAs: [identity.github, identity.linkedin].filter(Boolean),
+      knowsAbout,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}#website`,
+      url: siteUrl,
+      name: `${identity.name} — ${tr.hero.role}`,
+      inLanguage: ["tr", "en"],
+      author: { "@id": personId },
+    },
+    ...en.projects.items.map((p) => ({
+      "@type": "SoftwareSourceCode",
+      name: p.name,
+      description: p.description,
+      codeRepository: p.github,
+      programmingLanguage: p.stack,
+      ...(p.license === "MIT"
+        ? { license: "https://opensource.org/licenses/MIT" }
+        : p.license
+          ? { license: p.license }
+          : {}),
+      ...(p.year ? { datePublished: String(p.year) } : {}),
+      author: { "@id": personId },
+    })),
+  ];
+
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll(
+    "</script",
+    "<\\/script",
+  );
+}
+
+/**
+ * Her build'de güncel `<lastmod>` tarihiyle `sitemap.xml` üretir.
+ */
+export function renderSitemapXml(today = new Date().toISOString().slice(0, 10)) {
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    "  <url>",
+    "    <loc>https://layellie.github.io/</loc>",
+    `    <lastmod>${today}</lastmod>`,
+    "    <changefreq>monthly</changefreq>",
+    "    <priority>1.0</priority>",
+    "  </url>",
+    "</urlset>",
+    "",
+  ].join("\n");
+}
+
+/**
  * Public site build'inde:
  * 1) `index.html` içindeki harici `.css` dosyasını `<style>` olarak inline eder (0 render-blocking CSS isteği).
  * 2) İlk ekranın (Navbar + Hero) statik HTML'ini `<div id="root">` içine gömer; böylece FCP ve LCP
  *    JavaScript indirilmesini/çalışmasını beklemeden ilk HTML paketiyle anında boyanır.
- * 3) Güncel portfolyo içeriğinden `llms.txt` dosyasını otomatik üretir.
+ * 3) Güncel portfolyo içeriğinden JSON-LD (`@graph`), `llms.txt` ve `sitemap.xml` dosyalarını otomatik üretir.
  */
 export function inlineAndPrerenderShellPlugin() {
   let root = process.cwd();
@@ -188,6 +262,17 @@ export function inlineAndPrerenderShellPlugin() {
         }
       }
 
+      // Yapısal veriyi (JSON-LD) güncel portfolyo içeriğiyle (@graph) değiştir.
+      const structuredDataJson = renderStructuredData({
+        identity: view.identity,
+        tr: view.content.tr,
+        en: view.content.en,
+      });
+      html = html.replace(
+        /<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i,
+        `<script type="application/ld+json">${structuredDataJson}</script>`,
+      );
+
       // <div id="root"></div> içine ilk ekran HTML'ini yerleştir.
       html = html.replace(
         '<div id="root"></div>',
@@ -220,6 +305,12 @@ export function inlineAndPrerenderShellPlugin() {
           tr: view.content.tr,
           en: view.content.en,
         }),
+      });
+
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: renderSitemapXml(),
       });
     },
   };

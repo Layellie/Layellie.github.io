@@ -38,6 +38,7 @@
 
 /* Self-hosted fontlar (Fontshare, ITF Free Font License) */
 @font-face { font-family: "General Sans Fallback"; src: local("Segoe UI"), local("Roboto"), local("Noto Sans"), local("Liberation Sans"), local("DejaVu Sans"), local("Arimo"), local("Helvetica Neue"), local("Arial"); size-adjust: 101.5%; }
+@font-face { font-family: "Clash Display Fallback"; src: local("Segoe UI"), local("Roboto"), local("Noto Sans"), local("Liberation Sans"), local("DejaVu Sans"), local("Arimo"), local("Helvetica Neue"), local("Arial"); size-adjust: 111.5%; ascent-override: 84%; descent-override: 20%; line-gap-override: 0%; }
 @font-face { font-family: "General Sans"; src: url("/fonts/generalsans-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "General Sans"; src: url("/fonts/generalsans-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "General Sans"; src: url("/fonts/generalsans-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
@@ -54,7 +55,7 @@
 @theme {
   --font-sans: "General Sans", "General Sans Fallback", ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, sans-serif;
-  --font-display: "Clash Display", "General Sans", ui-sans-serif, system-ui,
+  --font-display: "Clash Display", "Clash Display Fallback", "General Sans", ui-sans-serif, system-ui,
     sans-serif;
 
   --color-canvas: #08080a;
@@ -63,7 +64,7 @@
   --color-line: #232328;
   --color-ink: #f3f1ec;
   --color-muted: #9a9aa2;
-  --color-faint: #5c5c63;
+  --color-faint: #82828c;
   --color-accent: #d6ff3f;
 }
 
