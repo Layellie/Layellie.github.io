@@ -9,14 +9,16 @@ import {
   ExternalLink,
   Eye,
   FileCheck2,
+  GitCommitHorizontal,
   Github,
   LayoutDashboard,
   LogOut,
   Menu,
   Monitor,
   Plus,
-  Save,
   RefreshCw,
+  Rocket,
+  Save,
   Send,
   ShieldCheck,
   Sparkles,
@@ -213,21 +215,209 @@ function SectionShell({ eyebrow, title, description, children }) {
   return <AdminReveal><div className="mb-8"><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">{eyebrow}</div><h1 className="mt-3 font-display text-[clamp(2.2rem,5vw,4.2rem)] font-semibold leading-[0.92] tracking-tight">{title}</h1><p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">{description}</p></div><Panel className="p-4 sm:p-6 lg:p-7">{children}</Panel></AdminReveal>;
 }
 
+function safeGithubActionsUrl(value) {
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:" || parsed.hostname !== "github.com") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+function formatDeployTimestamp(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString("tr-TR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function describeDeployment(deployment) {
+  const status = deployment?.status;
+  const conclusion = deployment?.conclusion;
+  if (status === "completed" && conclusion === "success") {
+    return {
+      label: "Yayında",
+      detail: "Son GitHub Pages dağıtımı başarıyla tamamlandı.",
+      pillClass: "border-accent/30 bg-accent/10 text-accent",
+      dotClass: "bg-accent shadow-[0_0_10px_rgba(214,255,63,0.75)]",
+    };
+  }
+  if (status === "completed" && (conclusion === "failure" || conclusion === "timed_out" || conclusion === "action_required")) {
+    return {
+      label: "Hata",
+      detail: "Son GitHub Pages dağıtımı başarısız oldu.",
+      pillClass: "border-red-400/35 bg-red-500/10 text-red-200",
+      dotClass: "bg-red-400",
+    };
+  }
+  if (status === "completed" && (conclusion === "cancelled" || conclusion === "skipped")) {
+    return {
+      label: "İptal edildi",
+      detail: "Son dağıtım tamamlanmadan durduruldu.",
+      pillClass: "border-amber-400/35 bg-amber-400/10 text-amber-100",
+      dotClass: "bg-amber-300",
+    };
+  }
+  if (status === "in_progress") {
+    return {
+      label: "Dağıtılıyor",
+      detail: "GitHub Pages build ve deploy akışı şu an çalışıyor.",
+      pillClass: "border-amber-400/35 bg-amber-400/10 text-amber-100",
+      dotClass: "bg-amber-300 animate-pulse motion-reduce:animate-none",
+    };
+  }
+  if (status === "queued" || status === "waiting" || status === "requested" || status === "pending") {
+    return {
+      label: "Sırada",
+      detail: "GitHub Pages dağıtımı sırada bekliyor.",
+      pillClass: "border-amber-400/35 bg-amber-400/10 text-amber-100",
+      dotClass: "bg-amber-300 animate-pulse motion-reduce:animate-none",
+    };
+  }
+  if (status === "not_found") {
+    return {
+      label: "Kayıt yok",
+      detail: "main dalında henüz Deploy to GitHub Pages çalışması bulunamadı.",
+      pillClass: "border-line bg-canvas/60 text-muted",
+      dotClass: "bg-faint",
+    };
+  }
+  return {
+    label: "Bilinmiyor",
+    detail: "Dağıtım durumu henüz alınmadı.",
+    pillClass: "border-line bg-canvas/60 text-muted",
+    dotClass: "bg-faint",
+  };
+}
+
 function Dashboard({ files, base, onNavigate }) {
   const [analytics, setAnalytics] = useState({ status: "loading", data: null });
+  const [deploy, setDeploy] = useState({ status: "loading", data: null, error: null });
   const [range, setRange] = useState("7d");
   const loadAnalytics = async (nextRange = range) => {
     setAnalytics((current) => ({ ...current, status: "loading" }));
     try { setAnalytics({ status: "ready", data: await adminApi.analytics(nextRange), updatedAt: new Date() }); } catch { setAnalytics({ status: "error", data: null }); }
   };
-  useEffect(() => { void loadAnalytics(); }, []);
+  const loadDeployment = async () => {
+    setDeploy((current) => ({ ...current, status: "loading", error: null }));
+    try {
+      const data = await adminApi.deployment();
+      if (!data || typeof data !== "object") {
+        setDeploy({ status: "error", data: null, error: "Deploy durumu şu anda alınamadı." });
+        return;
+      }
+      setDeploy({ status: "ready", data, error: null, updatedAt: new Date() });
+    } catch (error) {
+      setDeploy((current) => ({
+        status: "error",
+        data: current.data,
+        error: error?.status === 429 ? "Çok sık yenilendi; biraz sonra tekrar dene." : "Deploy durumu şu anda alınamadı.",
+        updatedAt: current.updatedAt,
+      }));
+    }
+  };
+  useEffect(() => {
+    void loadAnalytics();
+    void loadDeployment();
+  }, []);
   const stats = [
     { label: "Yayındaki projeler", value: files.projects.items.filter((item) => item.publicationStatus === "published").length, icon: ClipboardList, to: "projects" },
     { label: "Sertifikalar", value: files.certificates.items.length, icon: Award, to: "certificates" },
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
+}
+
+function DeployStatusPanel({ deploy, baseCommit, onRefresh }) {
+  const data = deploy.data;
+  const info = describeDeployment(data);
+  const actionsUrl = safeGithubActionsUrl(data?.url);
+  const shortSha = (data?.commit || baseCommit || "").slice(0, 7);
+  const timestamp = formatDeployTimestamp(data?.updatedAt || data?.createdAt);
+  const isLoading = deploy.status === "loading";
+  const showData = Boolean(data);
+  return (
+    <Panel className="p-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Rocket className="h-4 w-4 text-accent" />
+            <h2 className="font-display text-xl font-semibold">Canlı deploy durumu</h2>
+            {showData && (
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${info.pillClass}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${info.dotClass}`} />
+                {info.label}
+              </span>
+            )}
+            {!showData && isLoading && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/60 px-2.5 py-0.5 text-[11px] text-muted">
+                Kontrol ediliyor…
+              </span>
+            )}
+          </div>
+          {showData ? (
+            <div className="mt-2 space-y-1">
+              <div className="truncate text-sm text-ink">{data.commitMessage || info.detail}</div>
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[11px] text-faint">
+                <span>{data.name || "Deploy to GitHub Pages"}</span>
+                {shortSha && (
+                  <>
+                    <span>·</span>
+                    <span className="inline-flex items-center gap-1">
+                      <GitCommitHorizontal className="h-3.5 w-3.5 text-accent/80" />
+                      {shortSha}
+                    </span>
+                  </>
+                )}
+                {timestamp && (
+                  <>
+                    <span>·</span>
+                    <span>{timestamp}</span>
+                  </>
+                )}
+                {deploy.updatedAt && (
+                  <>
+                    <span>·</span>
+                    <span>Kontrol: {deploy.updatedAt.toLocaleTimeString("tr-TR")}</span>
+                  </>
+                )}
+              </div>
+              {deploy.error && <div className="pt-1 text-xs text-amber-100">{deploy.error}</div>}
+            </div>
+          ) : isLoading ? (
+            <div className="mt-2 text-xs text-muted">GitHub Actions dağıtım durumu alınıyor…</div>
+          ) : (
+            <div className="mt-2 text-xs text-amber-100">{deploy.error || "Deploy durumu şu anda alınamadı."}</div>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {actionsUrl && (
+            <a
+              href={actionsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-elevated px-3.5 text-xs font-medium text-ink transition hover:border-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              GitHub Actions
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
+          <Button variant="ghost" aria-label="Deploy durumunu yenile" onClick={onRefresh} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin motion-reduce:animate-none" : ""}`} />
+            Yenile
+          </Button>
+        </div>
+      </div>
+    </Panel>
+  );
 }
 
 function AnalyticsPanel({ analytics, range, onRange, onRefresh }) {
@@ -309,7 +499,7 @@ function PublishScreen({ draft, baseFiles, base, uploads, csrf, baseSnapshotMiss
     setBusy(true);
     try { setDeployment(await adminApi.deployment(deployment.commit)); } catch (nextError) { setError(nextError); } finally { setBusy(false); }
   }
-  return <SectionShell eyebrow="Yayın merkezi" title="Doğrula, karşılaştır, yayınla" description="Worker güncel blob SHA değerlerini tekrar kontrol eder ve bütün değişiklikleri tek atomik commit olarak gönderir."><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="space-y-5">{baseSnapshotMissing && <Notice tone="warning" title="Güvenli base snapshot eksik">Bu eski taslak doğrudan yayınlanamaz. <button type="button" onClick={onReloadRemote} className="font-medium underline">Uzak sürümü yeniden yükle</button> ve değişiklikleri yeniden uygula.</Notice>}{blockingErrors.length > 0 && <Notice tone="danger" title={`${blockingErrors.length} yayın engelleyici alan`}>{blockingErrors.slice(0, 8).join(" · ")}{blockingErrors.length > 8 ? "…" : ""}</Notice>}{warnings.length > 0 && <Notice tone="warning" title={`${warnings.length} eksik çeviri/alan uyarısı`}>{warnings.slice(0, 8).join(" · ")}{warnings.length > 8 ? "…" : ""}</Notice>}{error && <Notice tone={error.status === 409 ? "warning" : "danger"} title={error.status === 409 ? "Uzak içerik değişmiş" : "İşlem tamamlanamadı"}>{error.message}{error.status === 409 && <span> Yerel taslak korunuyor. <button type="button" onClick={loadConflict} className="font-medium underline">Yeniden yükleme/birleştirme seçeneklerini aç</button>.</span>}</Notice>}{conflict && <ConflictPanel conflict={conflict} onSelection={(key, value) => setConflict((current) => ({ ...current, selections: { ...current.selections, [key]: value } }))} onApply={() => applyConflict(false)} onReload={() => applyConflict(true)} />}{validation && <Notice tone="success" title="Worker doğrulaması başarılı">Şema, URL, dosya manifesti ve yayın sınırları geçerli.</Notice>}<DiffGroup title="Hakkımda / site metni" data={summary.site} /><DiffGroup title="Projeler" data={summary.projects} /><DiffGroup title="Sertifikalar" data={summary.certificates} /><DiffGroup title="Yetenekler" data={summary.skills} /><DiffGroup title="Görsel presetleri" data={summary.visuals} />{uploads.length > 0 && <Panel className="p-5"><h3 className="font-display text-xl">Eklenecek medya</h3><div className="mt-3 space-y-2">{uploads.map((entry) => <div key={`${entry.kind}-${entry.recordId}`} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-canvas/50 px-3 py-2 text-xs"><span className="truncate">{entry.file.name}</span><span className="shrink-0 text-faint">{(entry.file.size / 1024).toFixed(1)} KiB</span></div>)}</div></Panel>}</div><aside className="space-y-4"><Panel className="p-5"><div className="flex items-center gap-3"><FileCheck2 className="h-5 w-5 text-accent" /><h3 className="font-display text-xl">Yayın kontrolü</h3></div><div className="mt-5 space-y-3 text-xs text-muted"><div className="flex justify-between"><span>Base commit</span><code className="text-faint">{base?.commitSha?.slice(0, 9) || "yok"}</code></div><div className="flex justify-between"><span>Değişiklik</span><span>{hasDiff(summary) ? "Var" : "Yok"}</span></div><div className="flex justify-between"><span>Medya</span><span>{uploads.length}</span></div><div className="flex justify-between"><span>Commit</span><code className="text-faint">content: update portfolio…</code></div></div><Button className="mt-6 w-full" onClick={validate} disabled={busy || baseSnapshotMissing || blockingErrors.length > 0 || !hasDiff(summary)}><FileCheck2 className="h-4 w-4" />{busy ? "Doğrulanıyor…" : "Değişiklikleri doğrula"}</Button><Button variant="primary" className="mt-3 w-full" onClick={() => setConfirm(true)} disabled={busy || baseSnapshotMissing || blockingErrors.length > 0 || !validation || !hasDiff(summary)}><Send className="h-4 w-4" />GitHub’a gönder ve yayınla</Button></Panel><Panel className="p-5"><div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-accent" /><h3 className="font-display text-xl">Yayın güvenliği</h3></div><div className="mt-4 space-y-3">{["Worker tarafı yetkilendirme", "SHA çakışma koruması", "Tek atomik Git commit", "Durable Object publish kilidi"].map((item) => <div key={item} className="flex items-center gap-3 text-sm text-muted"><CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />{item}</div>)}</div></Panel>{deployment && <Panel className="p-5"><div className="text-xs text-faint">GitHub Pages deployment</div><div className="mt-2 font-display text-2xl">{deployment.status || "Bilinmiyor"}</div><Button className="mt-4 w-full" onClick={refreshDeployment} disabled={busy}>Durumu yenile</Button></Panel>}<Notice tone="info" title="Ücretsiz kota koruması">Durum otomatik poll edilmez. Publish limiti ve tek yayın kilidi güçlü tutarlı Durable Object üzerindedir.</Notice></aside></div><ConfirmDialog open={confirm} title="GitHub’a yayınla" description="Doğrulanmış JSON ve medya değişiklikleri main dalına “content: update portfolio from admin panel” mesajıyla tek commit olarak gönderilecek. Bu işlem GitHub Pages workflow’unu tetikler." confirmLabel="Commit oluştur" onClose={() => setConfirm(false)} onConfirm={publish} /></SectionShell>;
+  return <SectionShell eyebrow="Yayın merkezi" title="Doğrula, karşılaştır, yayınla" description="Worker güncel blob SHA değerlerini tekrar kontrol eder ve bütün değişiklikleri tek atomik commit olarak gönderir."><div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"><div className="space-y-5">{baseSnapshotMissing && <Notice tone="warning" title="Güvenli base snapshot eksik">Bu eski taslak doğrudan yayınlanamaz. <button type="button" onClick={onReloadRemote} className="font-medium underline">Uzak sürümü yeniden yükle</button> ve değişiklikleri yeniden uygula.</Notice>}{blockingErrors.length > 0 && <Notice tone="danger" title={`${blockingErrors.length} yayın engelleyici alan`}>{blockingErrors.slice(0, 8).join(" · ")}{blockingErrors.length > 8 ? "…" : ""}</Notice>}{warnings.length > 0 && <Notice tone="warning" title={`${warnings.length} eksik çeviri/alan uyarısı`}>{warnings.slice(0, 8).join(" · ")}{warnings.length > 8 ? "…" : ""}</Notice>}{error && <Notice tone={error.status === 409 ? "warning" : "danger"} title={error.status === 409 ? "Uzak içerik değişmiş" : "İşlem tamamlanamadı"}>{error.message}{error.status === 409 && <span> Yerel taslak korunuyor. <button type="button" onClick={loadConflict} className="font-medium underline">Yeniden yükleme/birleştirme seçeneklerini aç</button>.</span>}</Notice>}{conflict && <ConflictPanel conflict={conflict} onSelection={(key, value) => setConflict((current) => ({ ...current, selections: { ...current.selections, [key]: value } }))} onApply={() => applyConflict(false)} onReload={() => applyConflict(true)} />}{validation && <Notice tone="success" title="Worker doğrulaması başarılı">Şema, URL, dosya manifesti ve yayın sınırları geçerli.</Notice>}<DiffGroup title="Hakkımda / site metni" data={summary.site} /><DiffGroup title="Projeler" data={summary.projects} /><DiffGroup title="Sertifikalar" data={summary.certificates} /><DiffGroup title="Yetenekler" data={summary.skills} /><DiffGroup title="Görsel presetleri" data={summary.visuals} />{uploads.length > 0 && <Panel className="p-5"><h3 className="font-display text-xl">Eklenecek medya</h3><div className="mt-3 space-y-2">{uploads.map((entry) => <div key={`${entry.kind}-${entry.recordId}`} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-canvas/50 px-3 py-2 text-xs"><span className="truncate">{entry.file.name}</span><span className="shrink-0 text-faint">{(entry.file.size / 1024).toFixed(1)} KiB</span></div>)}</div></Panel>}</div><aside className="space-y-4"><Panel className="p-5"><div className="flex items-center gap-3"><FileCheck2 className="h-5 w-5 text-accent" /><h3 className="font-display text-xl">Yayın kontrolü</h3></div><div className="mt-5 space-y-3 text-xs text-muted"><div className="flex justify-between"><span>Base commit</span><code className="text-faint">{base?.commitSha?.slice(0, 9) || "yok"}</code></div><div className="flex justify-between"><span>Değişiklik</span><span>{hasDiff(summary) ? "Var" : "Yok"}</span></div><div className="flex justify-between"><span>Medya</span><span>{uploads.length}</span></div><div className="flex justify-between"><span>Commit</span><code className="text-faint">content: update portfolio…</code></div></div><Button className="mt-6 w-full" onClick={validate} disabled={busy || baseSnapshotMissing || blockingErrors.length > 0 || !hasDiff(summary)}><FileCheck2 className="h-4 w-4" />{busy ? "Doğrulanıyor…" : "Değişiklikleri doğrula"}</Button><Button variant="primary" className="mt-3 w-full" onClick={() => setConfirm(true)} disabled={busy || baseSnapshotMissing || blockingErrors.length > 0 || !validation || !hasDiff(summary)}><Send className="h-4 w-4" />GitHub’a gönder ve yayınla</Button></Panel><Panel className="p-5"><div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-accent" /><h3 className="font-display text-xl">Yayın güvenliği</h3></div><div className="mt-4 space-y-3">{["Worker tarafı yetkilendirme", "SHA çakışma koruması", "Tek atomik Git commit", "Durable Object publish kilidi"].map((item) => <div key={item} className="flex items-center gap-3 text-sm text-muted"><CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />{item}</div>)}</div></Panel>{deployment && (() => { const info = describeDeployment(deployment); const url = safeGithubActionsUrl(deployment.url); return <Panel className="p-5"><div className="flex items-center justify-between gap-2"><div className="text-xs text-faint">GitHub Pages deployment</div><span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${info.pillClass}`}><span className={`h-1.5 w-1.5 rounded-full ${info.dotClass}`} />{info.label}</span></div><div className="mt-2 font-display text-2xl">{info.label}</div><div className="mt-1 text-xs text-muted">{info.detail}</div>{url && <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs text-accent hover:underline">GitHub Actions kaydını aç <ExternalLink className="h-3 w-3" /></a>}<Button className="mt-4 w-full" onClick={refreshDeployment} disabled={busy}>Durumu yenile</Button></Panel>; })()}<Notice tone="info" title="Ücretsiz kota koruması">Durum otomatik poll edilmez. Publish limiti ve tek yayın kilidi güçlü tutarlı Durable Object üzerindedir.</Notice></aside></div><ConfirmDialog open={confirm} title="GitHub’a yayınla" description="Doğrulanmış JSON ve medya değişiklikleri main dalına “content: update portfolio from admin panel” mesajıyla tek commit olarak gönderilecek. Bu işlem GitHub Pages workflow’unu tetikler." confirmLabel="Commit oluştur" onClose={() => setConfirm(false)} onConfirm={publish} /></SectionShell>;
 }
 
 function ConflictPanel({ conflict, onSelection, onApply, onReload }) {

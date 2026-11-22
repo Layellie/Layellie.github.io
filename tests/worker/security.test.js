@@ -13,7 +13,7 @@ import {
 import { portfolioFiles } from "../../src/content/loadContent.js";
 import { createProject, validatePortfolio } from "../../src/admin/data/model.js";
 import { createDraftRecord, restoreDraftRecord } from "../../src/admin/draft/storage.js";
-import { deploymentForCommit, githubFetch } from "../../worker/src/github/client.ts";
+import { deploymentForCommit, githubFetch, latestDeployment } from "../../worker/src/github/client.ts";
 import { analyticsVisitorHash, decryptToken, encryptToken } from "../../worker/src/security/crypto.ts";
 import { ConfigurationError, getConfig, parseOrigin } from "../../worker/src/security/config.ts";
 import { cookies } from "../../worker/src/security/cookies.ts";
@@ -453,5 +453,30 @@ describe("Worker security primitives", () => {
       { status: "completed", conclusion: "failure", html_url: "https://github.test/pages", name: "Deploy to GitHub Pages", path: ".github/workflows/deploy.yml@main", updated_at: "2026-07-18T12:01:00Z" },
     ] }), { status: 200, headers: { "Content-Type": "application/json" } })));
     await expect(deploymentForCommit(config, "token", commit)).resolves.toMatchObject({ status: "completed", conclusion: "failure", name: "Deploy to GitHub Pages" });
+  });
+
+  it("loads the latest deploy.yml run on the configured branch with commit summary", async () => {
+    const headSha = "c".repeat(40);
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ workflow_runs: [
+      { status: "completed", conclusion: "success", html_url: "https://github.com/Layellie/Layellie.github.io/actions/runs/1", name: "Admin checks", path: ".github/workflows/admin-checks.yml@main", head_sha: "d".repeat(40), display_title: "ignored", updated_at: "2026-07-18T12:02:00Z" },
+      { status: "completed", conclusion: "success", html_url: "https://github.com/Layellie/Layellie.github.io/actions/runs/2", name: "Deploy to GitHub Pages", path: ".github/workflows/deploy.yml@main", head_sha: headSha, display_title: "feat(site): quick summary\n\nbody line", created_at: "2026-07-18T12:00:00Z", updated_at: "2026-07-18T12:01:30Z" },
+    ] }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(latestDeployment(config, "token")).resolves.toEqual({
+      commit: headSha,
+      status: "completed",
+      conclusion: "success",
+      url: "https://github.com/Layellie/Layellie.github.io/actions/runs/2",
+      name: "Deploy to GitHub Pages",
+      commitMessage: "feat(site): quick summary",
+      createdAt: "2026-07-18T12:00:00Z",
+      updatedAt: "2026-07-18T12:01:30Z",
+    });
+    expect(fetchMock.mock.calls[0][0]).toContain("/actions/workflows/deploy.yml/runs?branch=main&per_page=5");
+  });
+
+  it("returns not_found when no latest deploy.yml run exists", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ workflow_runs: [] }), { status: 200, headers: { "Content-Type": "application/json" } })));
+    await expect(latestDeployment(config, "token")).resolves.toEqual({ status: "not_found" });
   });
 });

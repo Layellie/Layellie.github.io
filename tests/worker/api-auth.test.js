@@ -331,4 +331,39 @@ describe("Worker authentication boundary", () => {
     expect(response.status).toBe(403);
     expect((await stateResponse("session.get", { id: session.id })).status).toBe(200);
   });
+
+  it("protects /api/deployments and returns latest deploy.yml status when commit is omitted", async () => {
+    expect((await exports.default.fetch(new Request("https://admin.test/api/deployments"))).status).toBe(401);
+    const session = await createSession("deployment-owner");
+    const headSha = "e".repeat(40);
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({
+      workflow_runs: [
+        {
+          status: "completed",
+          conclusion: "success",
+          html_url: "https://github.com/Layellie/Layellie.github.io/actions/runs/99",
+          name: "Deploy to GitHub Pages",
+          path: ".github/workflows/deploy.yml@main",
+          head_sha: headSha,
+          display_title: "feat(admin): live deploy status",
+          created_at: "2026-07-18T12:00:00Z",
+          updated_at: "2026-07-18T12:01:00Z",
+        },
+      ],
+    })));
+
+    const latest = await exports.default.fetch(sessionRequest("/api/deployments", session));
+    expect(latest.status).toBe(200);
+    expect(await latest.json()).toMatchObject({
+      commit: headSha,
+      status: "completed",
+      conclusion: "success",
+      name: "Deploy to GitHub Pages",
+      commitMessage: "feat(admin): live deploy status",
+    });
+
+    const invalidCommit = await exports.default.fetch(sessionRequest("/api/deployments?commit=invalid", session));
+    expect(invalidCommit.status).toBe(400);
+    expect((await invalidCommit.json()).code).toBe("COMMIT_INVALID");
+  });
 });

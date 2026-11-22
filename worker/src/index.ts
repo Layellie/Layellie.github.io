@@ -4,7 +4,7 @@ import { authenticate, sessionToken } from "./auth/session";
 import { parseContent, preparePublication, readPublicationRequest } from "./content/validation";
 import { storeCall } from "./durable/client";
 import { AdminSessionStore } from "./durable/AdminSessionStore";
-import { commitChanges, deploymentForCommit, loadRepositorySnapshot, revokeToken } from "./github/client";
+import { commitChanges, deploymentForCommit, latestDeployment, loadRepositorySnapshot, revokeToken } from "./github/client";
 import { cookies, readCookie } from "./security/cookies";
 import { analyticsVisitorHash, randomToken } from "./security/crypto";
 import { ConfigurationError, getConfig } from "./security/config";
@@ -105,8 +105,10 @@ export default {
       }
       if (url.pathname === "/api/deployments" && request.method === "GET") {
         const session = await authenticate(request, env, config);
-        await storeCall(env, "rate.check", { key: `deployment:${session.id}`, limit: 1, periodMs: 30_000 });
-        return json(await deploymentForCommit(config, await sessionToken(session, config), url.searchParams.get("commit") || ""));
+        await storeCall(env, "rate.check", { key: `deployment:${session.id}`, limit: 6, periodMs: 60_000 });
+        const commit = url.searchParams.get("commit");
+        const token = await sessionToken(session, config);
+        return json(commit !== null ? await deploymentForCommit(config, token, commit) : await latestDeployment(config, token));
       }
       throw httpError(404, "NOT_FOUND", "API yolu bulunamadı.");
     } catch (error) {

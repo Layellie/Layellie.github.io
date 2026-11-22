@@ -106,12 +106,61 @@ export async function commitChanges(config: AppConfig, token: string, snapshot: 
   return { sha: commit.sha, url: commit.html_url, treeSha: tree.sha, blobShas };
 }
 
-export async function deploymentForCommit(config: AppConfig, token: string, commit: string): Promise<unknown> {
+const DEPLOY_WORKFLOW_PATH = ".github/workflows/deploy.yml";
+
+interface WorkflowRunPayload {
+  status: string;
+  conclusion: string | null;
+  html_url: string;
+  name: string;
+  path: string;
+  head_sha?: string;
+  display_title?: string;
+  head_commit?: { message?: string | null } | null;
+  created_at?: string;
+  updated_at: string;
+}
+
+export interface DeploymentStatus {
+  commit?: string | null;
+  status: string;
+  conclusion?: string | null;
+  url?: string;
+  name?: string;
+  commitMessage?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string;
+}
+
+function normalizeDeploymentRun(run: WorkflowRunPayload | undefined, fallbackCommit?: string): DeploymentStatus {
+  if (!run) {
+    return fallbackCommit ? { commit: fallbackCommit, status: "not_found" } : { status: "not_found" };
+  }
+  const rawMessage = run.display_title || run.head_commit?.message || "";
+  const commitMessage = rawMessage.split(/\r?\n/, 1)[0].trim() || null;
+  return {
+    commit: run.head_sha || fallbackCommit || null,
+    status: run.status,
+    conclusion: run.conclusion,
+    url: run.html_url,
+    name: run.name,
+    commitMessage,
+    createdAt: run.created_at || null,
+    updatedAt: run.updated_at,
+  };
+}
+
+export async function deploymentForCommit(config: AppConfig, token: string, commit: string): Promise<DeploymentStatus> {
   if (!/^[a-f0-9]{40}$/i.test(commit)) throw httpError(400, "COMMIT_INVALID", "Commit SHA geçersiz.");
-  const workflowPath = ".github/workflows/deploy.yml";
-  const result = await githubFetch<{ workflow_runs: Array<{ status: string; conclusion: string | null; html_url: string; name: string; path: string; updated_at: string }> }>(config, token, `/repos/${config.owner}/${config.repository}/actions/workflows/deploy.yml/runs?event=push&head_sha=${commit}&per_page=5`);
-  const run = result.workflow_runs.find((candidate) => candidate.path.split("@", 1)[0] === workflowPath);
-  return run ? { commit, status: run.status, conclusion: run.conclusion, url: run.html_url, name: run.name, updatedAt: run.updated_at } : { commit, status: "not_found" };
+  const result = await githubFetch<{ workflow_runs: WorkflowRunPayload[] }>(config, token, `/repos/${config.owner}/${config.repository}/actions/workflows/deploy.yml/runs?event=push&head_sha=${commit}&per_page=5`);
+  const run = result.workflow_runs.find((candidate) => candidate.path.split("@", 1)[0] === DEPLOY_WORKFLOW_PATH);
+  return normalizeDeploymentRun(run, commit);
+}
+
+export async function latestDeployment(config: AppConfig, token: string): Promise<DeploymentStatus> {
+  const result = await githubFetch<{ workflow_runs: WorkflowRunPayload[] }>(config, token, `/repos/${config.owner}/${config.repository}/actions/workflows/deploy.yml/runs?branch=${encodeURIComponent(config.branch)}&per_page=5`);
+  const run = result.workflow_runs.find((candidate) => candidate.path.split("@", 1)[0] === DEPLOY_WORKFLOW_PATH);
+  return normalizeDeploymentRun(run);
 }
 
 export async function revokeToken(config: AppConfig, token: string): Promise<void> {

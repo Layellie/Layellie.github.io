@@ -53,7 +53,7 @@ export const adminApi = {
   publish: (payload, csrf) => {
     return request("/api/publish", { method: "POST", headers: { "X-CSRF-Token": csrf }, body: publicationForm(payload) });
   },
-  deployment: (commit) => request(`/api/deployments?commit=${encodeURIComponent(commit)}`),
+  deployment: (commit) => request(commit ? `/api/deployments?commit=${encodeURIComponent(commit)}` : "/api/deployments"),
   analytics: (range = "7d") => request(`/api/admin/analytics?range=${encodeURIComponent(range)}`),
   logout: (csrf) => request("/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrf } }),
 };
