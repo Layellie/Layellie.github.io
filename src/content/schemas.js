@@ -266,11 +266,21 @@ const statementSegmentSchema = z.object({
   tone: statementToneSchema,
 });
 
+const timelineItemSchema = z.object({
+  period: text(80),
+  tag: text(80),
+  title: text(180),
+  detail: text(600),
+  active: z.boolean().optional(),
+});
+
 const aboutSchema = z.object({
   ...sectionHeadingSchema,
   statement: z.array(statementSegmentSchema).min(1).max(12),
   paragraphs: z.array(text(2400)).min(1).max(12),
   facts: z.array(z.object({ label: text(120), value: text(240) })).min(1).max(20),
+  timelineHeading: text(160).optional(),
+  timeline: z.array(timelineItemSchema).max(20).optional(),
 });
 
 const skillsSectionSchema = z.object({

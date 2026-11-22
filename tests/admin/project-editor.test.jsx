@@ -139,4 +139,25 @@ describe("ProjectEditor screenshot preview lifecycle", () => {
     expect(screen.queryByRole("img")).toBeNull();
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:selected.webp-2");
   });
+
+  it("syncs the latest GitHub release tag into both TR and EN status badges", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ tag_name: "v4.2.0" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const project = structuredClone(portfolioFiles.projects.items[0]);
+    const onChange = vi.fn();
+    render(<ProjectEditor project={project} presets={portfolioFiles.visuals.presets} publicSiteOrigin="https://portfolio.example" onUpload={vi.fn()} onChange={onChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /GitHub'dan sürüm çek/ }));
+    await waitFor(() => expect(onChange).toHaveBeenCalledOnce());
+    const updated = onChange.mock.calls[0][0];
+    expect(updated.tr.status[0]).toBe("v4.2.0 Yayında");
+    expect(updated.en.status[0]).toBe("v4.2.0 Released");
+    expect(updated.tr.status.slice(1)).toEqual(project.tr.status.slice(1));
+    expect(screen.getByText(/v4\.2\.0 sürümü TR ve EN/)).toBeTruthy();
+    vi.unstubAllGlobals();
+  });
 });

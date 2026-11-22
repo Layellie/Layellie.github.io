@@ -989,97 +989,10 @@ function Marquee() {
 /* ================================================================== */
 /*  HAKKIMDA                                                           */
 /* ================================================================== */
-const TIMELINE = {
-  tr: {
-    heading: "Deneyim, Eğitim & Sertifika Yolculuğu",
-    items: [
-      {
-        period: "2024",
-        tag: "Önlisans",
-        title: "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı Başlangıcı",
-        detail: "C#, C++ ve SQL ile masaüstü, veri tabanı ve sistem seviyesi yazılım geliştirme temelleri.",
-      },
-      {
-        period: "2026",
-        tag: "Mezuniyet",
-        title: "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı",
-        detail: "Teknik Bilimler MYO'dan 3.09 / 4.00 genel not ortalamasıyla mezuniyet.",
-      },
-      {
-        period: "May – Tem 2026",
-        tag: "Sertifika",
-        title: "BTK Akademi · Yazılım, Veri Tabanı & Yapay Zeka",
-        detail: "C#, C++, OOP, Veri Tabanına Giriş, Git & GitHub, Yapay Zeka ve Anthropic Claude alanlarında 9 doğrulanmış sertifika.",
-      },
-      {
-        period: "Tem 2026",
-        tag: "Deneyim · Staj",
-        title: "Data Destek Yazılım Hizmetleri A.Ş. · Yazılım Stajyeri",
-        detail: "Bursa (Ofiste, 1 ay). Ön uç geliştirme ve nesne yönelimli programlama (OOP) üzerine pratik geliştirme deneyimi.",
-      },
-      {
-        period: "Tem – Eki 2026",
-        tag: "Sertifika",
-        title: "Kodluyoruz & IBM SkillsBuild · AI4Future & Siber Güvenlik",
-        detail: "AI4Future (İleri Seviye), CyberStart 2.0, Siber Güvenlik ve Kurumsal Tasarım Odaklı Düşünme dahil 5 uluslararası sertifika.",
-      },
-      {
-        period: "2026 — Devam",
-        tag: "Lisans",
-        title: "Anadolu Üniversitesi AÖF · Yönetim Bilişim Sistemleri",
-        detail: "DGS ile geçiş. Yazılım mühendisliği pratiği ile yönetim bilişim sistemleri lisans eğitimi.",
-        active: true,
-      },
-    ],
-  },
-  en: {
-    heading: "Experience, Education & Certification Timeline",
-    items: [
-      {
-        period: "2024",
-        tag: "Associate",
-        title: "Kütahya Dumlupınar University · Started Computer Programming",
-        detail: "Built core foundations in desktop, database and system-level software engineering with C#, C++ and SQL.",
-      },
-      {
-        period: "2026",
-        tag: "Graduation",
-        title: "Kütahya Dumlupınar University · Computer Programming",
-        detail: "Graduated from the Vocational School of Technical Sciences with a 3.09 / 4.00 GPA.",
-      },
-      {
-        period: "May – Jul 2026",
-        tag: "Certificates",
-        title: "BTK Akademi · Software, Databases & AI",
-        detail: "9 verified certificates across C#, C++, OOP, Databases, Git & GitHub, AI and Anthropic Claude.",
-      },
-      {
-        period: "Jul 2026",
-        tag: "Experience · Internship",
-        title: "Data Destek Yazılım Hizmetleri A.Ş. · Software Intern",
-        detail: "Bursa (On-site, 1 month). Hands-on front-end development and object-oriented programming (OOP).",
-      },
-      {
-        period: "Jul – Oct 2026",
-        tag: "Certificates",
-        title: "Kodluyoruz & IBM SkillsBuild · AI4Future & Cybersecurity",
-        detail: "5 verified certificates including AI4Future (Advanced), CyberStart 2.0, Cybersecurity and Enterprise Design Thinking.",
-      },
-      {
-        period: "2026 — Present",
-        tag: "Bachelor's",
-        title: "Anadolu University OEF · Management Information Systems",
-        detail: "Transferred via DGS. Pursuing a B.S. degree combining software development with information systems.",
-        active: true,
-      },
-    ],
-  },
-};
-
 function About() {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const a = t.about;
-  const tl = TIMELINE[lang] || TIMELINE.tr;
+  const timelineItems = Array.isArray(a.timeline) ? a.timeline : [];
   return (
     <section id="hakkimda" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
       <Reveal>
@@ -1121,40 +1034,44 @@ function About() {
         </Reveal>
       </div>
 
-      <Reveal delay={0.08} className="mt-20 border-t border-line pt-14">
-        <p className="font-mono text-xs uppercase tracking-wider text-faint md:text-center">
-          {tl.heading}
-        </p>
-        <ol className="timeline-track mt-10 space-y-6 md:space-y-8">
-          {tl.items.map((item, i) => (
-            <li
-              key={`${item.period}-${item.title}`}
-              style={{ "--td": `${i * 80}ms` }}
-              className={`tl-item ${i % 2 === 0 ? "tl-left" : "tl-right"} ${
-                item.active
-                  ? "tl-active border-accent/40 bg-gradient-to-br from-accent/[0.08] via-surface/80 to-surface/40 shadow-[0_18px_50px_-32px_rgba(214,255,63,0.4)]"
-                  : "border-line bg-surface/50 hover:border-accent/40 hover:bg-surface hover:shadow-[0_18px_45px_-30px_rgba(214,255,63,0.3)]"
-              } rounded-2xl border p-6 hover:-translate-y-1`}
-            >
-              <time
-                className={`inline-block rounded-full border px-3 py-0.5 font-mono text-[11px] uppercase tracking-wider ${
+      {timelineItems.length > 0 && (
+        <Reveal delay={0.08} className="mt-20 border-t border-line pt-14">
+          {a.timelineHeading && (
+            <p className="font-mono text-xs uppercase tracking-wider text-faint md:text-center">
+              {a.timelineHeading}
+            </p>
+          )}
+          <ol className="timeline-track mt-10 space-y-6 md:space-y-8">
+            {timelineItems.map((item, i) => (
+              <li
+                key={`${item.period}-${item.title}-${i}`}
+                style={{ "--td": `${i * 80}ms` }}
+                className={`tl-item ${i % 2 === 0 ? "tl-left" : "tl-right"} ${
                   item.active
-                    ? "border-accent/40 bg-accent/15 text-accent"
-                    : "border-line bg-elevated/80 text-accent"
-                }`}
+                    ? "tl-active border-accent/40 bg-gradient-to-br from-accent/[0.08] via-surface/80 to-surface/40 shadow-[0_18px_50px_-32px_rgba(214,255,63,0.4)]"
+                    : "border-line bg-surface/50 hover:border-accent/40 hover:bg-surface hover:shadow-[0_18px_45px_-30px_rgba(214,255,63,0.3)]"
+                } rounded-2xl border p-6 hover:-translate-y-1`}
               >
-                {item.period} · {item.tag}
-              </time>
-              <h3 className="mt-3 font-display text-lg leading-snug tracking-tight text-ink md:text-xl">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                {item.detail}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </Reveal>
+                <time
+                  className={`inline-block rounded-full border px-3 py-0.5 font-mono text-[11px] uppercase tracking-wider ${
+                    item.active
+                      ? "border-accent/40 bg-accent/15 text-accent"
+                      : "border-line bg-elevated/80 text-accent"
+                  }`}
+                >
+                  {item.period} · {item.tag}
+                </time>
+                <h3 className="mt-3 font-display text-lg leading-snug tracking-tight text-ink md:text-xl">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  {item.detail}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </Reveal>
+      )}
     </section>
   );
 }
@@ -2522,7 +2439,10 @@ function Terminal() {
   const { t, lang } = useLang();
   const tt = t.terminal;
   const extra = TERMINAL_EXTRA_TEXT[lang] || TERMINAL_EXTRA_TEXT.tr;
-  const tl = TIMELINE[lang] || TIMELINE.tr;
+  const tl = {
+    heading: t.about.timelineHeading || (lang === "tr" ? "Zaman Çizelgesi" : "Timeline"),
+    items: Array.isArray(t.about.timeline) ? t.about.timeline : [],
+  };
   const prompt = `${tt.user}@${tt.host}:~$`;
 
   const bootLines = useMemo(

@@ -82,6 +82,24 @@ describe("AboutEditor", () => {
     expect(screen.getByDisplayValue("geçici, virgüllü")).toBeTruthy();
   });
 
+  it("adds, edits, toggles active and removes a timeline milestone while staying schema-valid", () => {
+    const site = renderEditor();
+    const initialCount = site().tr.about.timeline.length;
+    fireEvent.click(screen.getByRole("button", { name: "Zaman çizelgesi maddesi ekle" }));
+    expect(site().tr.about.timeline.length).toBe(initialCount + 1);
+
+    fireEvent.change(screen.getByLabelText(`Dönem ${initialCount + 1}`), { target: { value: "2027" } });
+    fireEvent.change(screen.getByLabelText(`Kayıt başlığı ${initialCount + 1}`), { target: { value: "Yeni Rol" } });
+    expect(site().tr.about.timeline.at(-1)).toMatchObject({ period: "2027", title: "Yeni Rol" });
+
+    const preview = screen.getByLabelText("Hakkımda önizlemesi");
+    expect(preview.textContent).toContain("Yeni Rol");
+
+    fireEvent.click(screen.getByRole("button", { name: `Zaman çizelgesi ${initialCount + 1} sil` }));
+    expect(site().tr.about.timeline.length).toBe(initialCount);
+    expect(() => parsePortfolioFiles(structuredClone({ ...portfolioFiles, site: site() }))).not.toThrow();
+  });
+
   it("exposes keyboard-accessible reorder handles for every list", () => {
     renderEditor();
     // dnd-kit sortable handles carry an accessible name so reordering is not

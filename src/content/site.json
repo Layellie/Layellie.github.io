@@ -102,6 +102,46 @@
           "label": "Odak",
           "value": "Junior Full-Stack Developer"
         }
+      ],
+      "timelineHeading": "Deneyim, Eğitim & Sertifika Yolculuğu",
+      "timeline": [
+        {
+          "period": "2024",
+          "tag": "Önlisans",
+          "title": "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı Başlangıcı",
+          "detail": "C#, C++ ve SQL ile masaüstü, veri tabanı ve sistem seviyesi yazılım geliştirme temelleri."
+        },
+        {
+          "period": "2026",
+          "tag": "Mezuniyet",
+          "title": "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı",
+          "detail": "Teknik Bilimler MYO'dan 3.09 / 4.00 genel not ortalamasıyla mezuniyet."
+        },
+        {
+          "period": "May – Tem 2026",
+          "tag": "Sertifika",
+          "title": "BTK Akademi · Yazılım, Veri Tabanı & Yapay Zeka",
+          "detail": "C#, C++, OOP, Veri Tabanına Giriş, Git & GitHub, Yapay Zeka ve Anthropic Claude alanlarında 9 doğrulanmış sertifika."
+        },
+        {
+          "period": "Tem 2026",
+          "tag": "Deneyim · Staj",
+          "title": "Data Destek Yazılım Hizmetleri A.Ş. · Yazılım Stajyeri",
+          "detail": "Bursa (Ofiste, 1 ay). Ön uç geliştirme ve nesne yönelimli programlama (OOP) üzerine pratik geliştirme deneyimi."
+        },
+        {
+          "period": "Tem – Eki 2026",
+          "tag": "Sertifika",
+          "title": "Kodluyoruz & IBM SkillsBuild · AI4Future & Siber Güvenlik",
+          "detail": "AI4Future (İleri Seviye), CyberStart 2.0, Siber Güvenlik ve Kurumsal Tasarım Odaklı Düşünme dahil 5 uluslararası sertifika."
+        },
+        {
+          "period": "2026 — Devam",
+          "tag": "Lisans",
+          "title": "Anadolu Üniversitesi AÖF · Yönetim Bilişim Sistemleri",
+          "detail": "DGS ile geçiş. Yazılım mühendisliği pratiği ile yönetim bilişim sistemleri lisans eğitimi.",
+          "active": true
+        }
       ]
     },
     "skills": {
@@ -299,6 +339,46 @@
         {
           "label": "Focus",
           "value": "Full-Stack Developer"
+        }
+      ],
+      "timelineHeading": "Experience, Education & Certification Timeline",
+      "timeline": [
+        {
+          "period": "2024",
+          "tag": "Associate",
+          "title": "Kütahya Dumlupınar University · Started Computer Programming",
+          "detail": "Built core foundations in desktop, database and system-level software engineering with C#, C++ and SQL."
+        },
+        {
+          "period": "2026",
+          "tag": "Graduation",
+          "title": "Kütahya Dumlupınar University · Computer Programming",
+          "detail": "Graduated from the Vocational School of Technical Sciences with a 3.09 / 4.00 GPA."
+        },
+        {
+          "period": "May – Jul 2026",
+          "tag": "Certificates",
+          "title": "BTK Akademi · Software, Databases & AI",
+          "detail": "9 verified certificates across C#, C++, OOP, Databases, Git & GitHub, AI and Anthropic Claude."
+        },
+        {
+          "period": "Jul 2026",
+          "tag": "Experience · Internship",
+          "title": "Data Destek Yazılım Hizmetleri A.Ş. · Software Intern",
+          "detail": "Bursa (On-site, 1 month). Hands-on front-end development and object-oriented programming (OOP)."
+        },
+        {
+          "period": "Jul – Oct 2026",
+          "tag": "Certificates",
+          "title": "Kodluyoruz & IBM SkillsBuild · AI4Future & Cybersecurity",
+          "detail": "5 verified certificates including AI4Future (Advanced), CyberStart 2.0, Cybersecurity and Enterprise Design Thinking."
+        },
+        {
+          "period": "2026 — Present",
+          "tag": "Bachelor's",
+          "title": "Anadolu University OEF · Management Information Systems",
+          "detail": "Transferred via DGS. Pursuing a B.S. degree combining software development with information systems.",
+          "active": true
         }
       ]
     },

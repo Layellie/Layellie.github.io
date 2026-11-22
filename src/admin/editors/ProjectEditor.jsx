@@ -1,15 +1,76 @@
 import { useEffect, useState } from "react";
-import { ImageUp } from "lucide-react";
+import { ImageUp, RefreshCw } from "lucide-react";
 import { validateFileSignature } from "../validation/files.js";
 import { mediaTypeForMetadata } from "../../content/mediaTypes.js";
-import { LocaleTabs, Notice, SelectField, TagsField, TextArea, TextField } from "../components/AdminUi.jsx";
+import { parseGithubRepositoryUrl } from "../../content/githubUrls.js";
+import { Button, LocaleTabs, Notice, SelectField, TagsField, TextArea, TextField } from "../components/AdminUi.jsx";
 import ProjectPreview from "../components/ProjectPreview.jsx";
+
+const VERSION_BADGE_RE = /^v?\d+\.\d+(?:\.\d+)?(?:[-+][\w.-]+)?(?:\s|$)/i;
+
+function normalizeVersionTag(rawTag) {
+  const cleaned = String(rawTag || "").trim();
+  if (!cleaned) return "";
+  return /^\d/.test(cleaned) ? `v${cleaned}` : cleaned;
+}
+
+function replaceOrPrependVersion(statusList, nextBadge) {
+  const list = Array.isArray(statusList) ? [...statusList] : [];
+  const idx = list.findIndex((item) => VERSION_BADGE_RE.test(String(item).trim()));
+  if (idx >= 0) {
+    list[idx] = nextBadge;
+    return list;
+  }
+  return [nextBadge, ...list].slice(0, 8);
+}
+
+export function applyReleaseVersionToProject(project, rawTag) {
+  const tag = normalizeVersionTag(rawTag);
+  if (!tag) return project;
+  return {
+    ...project,
+    tr: {
+      ...project.tr,
+      status: replaceOrPrependVersion(project.tr.status, `${tag} Yayında`),
+    },
+    en: {
+      ...project.en,
+      status: replaceOrPrependVersion(project.en.status, `${tag} Released`),
+    },
+  };
+}
+
+async function fetchLatestReleaseTag(githubUrl, fetcher = globalThis.fetch) {
+  const parsed = parseGithubRepositoryUrl(githubUrl);
+  if (!parsed) throw new Error("Geçerli bir https://github.com/kullanıcı/repo adresi gerekli.");
+  const headers = { Accept: "application/vnd.github+json" };
+  const base = `https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repository)}`;
+  const releaseRes = await fetcher(`${base}/releases/latest`, { headers });
+  if (releaseRes.ok) {
+    const body = await releaseRes.json();
+    if (body?.tag_name) return String(body.tag_name);
+  }
+  if (releaseRes.status === 403 || releaseRes.status === 429) {
+    throw new Error("GitHub API hız sınırına ulaşıldı. Birkaç dakika sonra tekrar dene.");
+  }
+  if (releaseRes.status === 404) {
+    const tagsRes = await fetcher(`${base}/tags?per_page=1`, { headers });
+    if (tagsRes.ok) {
+      const tags = await tagsRes.json();
+      if (Array.isArray(tags) && tags[0]?.name) return String(tags[0].name);
+    }
+    throw new Error("Bu depoda yayınlanmış bir GitHub Release veya tag bulunamadı.");
+  }
+  throw new Error(`GitHub yanıtı alınamadı (HTTP ${releaseRes.status}).`);
+}
 
 export default function ProjectEditor({ project, presets, pendingUpload, publicSiteOrigin, onChange, onUpload }) {
   const [lang, setLang] = useState("tr");
   const [uploadError, setUploadError] = useState("");
   const [localUpload, setLocalUpload] = useState(null);
   const [preview, setPreview] = useState({ projectId: "", file: null, url: "" });
+  const [syncingRelease, setSyncingRelease] = useState(false);
+  const [releaseFeedback, setReleaseFeedback] = useState(null);
   const locale = project[lang];
   const updateShared = (key, value) => onChange({ ...project, shared: { ...project.shared, [key]: value } });
   const updateLocale = (key, value) => onChange({ ...project, [lang]: { ...locale, [key]: value } });
@@ -21,6 +82,7 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
   useEffect(() => {
     setLocalUpload(null);
     setUploadError("");
+    setReleaseFeedback(null);
   }, [project.id]);
   useEffect(() => {
     if (project.shared.visual.mode !== "screenshot" || !pendingFile) {
@@ -31,6 +93,21 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
     setPreview({ projectId: project.id, file: pendingFile, url });
     return () => URL.revokeObjectURL(url);
   }, [project.id, project.shared.visual.mode, pendingFile]);
+
+  async function handleSyncRelease() {
+    setSyncingRelease(true);
+    setReleaseFeedback(null);
+    try {
+      const tag = await fetchLatestReleaseTag(project.shared.github);
+      const normalized = normalizeVersionTag(tag);
+      onChange(applyReleaseVersionToProject(project, normalized));
+      setReleaseFeedback({ tone: "success", message: `${normalized} sürümü TR ve EN durum etiketlerine işlendi.` });
+    } catch (error) {
+      setReleaseFeedback({ tone: "danger", message: error?.message || "GitHub sürümü alınamadı." });
+    } finally {
+      setSyncingRelease(false);
+    }
+  }
 
   async function handleScreenshot(file) {
     if (!file) return;
@@ -47,7 +124,24 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3"><LocaleTabs value={lang} onChange={setLang} /><span className="font-mono text-xs text-faint">id: {project.id}</span></div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <LocaleTabs value={lang} onChange={setLang} />
+        <div className="flex items-center gap-3">
+          <Button variant="secondary" onClick={handleSyncRelease} disabled={syncingRelease}>
+            <RefreshCw className={`h-4 w-4 ${syncingRelease ? "animate-spin" : ""}`} />
+            {syncingRelease ? "Çekiliyor…" : "GitHub'dan sürüm çek"}
+          </Button>
+          <span className="font-mono text-xs text-faint">id: {project.id}</span>
+        </div>
+      </div>
+      {releaseFeedback && (
+        <Notice
+          tone={releaseFeedback.tone === "success" ? "info" : "danger"}
+          title={releaseFeedback.tone === "success" ? "Sürüm güncellendi" : "Sürüm çekilemedi"}
+        >
+          {releaseFeedback.message}
+        </Notice>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <TextField label="Proje adı" value={locale.name} onChange={(event) => updateLocale("name", event.target.value)} maxLength={80} />
         <TextField label="Proje türü" value={locale.type} onChange={(event) => updateLocale("type", event.target.value)} maxLength={120} />

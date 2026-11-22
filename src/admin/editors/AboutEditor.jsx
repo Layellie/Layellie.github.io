@@ -194,6 +194,84 @@ export default function AboutEditor({ site, onChange }) {
         />
       </section>
 
+      <section className="space-y-3">
+        <div>
+          <h3 className="font-display text-xl">Zaman çizelgesi (timeline)</h3>
+          <p className="mt-1 text-xs text-muted">Sitede soldan sağa zikzak kartlar halinde ve terminaldeki <code>timeline</code> komutunda görünür. Sürükleyerek sırayı değiştirebilirsin.</p>
+        </div>
+        <TextField
+          label="Zaman çizelgesi başlığı"
+          value={about.timelineHeading || ""}
+          onChange={(event) => updateAbout({ timelineHeading: event.target.value })}
+          maxLength={160}
+          error={about.timeline?.length ? requiredError(about.timelineHeading || "") : undefined}
+        />
+        <KeyedList
+          items={about.timeline || []}
+          min={0}
+          onChange={(timeline) => updateAbout({ timeline })}
+          createItem={() => ({
+            period: "2026",
+            tag: lang === "tr" ? "Deneyim" : "Experience",
+            title: lang === "tr" ? "Yeni dönem başlığı" : "New milestone title",
+            detail: lang === "tr" ? "Kısa açıklama." : "Short description.",
+          })}
+          addLabel="Zaman çizelgesi maddesi ekle"
+          emptyHint="Henüz zaman çizelgesi maddesi yok."
+          renderRow={(entry, index, { updateAt, removeAt, canRemove }) => (
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <TextField
+                  label={`Dönem ${index + 1}`}
+                  value={entry.period}
+                  onChange={(event) => updateAt(index, { ...entry, period: event.target.value })}
+                  maxLength={80}
+                  error={requiredError(entry.period)}
+                />
+                <TextField
+                  label={`Kategori ${index + 1}`}
+                  value={entry.tag}
+                  onChange={(event) => updateAt(index, { ...entry, tag: event.target.value })}
+                  maxLength={80}
+                  error={requiredError(entry.tag)}
+                />
+              </div>
+              <TextField
+                label={`Kayıt başlığı ${index + 1}`}
+                value={entry.title}
+                onChange={(event) => updateAt(index, { ...entry, title: event.target.value })}
+                maxLength={180}
+                error={requiredError(entry.title)}
+              />
+              <TextArea
+                label={`Kayıt detayı ${index + 1}`}
+                value={entry.detail}
+                onChange={(event) => updateAt(index, { ...entry, detail: event.target.value })}
+                maxLength={600}
+                error={requiredError(entry.detail)}
+              />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(entry.active)}
+                    onChange={(event) => {
+                      const next = { ...entry };
+                      if (event.target.checked) next.active = true;
+                      else delete next.active;
+                      updateAt(index, next);
+                    }}
+                    className="h-4 w-4 rounded border-line bg-canvas accent-accent"
+                  />
+                  Aktif / devam eden durak (lime vurgu)
+                </label>
+                <Button variant="danger" onClick={() => removeAt(index)} disabled={!canRemove} aria-label={`Zaman çizelgesi ${index + 1} sil`}><Trash2 className="h-4 w-4" />Sil</Button>
+              </div>
+            </div>
+          )}
+        />
+      </section>
+
       <AboutPreview about={about} lang={lang} />
     </div>
   );
@@ -222,6 +300,20 @@ function AboutPreview({ about, lang }) {
           </div>
         ))}
       </div>
+      {Array.isArray(about.timeline) && about.timeline.length > 0 && (
+        <div className="mt-6 border-t border-line pt-5">
+          {about.timelineHeading && <div className="font-mono text-[10px] uppercase tracking-wider text-faint">{about.timelineHeading}</div>}
+          <ol className="mt-3 space-y-2 border-l border-line pl-4">
+            {about.timeline.map((item, index) => (
+              <li key={index} className={`rounded-xl border p-3 text-xs ${item.active ? "border-accent/40 bg-accent/5" : "border-line bg-surface/60"}`}>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-accent">{item.period} · {item.tag}</div>
+                <div className="mt-1 font-display text-sm text-ink">{item.title}</div>
+                <div className="mt-0.5 text-muted">{item.detail}</div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </section>
   );
 }
