@@ -12,7 +12,9 @@ import {
   createDiffSummary,
   duplicateProject,
   hasDiff,
+  MAX_BACKUP_BYTES,
   moveItem,
+  parsePortfolioBackup,
   publicationIssues,
   formatLocalDate,
   skillIdScope,
@@ -281,5 +283,23 @@ describe("admin data model", () => {
     expect(parsed.formatVersion).toBe(1);
     expect(parsed.baseCommitSha).toBe("abc1234");
     expect(Object.keys(parsed.files).sort()).toEqual(["certificates", "projects", "site", "skills", "visuals"]);
+
+    const restored = parsePortfolioBackup(backup.json);
+    expect(restored.baseCommitSha).toBe("abc1234");
+    expect(restored.files.projects.items).toHaveLength(portfolioFiles.projects.items.length);
+  });
+
+  it("rejects malformed, oversized, unsupported, and schema-invalid backups", () => {
+    expect(() => parsePortfolioBackup("")).toThrow(/boş/);
+    expect(() => parsePortfolioBackup("{bad json")).toThrow(/Geçersiz JSON/);
+    expect(() => parsePortfolioBackup(JSON.stringify({ formatVersion: 99, files: portfolioFiles }))).toThrow(/Desteklenmeyen/);
+    expect(() => parsePortfolioBackup(JSON.stringify({ formatVersion: 1 }))).toThrow(/files/);
+
+    const badFiles = clonePortfolio(portfolioFiles);
+    badFiles.projects.items[0].shared.github = "javascript:alert(1)";
+    expect(() => parsePortfolioBackup(JSON.stringify({ formatVersion: 1, files: badFiles }))).toThrow(/şema/);
+
+    expect(() => parsePortfolioBackup(" ".repeat(MAX_BACKUP_BYTES + 16))).toThrow(/boş|2 MB/);
+    expect(() => parsePortfolioBackup(`{"x":"${"a".repeat(MAX_BACKUP_BYTES)}"}`)).toThrow(/2 MB/);
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Award,
   BarChart3,
@@ -26,6 +26,7 @@ import {
   Sparkles,
   Smartphone,
   Trash2,
+  Upload,
   UserRound,
   X,
 } from "lucide-react";
@@ -42,7 +43,9 @@ import {
   createProject,
   duplicateProject,
   hasDiff,
+  MAX_BACKUP_BYTES,
   moveItem,
+  parsePortfolioBackup,
   publicationIssues,
   synchronizeUploads,
   validatePortfolio,
@@ -189,7 +192,7 @@ export default function AdminApp({ initialSession, initialContent }) {
         <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {savedDraft && <div className="mb-6"><Notice tone="warning" title="Bu tarayıcıda yayınlanmamış taslak bulundu"><span>{new Date(savedDraft.savedAt).toLocaleString("tr-TR")} tarihinde kaydedildi. </span><button type="button" className="font-medium text-amber-100 underline" onClick={restoreSavedDraft}>Taslağı geri yükle</button><span> · </span><button type="button" className="underline" onClick={() => { clearDraft(); setSavedDraft(null); }}>Sil</button></Notice></div>}
           {flash && <div className="mb-6"><Notice tone={flash.tone} title={flash.title}>{flash.message}</Notice></div>}
-          {screen === "dashboard" && <Dashboard files={draft} base={base} onNavigate={switchScreen} />}
+          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onRestoreBackup={(backup, filename) => { setDraft(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
           {screen === "about" && <SectionShell eyebrow="Genel site içeriği" title="Hakkımda bölümünü düzenle" description="Public sitedeki Hakkımda/About bölümünün canonical içeriği. Türkçe ve İngilizce ayrı düzenlenir; değişiklikler Yayın Merkezi üzerinden yayınlanır."><AboutEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "projects" && <ProjectsScreen projects={draft.projects} visuals={draft.visuals} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChange={(projects) => updateFiles("projects", projects)} onUpload={addUpload} />}
           {screen === "certificates" && <CertificatesScreen certificates={draft.certificates} skills={draft.skills} onChange={(certificates) => updateFiles("certificates", certificates)} onUpload={addUpload} />}
@@ -301,7 +304,7 @@ function describeDeployment(deployment) {
   };
 }
 
-function Dashboard({ files, base, onNavigate }) {
+function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
   const [analytics, setAnalytics] = useState({ status: "loading", data: null });
   const [deploy, setDeploy] = useState({ status: "loading", data: null, error: null });
   const [range, setRange] = useState("7d");
@@ -337,11 +340,14 @@ function Dashboard({ files, base, onNavigate }) {
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} base={base} onNavigate={onNavigate} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
 }
 
-function ContentHealthPanel({ files, base, onNavigate }) {
+function ContentHealthPanel({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
   const [exportedFile, setExportedFile] = useState(null);
+  const [importError, setImportError] = useState(null);
+  const [pendingBackup, setPendingBackup] = useState(null);
+  const fileInputRef = useRef(null);
   const report = useMemo(() => buildContentHealthReport(files), [files]);
 
   const badge =
@@ -362,7 +368,32 @@ function ContentHealthPanel({ files, base, onNavigate }) {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    setImportError(null);
     setExportedFile(backup.filename);
+  }
+
+  async function handleBackupSelected(event) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImportError(null);
+    setExportedFile(null);
+    if (file.size > MAX_BACKUP_BYTES) {
+      setImportError("Yedek dosyası 2 MB sınırını aşıyor.");
+      return;
+    }
+    try {
+      const text = await file.text();
+      const backup = parsePortfolioBackup(text);
+      const summary = createDiffSummary(baseFiles || files, backup.files);
+      const changedCount = Object.values(summary).reduce(
+        (total, group) => total + group.added.length + group.changed.length + group.removed.length,
+        0,
+      );
+      setPendingBackup({ backup, filename: file.name, changedCount });
+    } catch (error) {
+      setImportError(error?.message || "Yedek dosyası okunamadı.");
+    }
   }
 
   const metrics = [
@@ -371,6 +402,10 @@ function ContentHealthPanel({ files, base, onNavigate }) {
     { label: "Taslak proje", value: report.counts.drafts, warn: report.counts.drafts > 0, to: "projects" },
     { label: "Bekleyen medya", value: report.counts.pendingMedia, warn: report.counts.pendingMedia > 0, to: "publish" },
   ];
+
+  const backupExportedLabel = pendingBackup?.backup.exportedAt
+    ? new Date(pendingBackup.backup.exportedAt).toLocaleString("tr-TR")
+    : null;
 
   return (
     <Panel className="p-5">
@@ -383,10 +418,24 @@ function ContentHealthPanel({ files, base, onNavigate }) {
             {badge.label}
           </span>
         </div>
-        <Button variant="ghost" onClick={downloadBackup}>
-          <Download className="h-4 w-4" />
-          JSON yedek indir
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            aria-label="JSON yedek dosyası seç"
+            className="hidden"
+            onChange={(event) => void handleBackupSelected(event)}
+          />
+          <Button variant="ghost" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-4 w-4" />
+            Yedekten yükle
+          </Button>
+          <Button variant="ghost" onClick={downloadBackup}>
+            <Download className="h-4 w-4" />
+            JSON yedek indir
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -405,7 +454,9 @@ function ContentHealthPanel({ files, base, onNavigate }) {
         ))}
       </div>
 
-      {exportedFile ? (
+      {importError ? (
+        <div className="mt-3 text-xs text-red-300">{importError}</div>
+      ) : exportedFile ? (
         <div className="mt-3 truncate font-mono text-[11px] text-accent">
           ✓ Yedek indirildi: {exportedFile}
         </div>
@@ -418,6 +469,23 @@ function ContentHealthPanel({ files, base, onNavigate }) {
               : "Tüm yayınlanan içerik, URL ve çeviri alanları temiz."}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingBackup)}
+        title="Yedekten çalışma kopyasına yükle"
+        description={
+          pendingBackup
+            ? `${pendingBackup.filename}${backupExportedLabel ? ` (${backupExportedLabel})` : ""} doğrulandı; mevcut uzak sürümle karşılaştırıldığında ${pendingBackup.changedCount} değişiklik içeriyor. Mevcut yerel taslak bu yedekle değiştirilecek; işlem otomatik yayınlanmaz, Yayın Merkezi'nde farkları inceleyip onaylayabilirsin.`
+            : ""
+        }
+        confirmLabel="Taslağa yükle"
+        onClose={() => setPendingBackup(null)}
+        onConfirm={() => {
+          if (!pendingBackup) return;
+          onRestoreBackup?.(pendingBackup.backup, pendingBackup.filename);
+          setPendingBackup(null);
+        }}
+      />
     </Panel>
   );
 }

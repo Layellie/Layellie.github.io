@@ -359,6 +359,8 @@ export function buildContentHealthReport(files) {
   };
 }
 
+export const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
+
 export function createPortfolioBackup(files, base, now = new Date()) {
   const payload = {
     exportedAt: now.toISOString(),
@@ -370,5 +372,42 @@ export function createPortfolioBackup(files, base, now = new Date()) {
     filename: `layellie-portfolio-backup-${formatLocalDate(now)}.json`,
     json: JSON.stringify(payload, null, 2),
     payload,
+  };
+}
+
+export function parsePortfolioBackup(rawText) {
+  if (typeof rawText !== "string" || !rawText.trim()) {
+    throw new Error("Yedek dosyası boş.");
+  }
+  if (new TextEncoder().encode(rawText).byteLength > MAX_BACKUP_BYTES) {
+    throw new Error("Yedek dosyası 2 MB sınırını aşıyor.");
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    throw new Error("Geçersiz JSON dosyası.");
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Yedek dosyası geçerli bir JSON nesnesi değil.");
+  }
+  if ("formatVersion" in parsed && parsed.formatVersion !== 1) {
+    throw new Error("Desteklenmeyen yedek sürümü.");
+  }
+  if (!parsed.files || typeof parsed.files !== "object" || Array.isArray(parsed.files)) {
+    throw new Error("Yedek dosyasında içerik verisi (files) bulunamadı.");
+  }
+  let validated;
+  try {
+    validated = parsePortfolioFiles(parsed.files);
+  } catch {
+    throw new Error("Yedek içeriği şema doğrulamasından geçemedi.");
+  }
+  const issues = publicationIssues(validated);
+  return {
+    files: clonePortfolio(validated),
+    exportedAt: typeof parsed.exportedAt === "string" ? parsed.exportedAt : null,
+    baseCommitSha: typeof parsed.baseCommitSha === "string" ? parsed.baseCommitSha : null,
+    issues,
   };
 }

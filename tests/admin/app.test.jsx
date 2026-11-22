@@ -3,6 +3,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { portfolioFiles } from "../../src/content/loadContent.js";
+import { clonePortfolio, createPortfolioBackup } from "../../src/admin/data/model.js";
 import { adminApi } from "../../src/admin/api/client.js";
 import AdminApp from "../../src/admin/AdminApp.jsx";
 
@@ -91,6 +92,28 @@ describe("AdminApp", () => {
     expect(clickSpy).toHaveBeenCalledOnce();
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:backup-test");
     expect(screen.getByText(/Yedek indirildi: layellie-portfolio-backup-/i)).toBeTruthy();
+  });
+
+  it("restores a validated JSON backup into the working draft after confirmation and rejects invalid JSON", async () => {
+    render(<AdminApp initialSession={session} initialContent={content} />);
+    const fileInput = screen.getByLabelText("JSON yedek dosyası seç");
+
+    const invalidFile = new File(["{not-valid-json"], "broken.json", { type: "application/json" });
+    fireEvent.change(fileInput, { target: { files: [invalidFile] } });
+    expect(await screen.findByText(/Geçersiz JSON dosyası/i)).toBeTruthy();
+
+    const edited = clonePortfolio(portfolioFiles);
+    edited.projects.items[0].tr.name = "Yedekten Gelen Proje";
+    const backup = createPortfolioBackup(edited, content.base);
+    const validFile = new File([backup.json], backup.filename, { type: "application/json" });
+    fireEvent.change(fileInput, { target: { files: [validFile] } });
+
+    expect(await screen.findByText("Yedekten çalışma kopyasına yükle")).toBeTruthy();
+    expect(screen.getByText(/1 değişiklik içeriyor/i)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Taslağa yükle" }));
+    expect(await screen.findByText("Yedek çalışma kopyasına yüklendi")).toBeTruthy();
+    expect(screen.getByText("Yedekten Gelen Proje")).toBeTruthy();
   });
 
   it("opens project management without losing existing projects", () => {
