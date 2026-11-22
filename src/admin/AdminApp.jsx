@@ -19,6 +19,7 @@ import {
   Menu,
   Monitor,
   Plus,
+  Redo2,
   RefreshCw,
   Rocket,
   Save,
@@ -27,6 +28,7 @@ import {
   Sparkles,
   Smartphone,
   Trash2,
+  Undo2,
   Upload,
   UserRound,
   X,
@@ -38,6 +40,7 @@ import {
   buildContentHealthReport,
   clonePortfolio,
   certificateSkillOptions,
+  createAnalyticsCsv,
   createCertificate,
   createDiffSummary,
   createPortfolioBackup,
@@ -77,12 +80,21 @@ const NAVIGATION = [
   { id: "publish", label: "Doğrula & yayınla", icon: Send },
 ];
 
+const MAX_UNDO_HISTORY = 30;
+
+function isEditableKeyboardTarget(target) {
+  if (!target || typeof target !== "object") return false;
+  const tag = String(target.tagName || "").toLowerCase();
+  return tag === "input" || tag === "textarea" || tag === "select" || Boolean(target.isContentEditable);
+}
+
 export default function AdminApp({ initialSession, initialContent }) {
   const [sessionState, setSessionState] = useState(initialSession ? { status: "authenticated", data: initialSession } : { status: "loading" });
   const [contentState, setContentState] = useState(initialContent ? { status: "ready", data: initialContent } : { status: "idle" });
   const [screen, setScreen] = useState("dashboard");
   const [mobileNav, setMobileNav] = useState(false);
   const [draft, setDraft] = useState(initialContent?.files ? clonePortfolio(initialContent.files) : null);
+  const [history, setHistory] = useState({ past: [], future: [] });
   const [baseFiles, setBaseFiles] = useState(initialContent?.files || null);
   const [base, setBase] = useState(initialContent?.base || null);
   const [uploads, setUploads] = useState([]);
@@ -109,6 +121,47 @@ export default function AdminApp({ initialSession, initialContent }) {
 
   const hasUnsavedWork = pendingChangeCount > 0 && currentSignature !== savedSignature;
   const saveLocalDraftRef = useRef(null);
+  const undoRef = useRef(null);
+  const redoRef = useRef(null);
+
+  const commitDraftChange = (nextDraft) => {
+    if (!nextDraft) return;
+    setDraft((current) => {
+      if (current && JSON.stringify(current) !== JSON.stringify(nextDraft)) {
+        setHistory((prev) => ({
+          past: [...prev.past.slice(-(MAX_UNDO_HISTORY - 1)), clonePortfolio(current)],
+          future: [],
+        }));
+      }
+      return nextDraft;
+    });
+  };
+
+  const canUndo = history.past.length > 0;
+  const canRedo = history.future.length > 0;
+
+  function undoDraft() {
+    if (!draft || !history.past.length) return;
+    const previous = history.past[history.past.length - 1];
+    setHistory((prev) => ({
+      past: prev.past.slice(0, -1),
+      future: [clonePortfolio(draft), ...prev.future.slice(0, MAX_UNDO_HISTORY - 1)],
+    }));
+    setDraft(clonePortfolio(previous));
+  }
+
+  function redoDraft() {
+    if (!draft || !history.future.length) return;
+    const next = history.future[0];
+    setHistory((prev) => ({
+      past: [...prev.past.slice(-(MAX_UNDO_HISTORY - 1)), clonePortfolio(draft)],
+      future: prev.future.slice(1),
+    }));
+    setDraft(clonePortfolio(next));
+  }
+
+  undoRef.current = undoDraft;
+  redoRef.current = redoDraft;
 
   useEffect(() => {
     if (initialSession) return;
@@ -120,7 +173,7 @@ export default function AdminApp({ initialSession, initialContent }) {
     setContentState({ status: "loading" });
     adminApi.content().then((data) => {
       setContentState({ status: "ready", data });
-      setBaseFiles(data.files); setDraft(clonePortfolio(data.files)); setBase(data.base); setSavedSignature(null);
+      setBaseFiles(data.files); setDraft(clonePortfolio(data.files)); setBase(data.base); setSavedSignature(null); setHistory({ past: [], future: [] });
       loadDraft().then((local) => local && setSavedDraft(local)).catch(() => {});
     }).catch((error) => setContentState({ status: "error", error }));
   }, [sessionState.status, initialContent]);
@@ -133,7 +186,7 @@ export default function AdminApp({ initialSession, initialContent }) {
     });
   }, [draft]);
 
-  const updateFiles = (key, value) => setDraft((current) => ({ ...current, [key]: value }));
+  const updateFiles = (key, value) => commitDraftChange({ ...draft, [key]: value });
   const addUpload = (entry) => setUploads((current) => [...current.filter((item) => !(item.kind === entry.kind && item.recordId === entry.recordId)), entry]);
   const switchScreen = (id) => { setScreen(id); setMobileNav(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   async function saveLocalDraft() {
@@ -150,9 +203,20 @@ export default function AdminApp({ initialSession, initialContent }) {
   useEffect(() => {
     if (sessionState.status !== "authenticated" || !draft) return undefined;
     const onKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const key = event.key.toLowerCase();
+      if (key === "s") {
         event.preventDefault();
         void saveLocalDraftRef.current?.();
+        return;
+      }
+      if (isEditableKeyboardTarget(event.target)) return;
+      if (key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        undoRef.current?.();
+      } else if (key === "y" || (key === "z" && event.shiftKey)) {
+        event.preventDefault();
+        redoRef.current?.();
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -188,6 +252,8 @@ export default function AdminApp({ initialSession, initialContent }) {
     setBaseFiles(clonePortfolio(remote.files));
     setBase(remote.base);
     setUploads([]);
+    setHistory({ past: [], future: [] });
+    setSavedSignature(null);
     setDraftNeedsRebase(false);
     clearDraft();
     setFlash({ tone: "success", title: "Uzak sürüm yeniden yüklendi", message: "Çalışma kopyası güvenli remote snapshot ile sıfırlandı." });
@@ -196,6 +262,8 @@ export default function AdminApp({ initialSession, initialContent }) {
     clearDraft().catch(() => {});
     setDraft(null);
     setUploads([]);
+    setHistory({ past: [], future: [] });
+    setSavedSignature(null);
     setSavedDraft(null);
     setSessionState({ status: "unauthenticated" });
   }
@@ -232,17 +300,17 @@ export default function AdminApp({ initialSession, initialContent }) {
       </aside>
 
       <div className="relative lg:pl-[286px]">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-line bg-canvas/80 px-4 backdrop-blur-xl sm:px-7 lg:px-10"><div className="flex items-center gap-3"><button type="button" onClick={() => setMobileNav(true)} className="rounded-lg border border-line p-2 text-muted lg:hidden" aria-label="Menüyü aç"><Menu className="h-4 w-4" /></button><span className="text-sm text-muted">{NAVIGATION.find((item) => item.id === screen)?.label}</span>{pendingChangeCount > 0 && <button type="button" onClick={() => switchScreen("publish")} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition hover:border-amber-300/60"><span className={`h-1.5 w-1.5 rounded-full ${hasUnsavedWork ? "bg-amber-300" : "bg-accent"}`} />{pendingChangeCount} değişiklik</button>}</div><div className="flex items-center gap-2"><Button onClick={saveLocalDraft} title="Kısayol: Ctrl+S" className="hidden sm:inline-flex"><Save className="h-4 w-4" />Yerel taslağı koru<kbd className="ml-1 hidden rounded border border-line bg-canvas/60 px-1.5 py-0.5 font-mono text-[10px] text-faint xl:inline-block">Ctrl+S</kbd></Button><Button variant="primary" onClick={() => switchScreen("publish")}><Send className="h-4 w-4" /><span className="hidden sm:inline">Yayın merkezi</span></Button></div></header>
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-line bg-canvas/80 px-4 backdrop-blur-xl sm:px-7 lg:px-10"><div className="flex items-center gap-3"><button type="button" onClick={() => setMobileNav(true)} className="rounded-lg border border-line p-2 text-muted lg:hidden" aria-label="Menüyü aç"><Menu className="h-4 w-4" /></button><span className="text-sm text-muted">{NAVIGATION.find((item) => item.id === screen)?.label}</span>{pendingChangeCount > 0 && <button type="button" onClick={() => switchScreen("publish")} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition hover:border-amber-300/60"><span className={`h-1.5 w-1.5 rounded-full ${hasUnsavedWork ? "bg-amber-300" : "bg-accent"}`} />{pendingChangeCount} değişiklik</button>}</div><div className="flex items-center gap-2"><Button variant="ghost" onClick={undoDraft} disabled={!canUndo} aria-label="Geri al" title="Geri al (Ctrl+Z)" className="px-2.5"><Undo2 className="h-4 w-4" /></Button><Button variant="ghost" onClick={redoDraft} disabled={!canRedo} aria-label="İleri al" title="İleri al (Ctrl+Y)" className="px-2.5"><Redo2 className="h-4 w-4" /></Button><Button onClick={saveLocalDraft} title="Kısayol: Ctrl+S" className="hidden sm:inline-flex"><Save className="h-4 w-4" />Yerel taslağı koru<kbd className="ml-1 hidden rounded border border-line bg-canvas/60 px-1.5 py-0.5 font-mono text-[10px] text-faint xl:inline-block">Ctrl+S</kbd></Button><Button variant="primary" onClick={() => switchScreen("publish")}><Send className="h-4 w-4" /><span className="hidden sm:inline">Yayın merkezi</span></Button></div></header>
         <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {savedDraft && <div className="mb-6"><Notice tone="warning" title="Bu tarayıcıda yayınlanmamış taslak bulundu"><span>{new Date(savedDraft.savedAt).toLocaleString("tr-TR")} tarihinde kaydedildi. </span><button type="button" className="font-medium text-amber-100 underline" onClick={restoreSavedDraft}>Taslağı geri yükle</button><span> · </span><button type="button" className="underline" onClick={() => { clearDraft(); setSavedDraft(null); }}>Sil</button></Notice></div>}
           {flash && <div className="mb-6"><Notice tone={flash.tone} title={flash.title}>{flash.message}</Notice></div>}
-          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onRestoreBackup={(backup, filename) => { setDraft(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
+          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
           {screen === "about" && <SectionShell eyebrow="Genel site içeriği" title="Hakkımda bölümünü düzenle" description="Public sitedeki Hakkımda/About bölümünün canonical içeriği. Türkçe ve İngilizce ayrı düzenlenir; değişiklikler Yayın Merkezi üzerinden yayınlanır."><AboutEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "projects" && <ProjectsScreen projects={draft.projects} visuals={draft.visuals} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChange={(projects) => updateFiles("projects", projects)} onUpload={addUpload} />}
           {screen === "certificates" && <CertificatesScreen certificates={draft.certificates} skills={draft.skills} onChange={(certificates) => updateFiles("certificates", certificates)} onUpload={addUpload} />}
           {screen === "skills" && <SectionShell eyebrow="Yetenek sistemi" title="Kartları ve odak alanlarını düzenle" description="Public Yetenekler bölümündeki kart hiyerarşisi önizlemede aynen kullanılır."><SkillsEditor skills={draft.skills} onChange={(skills) => updateFiles("skills", skills)} /></SectionShell>}
           {screen === "visuals" && <SectionShell eyebrow="Modüler uygulama mock-up’ı" title="Kod yazmadan proje görseli oluştur" description="Yalnız allowlist modüller render edilir; serbest HTML, CSS veya JavaScript çalıştırılmaz."><VisualBuilder visuals={draft.visuals} projects={draft.projects} onChange={(visuals) => updateFiles("visuals", visuals)} /></SectionShell>}
-          {screen === "publish" && <PublishScreen draft={draft} baseFiles={baseFiles} base={base} uploads={synchronizeUploads(draft, uploads)} csrf={session.csrfToken} baseSnapshotMissing={draftNeedsRebase || !base || !baseFiles} onReloadRemote={reloadRemoteSnapshot} onConflictResolved={({ files, remoteBase, keepUploads }) => { setDraft(clonePortfolio(files)); setBaseFiles(clonePortfolio(remoteBase.files)); setBase(remoteBase.base); setDraftNeedsRebase(false); if (!keepUploads) setUploads([]); setFlash({ tone: "success", title: "Çakışma çalışma kopyasına uygulandı", message: keepUploads ? "Alan seçimleri birleştirildi; yeniden doğrulama gerekli." : "Yerel değişiklikler uzak sürümle değiştirildi." }); }} onPublished={(result) => { setBase(result.base); setDraft(clonePortfolio(result.files)); setBaseFiles(clonePortfolio(result.files)); setUploads([]); setDraftNeedsRebase(false); setSavedDraft(null); clearDraft(); setFlash({ tone: "success", title: "GitHub commit’i oluşturuldu", message: result.commit?.url || result.commit?.sha }); }} />}
+          {screen === "publish" && <PublishScreen draft={draft} baseFiles={baseFiles} base={base} uploads={synchronizeUploads(draft, uploads)} csrf={session.csrfToken} baseSnapshotMissing={draftNeedsRebase || !base || !baseFiles} onReloadRemote={reloadRemoteSnapshot} onConflictResolved={({ files, remoteBase, keepUploads }) => { setDraft(clonePortfolio(files)); setBaseFiles(clonePortfolio(remoteBase.files)); setBase(remoteBase.base); setDraftNeedsRebase(false); if (!keepUploads) setUploads([]); setFlash({ tone: "success", title: "Çakışma çalışma kopyasına uygulandı", message: keepUploads ? "Alan seçimleri birleştirildi; yeniden doğrulama gerekli." : "Yerel değişiklikler uzak sürümle değiştirildi." }); }} onPublished={(result) => { setBase(result.base); setDraft(clonePortfolio(result.files)); setBaseFiles(clonePortfolio(result.files)); setUploads([]); setHistory({ past: [], future: [] }); setSavedSignature(null); setDraftNeedsRebase(false); setSavedDraft(null); clearDraft(); setFlash({ tone: "success", title: "GitHub commit’i oluşturuldu", message: result.commit?.url || result.commit?.sha }); }} />}
         </main>
       </div>
     </div>
@@ -717,10 +785,38 @@ function DeployStatusPanel({ deploy, baseCommit, onRefresh }) {
 function AnalyticsPanel({ analytics, range, onRange, onRefresh }) {
   const data = analytics.data;
   const maximum = Math.max(1, ...(data?.days || []).map((day) => day.uniqueVisitors));
-  return <Panel className="p-5"><div className="flex items-start justify-between gap-2"><div><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-accent" /><h2 className="font-display text-2xl font-semibold">Ziyaret analitiği</h2></div><p className="mt-1 text-[11px] leading-relaxed text-muted">Ziyaretler günlük ve anonim olarak ölçülür. Aynı tarayıcı aynı gün yalnız bir kez sayılır; farklı günlerdeki kayıtlar birbirine bağlanmaz.</p></div><Button variant="ghost" aria-label="Analitiği yenile" onClick={onRefresh}><RefreshCw className="h-4 w-4" /></Button></div><div className="mt-3 flex gap-2"><Button variant={range === "7d" ? "primary" : "ghost"} onClick={() => onRange("7d")}>7 gün</Button><Button variant={range === "30d" ? "primary" : "ghost"} onClick={() => onRange("30d")}>30 gün</Button></div>{analytics.status === "loading" && <div className="mt-4 text-sm text-muted">Analitik yükleniyor…</div>}{analytics.status === "error" && <div className="mt-4 text-sm text-amber-100">Analitik şu anda alınamadı.</div>}{analytics.status === "ready" && <><div className="mt-4 grid grid-cols-2 gap-2"><AnalyticsStat label="Bugünkü tekil" value={data.today.uniqueVisitors} icon={BarChart3} /><AnalyticsStat label="Masaüstü" value={data.today.desktop} icon={Monitor} /><AnalyticsStat label="Mobil / tablet" value={data.today.mobileTablet} icon={Smartphone} /><AnalyticsStat label="Son 7 gün" value={data.total} icon={CheckCircle2} /></div><div className="mt-4 flex h-16 items-end gap-1" role="img" aria-label={`${data.range} için ziyaretçi trendi, toplam ${data.total}`} >{data.days.map((day) => <div key={day.day} className="min-w-1 flex-1 rounded-t bg-accent/70 transition motion-reduce:transition-none" style={{ height: `${Math.max(6, (day.uniqueVisitors / maximum) * 100)}%` }} title={`${day.day}: ${day.uniqueVisitors}`} />)}</div><div className="mt-2 text-[10px] text-faint">Son güncelleme: {analytics.updatedAt?.toLocaleTimeString("tr-TR")}</div></>}</Panel>;
+  const periodLabel = data?.range === "30d" ? "Son 30 gün" : "Son 7 gün";
+  let trendBadge = null;
+  if (data?.range === "7d" && typeof data.previousTotal === "number") {
+    if (typeof data.changePercent === "number") {
+      const prefix = data.changePercent > 0 ? "+" : "";
+      const tone = data.changePercent > 0
+        ? "border-accent/30 bg-accent/10 text-accent"
+        : data.changePercent < 0
+          ? "border-amber-400/35 bg-amber-400/10 text-amber-200"
+          : "border-line bg-canvas/60 text-faint";
+      trendBadge = { label: `${prefix}%${data.changePercent}`, tone, title: `Önceki 7 gün: ${data.previousTotal}` };
+    } else if (data.total > 0) {
+      trendBadge = { label: "Yeni", tone: "border-accent/30 bg-accent/10 text-accent", title: "Önceki 7 gün: 0" };
+    }
+  }
+  function exportCsv() {
+    if (!data) return;
+    const exported = createAnalyticsCsv(data);
+    const blob = new Blob([exported.csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = exported.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+  return <Panel className="p-5"><div className="flex items-start justify-between gap-2"><div><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-accent" /><h2 className="font-display text-2xl font-semibold">Ziyaret analitiği</h2></div><p className="mt-1 text-[11px] leading-relaxed text-muted">Ziyaretler günlük ve anonim olarak ölçülür. Aynı tarayıcı aynı gün yalnız bir kez sayılır; farklı günlerdeki kayıtlar birbirine bağlanmaz.</p></div><div className="flex shrink-0 items-center gap-1.5"><Button variant="ghost" aria-label="Analitiği CSV olarak indir" title="CSV indir" disabled={analytics.status !== "ready"} onClick={exportCsv}><Download className="h-4 w-4" /></Button><Button variant="ghost" aria-label="Analitiği yenile" onClick={onRefresh}><RefreshCw className="h-4 w-4" /></Button></div></div><div className="mt-3 flex gap-2"><Button variant={range === "7d" ? "primary" : "ghost"} onClick={() => onRange("7d")}>7 gün</Button><Button variant={range === "30d" ? "primary" : "ghost"} onClick={() => onRange("30d")}>30 gün</Button></div>{analytics.status === "loading" && <div className="mt-4 text-sm text-muted">Analitik yükleniyor…</div>}{analytics.status === "error" && <div className="mt-4 text-sm text-amber-100">Analitik şu anda alınamadı.</div>}{analytics.status === "ready" && <><div className="mt-4 grid grid-cols-2 gap-2"><AnalyticsStat label="Bugünkü tekil" value={data.today.uniqueVisitors} icon={BarChart3} /><AnalyticsStat label="Masaüstü" value={data.today.desktop} icon={Monitor} /><AnalyticsStat label="Mobil / tablet" value={data.today.mobileTablet} icon={Smartphone} /><AnalyticsStat label={periodLabel} value={data.total} icon={CheckCircle2} badge={trendBadge} /></div><div className="mt-4 flex h-16 items-end gap-1" role="img" aria-label={`${data.range} için ziyaretçi trendi, toplam ${data.total}`} >{data.days.map((day) => <div key={day.day} className="min-w-1 flex-1 rounded-t bg-accent/70 transition motion-reduce:transition-none" style={{ height: `${Math.max(6, (day.uniqueVisitors / maximum) * 100)}%` }} title={`${day.day}: ${day.uniqueVisitors}`} />)}</div><div className="mt-2 text-[10px] text-faint">Son güncelleme: {analytics.updatedAt?.toLocaleTimeString("tr-TR")}</div></>}</Panel>;
 }
 
-function AnalyticsStat({ label, value, icon: Icon }) { return <div className="rounded-xl border border-line bg-canvas/40 p-2.5"><Icon className="h-3.5 w-3.5 text-accent" /><div className="mt-2 font-display text-2xl">{value}</div><div className="mt-1 text-[10px] text-muted">{label}</div></div>; }
+function AnalyticsStat({ label, value, icon: Icon, badge }) { return <div className="rounded-xl border border-line bg-canvas/40 p-2.5"><div className="flex items-center justify-between gap-2"><Icon className="h-3.5 w-3.5 text-accent" />{badge && <span title={badge.title} className={`rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-medium ${badge.tone}`}>{badge.label}</span>}</div><div className="mt-2 font-display text-2xl">{value}</div><div className="mt-1 text-[10px] text-muted">{label}</div></div>; }
 
 function ProjectsScreen({ projects, visuals, pendingUploads, publicSiteOrigin, onChange, onUpload }) {
   const [selectedId, setSelectedId] = useState(projects.items[0]?.id);

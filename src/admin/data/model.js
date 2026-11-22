@@ -411,3 +411,27 @@ export function parsePortfolioBackup(rawText) {
     issues,
   };
 }
+
+function escapeCsvCell(value) {
+  const raw = String(value ?? "");
+  const safe = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+}
+
+export function createAnalyticsCsv(data, now = new Date()) {
+  const range = data?.range === "30d" ? "30d" : "7d";
+  const rows = [
+    ["Tarih", "Tekil Ziyaretçi", "Masaüstü", "Mobil / Tablet"],
+    ...(Array.isArray(data?.days) ? data.days : []).map((day) => [
+      day.day,
+      Number(day.uniqueVisitors) || 0,
+      Number(day.desktop) || 0,
+      Number(day.mobileTablet) || 0,
+    ]),
+  ];
+  const csv = `\uFEFF${rows.map((row) => row.map(escapeCsvCell).join(",")).join("\r\n")}\r\n`;
+  return {
+    filename: `layellie-analytics-${range}-${formatLocalDate(now)}.csv`,
+    csv,
+  };
+}

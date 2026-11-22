@@ -4,6 +4,7 @@ import {
   buildContentHealthReport,
   clonePortfolio,
   certificateSkillOptions,
+  createAnalyticsCsv,
   createCertificate,
   createGroupSkillItem,
   createPortfolioBackup,
@@ -301,5 +302,22 @@ describe("admin data model", () => {
 
     expect(() => parsePortfolioBackup(" ".repeat(MAX_BACKUP_BYTES + 16))).toThrow(/boş|2 MB/);
     expect(() => parsePortfolioBackup(`{"x":"${"a".repeat(MAX_BACKUP_BYTES)}"}`)).toThrow(/2 MB/);
+  });
+
+  it("exports analytics summary rows as a dated CSV with formula protection", () => {
+    const exported = createAnalyticsCsv(
+      {
+        range: "7d",
+        days: [
+          { day: "2026-11-22", uniqueVisitors: 12, desktop: 8, mobileTablet: 4 },
+          { day: "=CMD()", uniqueVisitors: 1, desktop: 1, mobileTablet: 0 },
+        ],
+      },
+      new Date(2026, 10, 23, 12, 0, 0),
+    );
+    expect(exported.filename).toBe("layellie-analytics-7d-2026-11-23.csv");
+    expect(exported.csv.startsWith("\uFEFFTarih,Tekil Ziyaretçi,Masaüstü,Mobil / Tablet")).toBe(true);
+    expect(exported.csv).toContain("2026-11-22,12,8,4");
+    expect(exported.csv).toContain("'=CMD(),1,1,0");
   });
 });

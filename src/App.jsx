@@ -10,7 +10,7 @@ import {
   Suspense,
   startTransition,
 } from "react";
-import { selectMoreGithubRepositories } from "./content/githubUrls.js";
+import { githubRepositoryName, selectMoreGithubRepositories } from "./content/githubUrls.js";
 // framer-motion kullanılmaz: tüm animasyonlar saf CSS + IntersectionObserver ile
 // çalıştırılarak ~120 KB kütüphane maliyeti ve ana iş parçacığı yükü kaldırılmıştır.
 import {
@@ -2235,11 +2235,38 @@ function MoreRepos({ repos, labels }) {
   );
 }
 
+export function resolveInitialLang(search = "", stored = null) {
+  try {
+    const param = new URLSearchParams(search).get("lang")?.toLowerCase();
+    if (param === "en" || param === "tr") return param;
+  } catch {
+    /* geçersiz query parametresi → kayıtlı dile düş */
+  }
+  return stored === "en" || stored === "tr" ? stored : "tr";
+}
+
+export function formatRelativePush(isoDate, lang = "tr", now = Date.now()) {
+  if (!isoDate) return "";
+  const time = new Date(isoDate).getTime();
+  if (Number.isNaN(time)) return "";
+  const days = Math.max(0, Math.floor((now - time) / 86_400_000));
+  if (days === 0) return lang === "tr" ? "bugün" : "today";
+  if (days === 1) return lang === "tr" ? "dün" : "yesterday";
+  if (days < 30) return lang === "tr" ? `${days} gün önce` : `${days}d ago`;
+  if (days < 365) {
+    const months = Math.floor(days / 30);
+    return lang === "tr" ? `${months} ay önce` : `${months}mo ago`;
+  }
+  const years = Math.floor(days / 365);
+  return lang === "tr" ? `${years} yıl önce` : `${years}y ago`;
+}
+
 /* ================================================================== */
 /*  PROJELER                                                           */
 /* ================================================================== */
-function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
+function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo }) {
   const { lang } = useLang();
+  const updatedLabel = liveRepo?.pushed_at ? formatRelativePush(liveRepo.pushed_at, lang) : "";
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
       <TiltCard maxTilt={3} className="rounded-3xl">
@@ -2260,6 +2287,13 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             <span className="text-muted">{project.type}</span>
             <span>·</span>
             <span>{project.year}</span>
+            {liveRepo && (
+              <span className="inline-flex items-center gap-1.5 font-mono text-muted">
+                <SpriteIcon id="star" className="h-3.5 w-3.5 text-accent" />
+                {liveRepo.stargazers_count ?? 0}
+                {updatedLabel ? ` · ${updatedLabel}` : ""}
+              </span>
+            )}
             <span className="ml-auto rounded-full border border-line px-2 py-0.5">
               {project.license}
             </span>
@@ -2335,6 +2369,10 @@ function Projects() {
 
   // Flagship projeler elde küratörlü; geri kalan repolar otomatik listelenir.
   const moreRepos = useMemo(() => selectMoreGithubRepositories(repos, p.items), [repos, p.items]);
+  const repoByName = useMemo(
+    () => new Map(repos.map((r) => [String(r.name || "").toLowerCase(), r])),
+    [repos],
+  );
 
   return (
     <section ref={sectionRef} id="projeler" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
@@ -2347,16 +2385,20 @@ function Projects() {
       <ContributionGraph />
 
       <div className="mt-8 space-y-8 md:mt-12 md:space-y-12">
-        {p.items.map((proj, i) => (
-          <ProjectCard
-            key={proj.id}
-            project={proj}
-            num={String(i + 1).padStart(2, "0")}
-            reverse={i % 2 === 1}
-            viewLabel={p.view}
-            statusLabel={p.statusLabel}
-          />
-        ))}
+        {p.items.map((proj, i) => {
+          const repoName = githubRepositoryName(proj.github)?.toLowerCase();
+          return (
+            <ProjectCard
+              key={proj.id}
+              project={proj}
+              num={String(i + 1).padStart(2, "0")}
+              reverse={i % 2 === 1}
+              viewLabel={p.view}
+              statusLabel={p.statusLabel}
+              liveRepo={repoName ? repoByName.get(repoName) || null : null}
+            />
+          );
+        })}
       </div>
 
       <MoreRepos repos={moreRepos} labels={p.more} />
@@ -3467,12 +3509,37 @@ function QuickSummaryModal() {
 export default function App() {
   const [lang, setLang] = useState(() => {
     if (typeof window === "undefined") return "tr";
-    return window.localStorage.getItem("lang") || "tr";
+    let stored = null;
+    try {
+      stored = window.localStorage.getItem("lang");
+    } catch {
+      /* erişim reddedilirse */
+    }
+    return resolveInitialLang(window.location.search, stored);
   });
 
   useEffect(() => {
-    window.localStorage.setItem("lang", lang);
+    try {
+      window.localStorage.setItem("lang", lang);
+    } catch {
+      /* erişim reddedilirse */
+    }
     document.documentElement.lang = lang;
+    try {
+      const url = new URL(window.location.href);
+      const currentParam = url.searchParams.get("lang")?.toLowerCase();
+      if (lang === "en") {
+        if (currentParam !== "en") {
+          url.searchParams.set("lang", "en");
+          window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+        }
+      } else if (currentParam === "en" || currentParam === "tr") {
+        url.searchParams.delete("lang");
+        window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      }
+    } catch {
+      /* history API desteklenmiyorsa geç */
+    }
   }, [lang]);
 
   // Statik kabuktan sonra ekran dışı bölümleri ayrı macrotask'lere bölerek mount et (0 Long Task, TBT = 0 ms).

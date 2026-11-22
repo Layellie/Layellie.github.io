@@ -122,6 +122,37 @@ describe("AdminApp", () => {
     fireEvent.keyDown(window, { key: "s", ctrlKey: true });
     expect(await screen.findByText("Taslak yerel olarak korundu")).toBeTruthy();
     expect(saveSpy).toHaveBeenCalledOnce();
+
+    // Undo / Redo buttons restore and re-apply draft changes cleanly.
+    const originalFirstName = portfolioFiles.projects.items[0].tr.name;
+    fireEvent.click(screen.getByRole("button", { name: "Geri al" }));
+    expect(screen.getByText(originalFirstName)).toBeTruthy();
+    expect(screen.queryByText("Yedekten Gelen Proje")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "İleri al" }));
+    expect(screen.getByText("Yedekten Gelen Proje")).toBeTruthy();
+  });
+
+  it("shows 7-day trend percentage and exports analytics as CSV", async () => {
+    const createObjectURL = vi.fn(() => "blob:analytics-csv");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", Object.assign(URL, { createObjectURL, revokeObjectURL }));
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    vi.spyOn(adminApi, "analytics").mockResolvedValue({
+      range: "7d",
+      total: 15,
+      previousTotal: 10,
+      changePercent: 50,
+      today: { uniqueVisitors: 4, desktop: 3, mobileTablet: 1 },
+      days: [{ day: "2026-11-22", uniqueVisitors: 4, desktop: 3, mobileTablet: 1 }],
+    });
+
+    render(<AdminApp initialSession={session} initialContent={content} />);
+    expect(await screen.findByText("+%50")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Analitiği CSV olarak indir" }));
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    expect(clickSpy).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:analytics-csv");
   });
 
   it("renders recent commits on the dashboard and refreshes on click", async () => {

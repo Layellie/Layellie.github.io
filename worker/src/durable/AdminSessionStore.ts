@@ -146,14 +146,24 @@ export class AdminSessionStore {
     });
   }
 
-  private analyticsSummary(payload: Record<string, unknown>, now: number): Response {
+  private analyticsSummary(payload: Record<string, unknown>, _now: number): Response {
     const { range } = this.strings(payload, ["range"]);
     const days = range === "30d" ? 30 : range === "7d" ? 7 : 0;
     if (!days) throw new Error("invalid");
     const day = this.strings(payload, ["day"]).day;
-    const rows = this.state.storage.sql.exec<{ day: string; unique_visitors: number; desktop: number; mobile_tablet: number }>("SELECT day, COUNT(*) AS unique_visitors, SUM(CASE WHEN device_category='desktop' THEN 1 ELSE 0 END) AS desktop, SUM(CASE WHEN device_category IN ('mobile','tablet') THEN 1 ELSE 0 END) AS mobile_tablet FROM analytics_visits WHERE day>=? GROUP BY day ORDER BY day", this.daysBefore(day, days - 1)).toArray();
+    const currentStart = this.daysBefore(day, days - 1);
+    const rows = this.state.storage.sql.exec<{ day: string; unique_visitors: number; desktop: number; mobile_tablet: number }>("SELECT day, COUNT(*) AS unique_visitors, SUM(CASE WHEN device_category='desktop' THEN 1 ELSE 0 END) AS desktop, SUM(CASE WHEN device_category IN ('mobile','tablet') THEN 1 ELSE 0 END) AS mobile_tablet FROM analytics_visits WHERE day>=? GROUP BY day ORDER BY day", currentStart).toArray();
     const today = rows.find((row) => row.day === day) || { unique_visitors: 0, desktop: 0, mobile_tablet: 0 };
-    return this.result({ range, today: { uniqueVisitors: today.unique_visitors, desktop: today.desktop, mobileTablet: today.mobile_tablet }, total: rows.reduce((sum, row) => sum + row.unique_visitors, 0), days: rows.map((row) => ({ day: row.day, uniqueVisitors: row.unique_visitors, desktop: row.desktop, mobileTablet: row.mobile_tablet })) });
+    const total = rows.reduce((sum, row) => sum + row.unique_visitors, 0);
+    let previousTotal: number | null = null;
+    let changePercent: number | null = null;
+    if (range === "7d") {
+      const previousStart = this.daysBefore(day, 13);
+      const prevRow = this.state.storage.sql.exec<{ total: number }>("SELECT COUNT(*) AS total FROM analytics_visits WHERE day>=? AND day<?", previousStart, currentStart).one();
+      previousTotal = prevRow?.total ?? 0;
+      changePercent = previousTotal > 0 ? Math.round(((total - previousTotal) / previousTotal) * 100) : total === 0 ? 0 : null;
+    }
+    return this.result({ range, today: { uniqueVisitors: today.unique_visitors, desktop: today.desktop, mobileTablet: today.mobile_tablet }, total, previousTotal, changePercent, days: rows.map((row) => ({ day: row.day, uniqueVisitors: row.unique_visitors, desktop: row.desktop, mobileTablet: row.mobile_tablet })) });
   }
 
   private daysBefore(day: string, days: number): string {

@@ -145,6 +145,20 @@ describe("Worker authentication boundary", () => {
     // Reading the summary requires the owner session (kept intact).
     const authed = await exports.default.fetch(sessionRequest("/api/admin/analytics?range=30d", session));
     expect(authed.status).toBe(200);
+    expect(await authed.json()).toMatchObject({ range: "30d", previousTotal: null, changePercent: null });
+  });
+
+  it("computes previous 7-day comparison totals and percent change for 7d analytics", async () => {
+    const today = istanbulDay();
+    const prevDay = istanbulDay(new Date(Date.now() - 10 * 86_400_000));
+    await stateCall("analytics.visit", { day: prevDay, visitorHash: "p".repeat(40), deviceCategory: "desktop" });
+    await stateCall("analytics.visit", { day: prevDay, visitorHash: "q".repeat(40), deviceCategory: "mobile" });
+    await stateCall("analytics.visit", { day: today, visitorHash: "u".repeat(40), deviceCategory: "desktop" });
+    await stateCall("analytics.visit", { day: today, visitorHash: "v".repeat(40), deviceCategory: "desktop" });
+    await stateCall("analytics.visit", { day: today, visitorHash: "w".repeat(40), deviceCategory: "mobile" });
+    const summary = (await (await stateResponse("analytics.summary", { range: "7d", day: today })).json()).value;
+    expect(summary.previousTotal).toBeGreaterThanOrEqual(2);
+    expect(typeof summary.changePercent).toBe("number");
   });
 
   it("rejects malformed analytics requests and does not accept foreign origins", async () => {
