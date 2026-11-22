@@ -665,7 +665,7 @@ function LangSwitch({ className = "" }) {
 }
 
 function Navbar() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const active = useScrollSpy(SECTION_IDS);
@@ -732,6 +732,16 @@ function Navbar() {
               {META_LABEL} K
             </kbd>
           </button>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-summary"))}
+            data-summary-trigger="desktop"
+            aria-label={lang === "tr" ? "30 saniyelik özet" : "30-second overview"}
+            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-accent/35 bg-accent/10 px-3 text-xs font-medium text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas`}
+          >
+            <SpriteIcon id="file-text" className="h-3.5 w-3.5" />
+            {lang === "tr" ? "Özet" : "TL;DR"}
+          </button>
           <LangSwitch />
           <a
             href="/admin/"
@@ -755,6 +765,16 @@ function Navbar() {
         </div>
 
         <div className="flex items-center gap-2 xl:hidden">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-summary"))}
+            data-summary-trigger="mobile"
+            aria-label={lang === "tr" ? "30 saniyelik özet" : "30-second overview"}
+            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-accent/35 bg-accent/10 px-3 text-xs font-medium text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+          >
+            <SpriteIcon id="file-text" className="h-3.5 w-3.5" />
+            {lang === "tr" ? "Özet" : "TL;DR"}
+          </button>
           <LangSwitch />
           <button
             onClick={() => setOpen(true)}
@@ -1706,8 +1726,8 @@ function GithubStats({ stats }) {
   const { t } = useLang();
   const labels = t.projects.stats;
   const cards = [
-    { icon: FolderGit2, value: stats.repos, label: labels.repos },
-    { icon: Star, value: stats.stars, label: labels.stars },
+    { spriteId: "folder-git-2", value: stats.repos, label: labels.repos },
+    { spriteId: "star", value: stats.stars, label: labels.stars },
     { icon: Users, value: stats.followers, label: labels.followers },
   ];
   return (
@@ -1722,7 +1742,11 @@ function GithubStats({ stats }) {
             rel="noreferrer"
             className="group flex flex-col gap-1 bg-surface p-5 transition-colors hover:bg-elevated md:p-7"
           >
-            <c.icon className="h-5 w-5 text-accent" />
+            {c.spriteId ? (
+              <SpriteIcon id={c.spriteId} className="h-5 w-5 text-accent" />
+            ) : (
+              <c.icon className="h-5 w-5 text-accent" />
+            )}
             <div className="mt-2 font-display text-3xl tracking-tight md:text-4xl">
               <Counter value={c.value} />
               {c.value > 0 && <span className="text-accent">+</span>}
@@ -2062,7 +2086,7 @@ function Contact() {
             <span className="transition-colors duration-300 group-hover:text-accent">
               {c.big[1]}
             </span>
-            <ArrowUpRight className="mb-2 h-[0.5em] w-[0.5em] text-muted transition-all duration-300 group-hover:-translate-y-2 group-hover:translate-x-2 group-hover:text-accent" />
+            <SpriteIcon id="arrow-up-right" className="mb-2 h-[0.5em] w-[0.5em] text-muted transition-all duration-300 group-hover:-translate-y-2 group-hover:translate-x-2 group-hover:text-accent" />
           </span>
         </a>
       </Reveal>
@@ -2078,7 +2102,7 @@ function Contact() {
               rel="noreferrer"
               className="items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
             >
-              <Github className="h-4 w-4" /> GitHub
+              <SpriteIcon id="github" className="h-4 w-4" /> GitHub
             </MagneticButton>
             <MagneticButton
               href={IDENTITY.linkedin}
@@ -2243,6 +2267,13 @@ function CommandPalette() {
     }));
     return [
       ...sections,
+      {
+        id: "summary",
+        label: lang === "tr" ? "30 Saniyelik Özet (İK / TL;DR)" : "30-Second Overview (TL;DR)",
+        hint: t.cmd.open,
+        icon: FileText,
+        action: () => window.dispatchEvent(new CustomEvent("toggle-summary")),
+      },
       {
         id: "lang",
         label:
@@ -2648,6 +2679,10 @@ function Terminal() {
         return [out(rest.join(" "))];
       case "sudo":
         return [out(tt.labels.sudo, "error")];
+      case "summary":
+      case "cv":
+        window.dispatchEvent(new CustomEvent("toggle-summary"));
+        return [out(lang === "tr" ? "30 saniyelik özet açılıyor…" : "Opening 30-second overview…", "accent")];
       case "clear":
         return "CLEAR";
       default:
@@ -2782,6 +2817,268 @@ function Terminal() {
   );
 }
 
+/* ================================================================== */
+/*  30 SANİYELİK ÖZET (İK / TL;DR MODU + YAZDIRILABİLİR PDF)          */
+/* ================================================================== */
+const SUMMARY_TEXT = {
+  tr: {
+    badge: "30 sn Özet · TL;DR",
+    print: "Yazdır / PDF",
+    close: "Kapat",
+    stackTitle: "Ana Teknoloji Yığını",
+    projectsTitle: "Öne Çıkan Açık Kaynak Projeler",
+    timelineTitle: "Deneyim & Eğitim",
+    certsNote: "doğrulanmış sertifika (BTK Akademi, Kodluyoruz & IBM SkillsBuild)",
+    copied: "Kopyalandı",
+    copyEmail: "E-posta kopyala",
+    mailBtn: "Mail gönder",
+  },
+  en: {
+    badge: "30s Overview · TL;DR",
+    print: "Print / PDF",
+    close: "Close",
+    stackTitle: "Core Tech Stack",
+    projectsTitle: "Featured Open-Source Projects",
+    timelineTitle: "Experience & Education",
+    certsNote: "verified certificates (BTK Akademi, Kodluyoruz & IBM SkillsBuild)",
+    copied: "Copied",
+    copyEmail: "Copy email",
+    mailBtn: "Send email",
+  },
+};
+
+function QuickSummaryModal() {
+  const { t, lang } = useLang();
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const s = SUMMARY_TEXT[lang] || SUMMARY_TEXT.tr;
+
+  useEffect(() => {
+    const onToggle = () => setOpen((v) => !v);
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("toggle-summary", onToggle);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("toggle-summary", onToggle);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("summary-open");
+    return () => {
+      document.body.style.overflow = "";
+      document.body.classList.remove("summary-open");
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  const timeline = Array.isArray(t.about.timeline) ? [...t.about.timeline].reverse() : [];
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(IDENTITY.email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* pano reddedilirse geç */
+    }
+  };
+
+  return (
+    <div
+      data-summary-modal=""
+      role="dialog"
+      aria-modal="true"
+      aria-label={s.badge}
+      onClick={() => setOpen(false)}
+      className="overlay-fade fixed inset-0 z-[95] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm md:p-6"
+    >
+      <div
+        data-summary-card=""
+        onClick={(e) => e.stopPropagation()}
+        className="modal-pop flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-2xl shadow-black/80"
+      >
+        {/* Üst çubuk */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-elevated/60 px-6 py-4">
+          <div className="flex items-center gap-2.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+            <span className="font-mono text-xs uppercase tracking-wider text-accent">
+              {s.badge}
+            </span>
+          </div>
+          <div data-print-hide="" className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/60 px-3.5 py-1.5 text-xs font-medium text-ink transition-colors hover:border-accent/50 hover:text-accent"
+            >
+              <SpriteIcon id="file-text" className="h-3.5 w-3.5" />
+              {s.print}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={s.close}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-accent/50 hover:text-ink"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Kaydırılabilir özet gövdesi */}
+        <div className="space-y-6 overflow-y-auto p-6 md:p-7">
+          {/* Kimlik */}
+          <div className="flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-ink md:text-3xl">
+                {IDENTITY.name}
+                <span className="text-accent">.</span>
+              </h2>
+              <p className="mt-1 text-sm font-medium text-ink/90">{t.hero.role}</p>
+              <p className="mt-1 text-xs text-muted">
+                {t.hero.location} · {t.hero.available}
+              </p>
+            </div>
+            <div className="font-mono text-xs text-muted">
+              {t.certificates.items.length} {s.certsNote}
+            </div>
+          </div>
+
+          {/* Ana teknoloji yığını */}
+          <div>
+            <h3 className="font-mono text-[11px] uppercase tracking-wider text-faint">
+              {s.stackTitle}
+            </h3>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {t.skills.languages.map((l) => (
+                <span
+                  key={l.name}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/50 px-3 py-1 text-xs text-ink"
+                >
+                  <span className="font-medium">{l.name}</span>
+                  <span className="text-faint">· {l.note}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Öne çıkan projeler */}
+          <div>
+            <h3 className="font-mono text-[11px] uppercase tracking-wider text-faint">
+              {s.projectsTitle}
+            </h3>
+            <div className="mt-2.5 grid gap-3">
+              {t.projects.items.map((p) => (
+                <a
+                  key={p.id}
+                  href={p.github}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group block rounded-2xl border border-line bg-canvas/40 p-4 transition-colors hover:border-accent/40 hover:bg-canvas/70"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-base font-medium text-ink group-hover:text-accent">
+                        {p.name}
+                      </span>
+                      {p.status?.[0] && (
+                        <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
+                          {p.status[0]}
+                        </span>
+                      )}
+                    </div>
+                    <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted group-hover:text-ink">
+                      {p.stack.slice(0, 4).join(" · ")}
+                      <SpriteIcon id="arrow-up-right" className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted">
+                    {p.description}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Deneyim & Eğitim */}
+          {timeline.length > 0 && (
+            <div>
+              <h3 className="font-mono text-[11px] uppercase tracking-wider text-faint">
+                {s.timelineTitle}
+              </h3>
+              <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
+                {timeline.map((item, i) => (
+                  <div
+                    key={`${item.period}-${i}`}
+                    className={`rounded-xl border p-3.5 ${
+                      item.active ? "border-accent/35 bg-accent/[0.06]" : "border-line bg-canvas/35"
+                    }`}
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-wider text-accent">
+                      {item.period} · {item.tag}
+                    </div>
+                    <div className="mt-1 font-display text-sm font-medium text-ink">
+                      {item.title}
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-muted">{item.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Alt iletişim çubuğu */}
+        <div
+          data-print-hide=""
+          className="flex flex-wrap items-center justify-between gap-2 border-t border-line bg-elevated/50 px-6 py-3.5"
+        >
+          <button
+            type="button"
+            onClick={copyEmail}
+            className="inline-flex items-center gap-2 rounded-full border border-line bg-canvas/60 px-3.5 py-1.5 text-xs text-ink transition-colors hover:border-accent/40"
+          >
+            <Mail className="h-3.5 w-3.5 text-accent" />
+            <ObfuscatedEmail email={IDENTITY.email} className="font-mono" />
+            <span className="text-faint">{copied ? `✓ ${s.copied}` : ""}</span>
+          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href={IDENTITY.github}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent/40 hover:text-ink"
+            >
+              <SpriteIcon id="github" className="h-3.5 w-3.5" /> GitHub
+            </a>
+            <a
+              href={IDENTITY.linkedin}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent/40 hover:text-ink"
+            >
+              <Linkedin className="h-3.5 w-3.5" /> LinkedIn
+            </a>
+            <button
+              type="button"
+              onClick={() => openMailto(IDENTITY.email)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-canvas transition-opacity hover:opacity-90"
+            >
+              {s.mailBtn}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [lang, setLang] = useState(() => {
     if (typeof window === "undefined") return "tr";
@@ -2817,6 +3114,7 @@ export default function App() {
     <LangCtx.Provider value={{ lang, setLang, t }}>
       <IconSprite />
       <ScrollProgress />
+      <QuickSummaryModal />
       {mountStage >= 6 && <CommandPalette />}
 
       <div

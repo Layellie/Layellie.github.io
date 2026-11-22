@@ -554,3 +554,47 @@ body {
     transition: none;
   }
 }
+
+/* 30 sn Özet modalı açıkken temiz A4 PDF / yazdırma düzeni */
+@media print {
+  body.summary-open {
+    background: #ffffff !important;
+    color: #111114 !important;
+  }
+
+  body.summary-open #root > *:not([data-summary-modal]) {
+    display: none !important;
+  }
+
+  body.summary-open [data-summary-modal] {
+    position: static !important;
+    inset: auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    overflow: visible !important;
+  }
+
+  body.summary-open [data-summary-card] {
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #111114 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  body.summary-open [data-summary-card] * {
+    color: #18181b !important;
+    border-color: #d4d4d8 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body.summary-open [data-print-hide] {
+    display: none !important;
+  }
+}
