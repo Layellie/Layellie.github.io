@@ -39,8 +39,9 @@ describe("VisualBuilder canonical module errors", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Preset sil" }));
 
-    expect(screen.getByText("Preset yayındaki projeler tarafından kullanılıyor")).toBeTruthy();
-    expect(screen.getByText(new RegExp(project.tr.name))).toBeTruthy();
+    const warningTitle = screen.getByText("Preset yayındaki projeler tarafından kullanılıyor");
+    expect(warningTitle).toBeTruthy();
+    expect(warningTitle.parentElement?.textContent).toContain(project.tr.name);
     expect(onChange).not.toHaveBeenCalled();
   });
 

@@ -30,9 +30,10 @@ describe("three-way portfolio merge", () => {
     const remote = clonePortfolio(portfolioFiles);
     local.projects.items[0].tr.name = "Local";
     remote.projects.items[0].tr.name = "Remote";
+    const firstId = portfolioFiles.projects.items[0].id;
     const pending = mergePortfolioFiles(portfolioFiles, local, remote);
     expect(pending.conflicts).toHaveLength(1);
-    expect(pending.conflicts[0].path).toContain("#clipboard.tr.name");
+    expect(pending.conflicts[0].path).toContain(`#${firstId}.tr.name`);
     const resolved = mergePortfolioFiles(portfolioFiles, local, remote, { [pending.conflicts[0].key]: "remote" });
     expect(resolved.conflicts).toEqual([]);
     expect(resolved.files.projects.items[0].tr.name).toBe("Remote");
@@ -100,11 +101,12 @@ describe("three-way portfolio merge", () => {
   it("keeps independent additions and deletions deterministic without losing records", () => {
     const local = clonePortfolio(portfolioFiles);
     const remote = clonePortfolio(portfolioFiles);
+    const [first, removed, ...rest] = portfolioFiles.projects.items.map((item) => item.id);
     local.projects.items.splice(1, 0, { ...structuredClone(local.projects.items[0]), id: "local-project" });
     remote.projects.items.push({ ...structuredClone(remote.projects.items[0]), id: "remote-project" });
-    remote.projects.items = remote.projects.items.filter((item) => item.id !== "standby");
+    remote.projects.items = remote.projects.items.filter((item) => item.id !== removed);
     const result = mergePortfolioFiles(portfolioFiles, local, remote);
     expect(result.conflicts).toEqual([]);
-    expect(result.files.projects.items.map((item) => item.id)).toEqual(["clipboard", "local-project", "eyehealth", "remote-project"]);
+    expect(result.files.projects.items.map((item) => item.id)).toEqual([first, "local-project", ...rest, "remote-project"]);
   });
 });

@@ -23,10 +23,11 @@ describe("admin data model", () => {
   afterEach(() => vi.useRealTimers());
 
   it("duplicates a project as a uniquely identified draft", () => {
+    const sourceIndex = portfolioFiles.projects.items.findIndex((item) => item.id === "clipboard");
     const result = duplicateProject(portfolioFiles.projects.items, "clipboard");
     expect(result).toHaveLength(portfolioFiles.projects.items.length + 1);
-    expect(result[1].id).toBe("clipboard-copy");
-    expect(result[1].publicationStatus).toBe("draft");
+    expect(result[sourceIndex + 1].id).toBe("clipboard-copy");
+    expect(result[sourceIndex + 1].publicationStatus).toBe("draft");
   });
 
   it("reorders without mutating the source", () => {
@@ -38,18 +39,20 @@ describe("admin data model", () => {
 
   it("detects bilingual omissions before publish", () => {
     const draft = clonePortfolio(portfolioFiles);
+    const firstId = draft.projects.items[0].id;
     draft.projects.items[0].en.description = "";
-    expect(translationWarnings(draft)).toContain("projects.clipboard.en.description");
+    expect(translationWarnings(draft)).toContain(`projects.${firstId}.en.description`);
     expect(() => validatePortfolio(draft)).toThrow();
   });
 
   it("summarizes added, changed and removed records", () => {
     const draft = clonePortfolio(portfolioFiles);
+    const firstId = draft.projects.items[0].id;
     draft.projects.items[0].tr.name = "Changed";
     draft.certificates.items.pop();
     draft.visuals.presets.push({ ...structuredClone(draft.visuals.presets[0]), id: "new-visual", name: "New" });
     const summary = createDiffSummary(portfolioFiles, draft);
-    expect(summary.projects.changed).toContain("clipboard");
+    expect(summary.projects.changed).toContain(firstId);
     expect(summary.certificates.removed).toHaveLength(1);
     expect(summary.visuals.added).toEqual(["new-visual"]);
     expect(hasDiff(summary)).toBe(true);

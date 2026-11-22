@@ -12,15 +12,15 @@
 
   <!-- Üst etiket -->
   <circle cx="86" cy="96" r="7" fill="#d6ff3f" />
-  <text x="106" y="104" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#9a9aa2" letter-spacing="1">Layellie · Full-Stack Developer</text>
+  <text x="106" y="104" font-family="'General Sans', Arial, Helvetica, sans-serif" font-size="24" font-weight="600" fill="#9a9aa2" letter-spacing="1">Layellie · Full-Stack Developer &amp; Sistem Geliştirici</text>
 
   <!-- Dev isim -->
-  <text x="76" y="320" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="800" fill="#f3f1ec" letter-spacing="-5">Samet</text>
-  <text x="76" y="452" font-family="Arial, Helvetica, sans-serif" font-size="150" font-weight="800" fill="#f3f1ec" letter-spacing="-5">Kaşmer<tspan fill="#d6ff3f">.</tspan></text>
+  <text x="76" y="316" font-family="'Clash Display', Arial, Helvetica, sans-serif" font-size="148" font-weight="600" fill="#f3f1ec" letter-spacing="-4">Samet</text>
+  <text x="76" y="448" font-family="'Clash Display', Arial, Helvetica, sans-serif" font-size="148" font-weight="600" fill="#f3f1ec" letter-spacing="-4">Kaşmer<tspan fill="#d6ff3f">.</tspan></text>
 
   <!-- Açıklama -->
-  <text x="80" y="528" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="500" fill="#9a9aa2">Sistem analizi, optimizasyon ve masaüstü / web yazılımları</text>
+  <text x="80" y="524" font-family="'General Sans', Arial, Helvetica, sans-serif" font-size="29" font-weight="500" fill="#9a9aa2">Sistem optimizasyonu, masaüstü ve ölçeklenebilir web yazılımları</text>
 
   <!-- Yetenek satırı -->
-  <text x="80" y="575" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" fill="#5c5c63" letter-spacing="2">C#  ·  C++  ·  SQL  ·  LARAVEL  ·  LIVEWIRE</text>
+  <text x="80" y="572" font-family="'General Sans', Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#82828c" letter-spacing="2">C# / .NET  ·  C++  ·  REACT  ·  NODE.JS  ·  SQL</text>
 </svg>

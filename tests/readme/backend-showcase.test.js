@@ -43,10 +43,10 @@ describe("README admin backend showcase", () => {
       await expect(access(path.join(root, relativePath))).resolves.toBeUndefined();
     }
 
-    const mermaid = readme.match(/```mermaid\n([\s\S]*?)```/)?.[1];
+    const mermaid = readme.match(/```mermaid\r?\n([\s\S]*?)```/)?.[1];
     expect(mermaid).toBeTruthy();
     expect(mermaid.trimStart().startsWith("flowchart LR")).toBe(true);
-    const edges = mermaid.split("\n").filter((line) => line.includes("-->"));
+    const edges = mermaid.split(/\r?\n/).filter((line) => line.includes("-->"));
     expect(edges).toHaveLength(7);
     for (const edge of edges) {
       expect(edge).toMatch(

@@ -31,7 +31,7 @@ describe("AboutEditor", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: "English" }));
     expect(screen.getByDisplayValue("About")).toBeTruthy();
-    expect(screen.getByDisplayValue(/Computer Programming at Kütahya/)).toBeTruthy();
+    expect(screen.getByDisplayValue(/Computer Programming .*Kütahya/)).toBeTruthy();
   });
 
   it("edits a segment tone and reflects it in the live preview", () => {
