@@ -162,55 +162,53 @@ const useLang = () => useContext(LangCtx);
 function IconSprite() {
   return (
     <svg aria-hidden="true" style={{ display: "none" }}>
-      <defs>
-        <symbol id="ic-badge-check" viewBox="0 0 24 24">
-          <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
-          <path d="m9 12 2 2 4-4" />
-        </symbol>
-        <symbol id="ic-award" viewBox="0 0 24 24">
-          <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
-          <circle cx="12" cy="8" r="6" />
-        </symbol>
-        <symbol id="ic-calendar" viewBox="0 0 24 24">
-          <path d="M8 2v4" />
-          <path d="M16 2v4" />
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M3 10h18" />
-        </symbol>
-        <symbol id="ic-hash" viewBox="0 0 24 24">
-          <line x1="4" x2="20" y1="9" y2="9" />
-          <line x1="4" x2="20" y1="15" y2="15" />
-          <line x1="10" x2="8" y1="3" y2="21" />
-          <line x1="16" x2="14" y1="3" y2="21" />
-        </symbol>
-        <symbol id="ic-file-text" viewBox="0 0 24 24">
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-          <path d="M10 9H8" />
-          <path d="M16 13H8" />
-          <path d="M16 17H8" />
-        </symbol>
-        <symbol id="ic-arrow-up-right" viewBox="0 0 24 24">
-          <path d="M7 7h10v10" />
-          <path d="M7 17 17 7" />
-        </symbol>
-        <symbol id="ic-check" viewBox="0 0 24 24">
-          <path d="M20 6 9 17l-5-5" />
-        </symbol>
-        <symbol id="ic-github" viewBox="0 0 24 24">
-          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-          <path d="M9 18c-4.51 2-5-2-7-2" />
-        </symbol>
-        <symbol id="ic-star" viewBox="0 0 24 24">
-          <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
-        </symbol>
-        <symbol id="ic-folder-git-2" viewBox="0 0 24 24">
-          <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5" />
-          <circle cx="13" cy="12" r="2" />
-          <path d="M18 19c-2.8 0-5-2.2-5-5v8" />
-          <circle cx="20" cy="19" r="2" />
-        </symbol>
-      </defs>
+      <symbol id="ic-badge-check" viewBox="0 0 24 24">
+        <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="ic-award" viewBox="0 0 24 24">
+        <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
+        <circle cx="12" cy="8" r="6" />
+      </symbol>
+      <symbol id="ic-calendar" viewBox="0 0 24 24">
+        <path d="M8 2v4" />
+        <path d="M16 2v4" />
+        <rect width="18" height="18" x="3" y="4" rx="2" />
+        <path d="M3 10h18" />
+      </symbol>
+      <symbol id="ic-hash" viewBox="0 0 24 24">
+        <line x1="4" x2="20" y1="9" y2="9" />
+        <line x1="4" x2="20" y1="15" y2="15" />
+        <line x1="10" x2="8" y1="3" y2="21" />
+        <line x1="16" x2="14" y1="3" y2="21" />
+      </symbol>
+      <symbol id="ic-file-text" viewBox="0 0 24 24">
+        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+        <path d="M10 9H8" />
+        <path d="M16 13H8" />
+        <path d="M16 17H8" />
+      </symbol>
+      <symbol id="ic-arrow-up-right" viewBox="0 0 24 24">
+        <path d="M7 7h10v10" />
+        <path d="M7 17 17 7" />
+      </symbol>
+      <symbol id="ic-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="ic-github" viewBox="0 0 24 24">
+        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+        <path d="M9 18c-4.51 2-5-2-7-2" />
+      </symbol>
+      <symbol id="ic-star" viewBox="0 0 24 24">
+        <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
+      </symbol>
+      <symbol id="ic-folder-git-2" viewBox="0 0 24 24">
+        <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5" />
+        <circle cx="13" cy="12" r="2" />
+        <path d="M18 19c-2.8 0-5-2.2-5-5v8" />
+        <circle cx="20" cy="19" r="2" />
+      </symbol>
     </svg>
   );
 }
@@ -993,7 +991,7 @@ function Marquee() {
 /* ================================================================== */
 const TIMELINE = {
   tr: {
-    heading: "Eğitim & Sertifika Yolculuğu",
+    heading: "Deneyim, Eğitim & Sertifika Yolculuğu",
     items: [
       {
         period: "2026 — Devam",
@@ -1007,6 +1005,12 @@ const TIMELINE = {
         tag: "Sertifika",
         title: "Kodluyoruz & IBM SkillsBuild · AI4Future & Siber Güvenlik",
         detail: "AI4Future (İleri Seviye), CyberStart 2.0, Siber Güvenlik ve Kurumsal Tasarım Odaklı Düşünme dahil 5 uluslararası sertifika.",
+      },
+      {
+        period: "Tem 2026",
+        tag: "Deneyim · Staj",
+        title: "Data Destek Yazılım Hizmetleri A.Ş. · Yazılım Stajyeri",
+        detail: "Bursa (Ofiste, 1 ay). Ön uç geliştirme ve nesne yönelimli programlama (OOP) üzerine pratik geliştirme deneyimi.",
       },
       {
         period: "May – Tem 2026",
@@ -1029,7 +1033,7 @@ const TIMELINE = {
     ],
   },
   en: {
-    heading: "Education & Certification Timeline",
+    heading: "Experience, Education & Certification Timeline",
     items: [
       {
         period: "2026 — Present",
@@ -1043,6 +1047,12 @@ const TIMELINE = {
         tag: "Certificates",
         title: "Kodluyoruz & IBM SkillsBuild · AI4Future & Cybersecurity",
         detail: "5 verified certificates including AI4Future (Advanced), CyberStart 2.0, Cybersecurity and Enterprise Design Thinking.",
+      },
+      {
+        period: "Jul 2026",
+        tag: "Experience · Internship",
+        title: "Data Destek Yazılım Hizmetleri A.Ş. · Software Intern",
+        detail: "Bursa (On-site, 1 month). Hands-on front-end development and object-oriented programming (OOP).",
       },
       {
         period: "May – Jul 2026",
