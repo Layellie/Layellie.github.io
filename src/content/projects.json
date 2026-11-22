@@ -34,7 +34,7 @@
           "Yerleşik güncelleme denetleyici (GitHub Release)"
         ],
         "status": [
-          "v3.0.7 Yayında",
+          "v3.0.9 Yayında",
           "Windows",
           "Kurulum Paketi"
         ]
@@ -52,7 +52,7 @@
           "Built-in update checker (GitHub Release)"
         ],
         "status": [
-          "v3.0.0 Released",
+          "v3.0.9 Released",
           "Windows",
           "Installer"
         ]
@@ -144,7 +144,7 @@
           "Sistem tepsisi entegrasyonu · TR / EN arayüz"
         ],
         "status": [
-          "v1.6.0 Yayında",
+          "v2.0.0 Yayında",
           "Windows",
           "CI/CD"
         ]
@@ -162,7 +162,7 @@
           "System tray integration · TR / EN UI"
         ],
         "status": [
-          "v1.6.0 Released",
+          "v2.0.0 Released",
           "Windows",
           "CI/CD"
         ]

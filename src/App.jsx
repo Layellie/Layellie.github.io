@@ -991,55 +991,153 @@ function Marquee() {
 /* ================================================================== */
 /*  HAKKIMDA                                                           */
 /* ================================================================== */
+const TIMELINE = {
+  tr: {
+    heading: "Eğitim & Sertifika Yolculuğu",
+    items: [
+      {
+        period: "2026 — Devam",
+        tag: "Lisans",
+        title: "Anadolu Üniversitesi AÖF · Yönetim Bilişim Sistemleri",
+        detail: "DGS ile geçiş. Yazılım mühendisliği pratiği ile yönetim bilişim sistemleri lisans eğitimi.",
+        active: true,
+      },
+      {
+        period: "Tem – Eki 2026",
+        tag: "Sertifika",
+        title: "Kodluyoruz & IBM SkillsBuild · AI4Future & Siber Güvenlik",
+        detail: "AI4Future (İleri Seviye), CyberStart 2.0, Siber Güvenlik ve Kurumsal Tasarım Odaklı Düşünme dahil 5 uluslararası sertifika.",
+      },
+      {
+        period: "May – Tem 2026",
+        tag: "Sertifika",
+        title: "BTK Akademi · Yazılım, Veri Tabanı & Yapay Zeka",
+        detail: "C#, C++, OOP, Veri Tabanına Giriş, Git & GitHub, Yapay Zeka ve Anthropic Claude alanlarında 9 doğrulanmış sertifika.",
+      },
+      {
+        period: "2026",
+        tag: "Mezuniyet",
+        title: "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı",
+        detail: "Teknik Bilimler MYO'dan 3.09 / 4.00 genel not ortalamasıyla mezuniyet.",
+      },
+      {
+        period: "2024",
+        tag: "Önlisans",
+        title: "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı Başlangıcı",
+        detail: "C#, C++ ve SQL ile masaüstü, veri tabanı ve sistem seviyesi yazılım geliştirme temelleri.",
+      },
+    ],
+  },
+  en: {
+    heading: "Education & Certification Timeline",
+    items: [
+      {
+        period: "2026 — Present",
+        tag: "Bachelor's",
+        title: "Anadolu University OEF · Management Information Systems",
+        detail: "Transferred via DGS. Pursuing a B.S. degree combining software development with information systems.",
+        active: true,
+      },
+      {
+        period: "Jul – Oct 2026",
+        tag: "Certificates",
+        title: "Kodluyoruz & IBM SkillsBuild · AI4Future & Cybersecurity",
+        detail: "5 verified certificates including AI4Future (Advanced), CyberStart 2.0, Cybersecurity and Enterprise Design Thinking.",
+      },
+      {
+        period: "May – Jul 2026",
+        tag: "Certificates",
+        title: "BTK Akademi · Software, Databases & AI",
+        detail: "9 verified certificates across C#, C++, OOP, Databases, Git & GitHub, AI and Anthropic Claude.",
+      },
+      {
+        period: "2026",
+        tag: "Graduation",
+        title: "Kütahya Dumlupınar University · Computer Programming",
+        detail: "Graduated from the Vocational School of Technical Sciences with a 3.09 / 4.00 GPA.",
+      },
+      {
+        period: "2024",
+        tag: "Associate",
+        title: "Kütahya Dumlupınar University · Started Computer Programming",
+        detail: "Built core foundations in desktop, database and system-level software engineering with C#, C++ and SQL.",
+      },
+    ],
+  },
+};
+
 function About() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const a = t.about;
+  const tl = TIMELINE[lang] || TIMELINE.tr;
   return (
     <section id="hakkimda" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
       <Reveal>
         <SectionHeader index={a.index} title={a.title} kicker={a.kicker} />
       </Reveal>
 
-      <div className="mt-16">
-        <Reveal>
-          <p className="max-w-4xl font-display text-[clamp(1.6rem,3.4vw,2.6rem)] leading-[1.15] tracking-tight">
-            {a.statement.map((segment, i) => (
-              <span key={i} className={STATEMENT_TONE_CLASS[segment.tone] || ""}>{segment.text}</span>
-            ))}
-          </p>
-        </Reveal>
+      <Reveal className="mt-16">
+        <p className="max-w-4xl font-display text-[clamp(1.6rem,3.4vw,2.6rem)] leading-[1.15] tracking-tight">
+          {a.statement.map((segment, i) => (
+            <span key={i} className={STATEMENT_TONE_CLASS[segment.tone] || ""}>{segment.text}</span>
+          ))}
+        </p>
+      </Reveal>
 
-        <div className="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-7">
-            <div className="space-y-5 leading-relaxed text-muted md:text-lg">
-              {a.paragraphs.map((p, i) => (
-                <Reveal key={i} delay={0.05 + i * 0.05}>
-                  <p>{p}</p>
-                </Reveal>
+      <div className="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
+        <div className="space-y-5 leading-relaxed text-muted md:text-lg lg:col-span-7">
+          {a.paragraphs.map((p, i) => (
+            <Reveal key={i} delay={0.05 + i * 0.05}>
+              <p>{p}</p>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.1} y={0} x={70} className="lg:col-span-5">
+          <TiltCard maxTilt={5} className="rounded-2xl">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+              {a.facts.map((f) => (
+                <div key={f.label} className="bg-surface p-6">
+                  <div className="text-xs uppercase tracking-wider text-faint">
+                    {f.label}
+                  </div>
+                  <div className="mt-2 font-display text-lg leading-snug">
+                    {f.value}
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-
-          <div className="lg:col-span-5">
-            <Reveal delay={0.1} y={0} x={70}>
-              <TiltCard maxTilt={5} className="rounded-2xl">
-                <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
-                  {a.facts.map((f) => (
-                    <div key={f.label} className="bg-surface p-6">
-                      <div className="text-xs uppercase tracking-wider text-faint">
-                        {f.label}
-                      </div>
-                      <div className="mt-2 font-display text-lg leading-snug">
-                        {f.value}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </TiltCard>
-            </Reveal>
-          </div>
-        </div>
+          </TiltCard>
+        </Reveal>
       </div>
+
+      <Reveal delay={0.08} className="mt-16 border-t border-line pt-12">
+        <p className="font-mono text-xs uppercase tracking-wider text-faint">
+          {tl.heading}
+        </p>
+        <ol className="relative mt-7 space-y-6 border-l border-line pl-6 md:pl-8">
+          {tl.items.map((item) => (
+            <li
+              key={`${item.period}-${item.title}`}
+              className={`relative before:absolute before:-left-[29px] before:top-1.5 before:h-2.5 before:w-2.5 before:rounded-full before:content-[''] md:before:-left-[37px] ${
+                item.active
+                  ? "before:bg-accent before:ring-4 before:ring-accent/20"
+                  : "before:bg-line before:ring-2 before:ring-canvas"
+              }`}
+            >
+              <time className="font-mono text-xs uppercase tracking-wider text-accent">
+                {item.period} · {item.tag}
+              </time>
+              <h3 className="mt-1 font-display text-lg tracking-tight text-ink md:text-xl">
+                {item.title}
+              </h3>
+              <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted">
+                {item.detail}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </Reveal>
     </section>
   );
 }
@@ -1886,19 +1984,17 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
             ))}
           </div>
 
-          <div className="mt-8">
-            <MagneticButton
-              href={project.github}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${project.name} — ${viewLabel}`}
-              className="group/btn items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
-            >
-              <SpriteIcon id="github" className="h-4 w-4" />
-              <span className="ui-label" data-label={viewLabel} />
-              <SpriteIcon id="arrow-up-right" className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
-            </MagneticButton>
-          </div>
+          <MagneticButton
+            href={project.github}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${project.name} — ${viewLabel}`}
+            className="group/btn mt-8 items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
+          >
+            <SpriteIcon id="github" className="h-4 w-4" />
+            <span className="ui-label" data-label={viewLabel} />
+            <SpriteIcon id="arrow-up-right" className="h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5" />
+          </MagneticButton>
         </div>
         </article>
       </TiltCard>
@@ -2357,20 +2453,59 @@ function CommandPalette() {
 /* ================================================================== */
 const TERMINAL_CMDS = [
   "help",
+  "neofetch",
   "whoami",
   "about",
+  "timeline",
   "skills",
   "projects",
+  "cat",
   "certs",
+  "open",
   "contact",
   "social",
   "date",
   "clear",
 ];
 
+const TERMINAL_EXTRA_TEXT = {
+  tr: {
+    cmds: {
+      neofetch: "sistem kartı & özet bilgi (ASCII)",
+      timeline: "eğitim & sertifika zaman çizelgesi",
+      cat: "proje detayı (ör: cat standby)",
+      open: "link aç (github, linkedin, standby...)",
+    },
+    catUsage: "Kullanım: cat <proje>  — mevcut:",
+    catNotFound: "proje bulunamadı:",
+    openUsage: "Kullanım: open <hedef>  — mevcut:",
+    opening: "Açılıyor:",
+    openNotFound: "hedef bulunamadı:",
+    stackLabel: "Yığın:",
+    featuresLabel: "Öne çıkanlar:",
+  },
+  en: {
+    cmds: {
+      neofetch: "system summary card (ASCII)",
+      timeline: "education & certification timeline",
+      cat: "project details (e.g. cat standby)",
+      open: "open link (github, linkedin, standby...)",
+    },
+    catUsage: "Usage: cat <project>  — available:",
+    catNotFound: "project not found:",
+    openUsage: "Usage: open <target>  — available:",
+    opening: "Opening:",
+    openNotFound: "target not found:",
+    stackLabel: "Stack:",
+    featuresLabel: "Highlights:",
+  },
+};
+
 function Terminal() {
   const { t, lang } = useLang();
   const tt = t.terminal;
+  const extra = TERMINAL_EXTRA_TEXT[lang] || TERMINAL_EXTRA_TEXT.tr;
+  const tl = TIMELINE[lang] || TIMELINE.tr;
   const prompt = `${tt.user}@${tt.host}:~$`;
 
   const bootLines = useMemo(
@@ -2405,19 +2540,40 @@ function Terminal() {
 
   const out = (text, tone = "out") => ({ text, tone });
 
+  function findProject(query) {
+    const q = (query || "").toLowerCase();
+    if (!q) return null;
+    return t.projects.items.find(
+      (p) => p.id.toLowerCase() === q || p.name.toLowerCase().includes(q)
+    );
+  }
+
   function runCommand(raw) {
     const trimmed = raw.trim();
     if (!trimmed) return [];
     const [name, ...rest] = trimmed.toLowerCase().split(/\s+/);
+    const arg = rest.join(" ");
 
     switch (name) {
       case "help":
         return [
           out(tt.helpTitle, "accent"),
           ...TERMINAL_CMDS.map((c) =>
-            out(`  ${c.padEnd(10)} ${tt.cmds[c] || ""}`)
+            out(`  ${c.padEnd(11)} ${tt.cmds[c] || extra.cmds[c] || ""}`)
           ),
         ];
+      case "neofetch": {
+        const stackSummary = t.skills.languages.slice(0, 6).map((l) => l.name).join(", ");
+        return [
+          out(`  ███████╗██╗  ██╗    ${IDENTITY.handle}@portfolio`, "accent"),
+          out(`  ██╔════╝██║ ██╔╝    ─────────────────────────────`, "accent"),
+          out(`  ███████╗█████╔╝     Role:     ${t.hero.role}`),
+          out(`  ╚════██║██╔═██╗     Location: ${t.hero.location}`),
+          out(`  ███████║██║  ██╗    Stack:    ${stackSummary}`),
+          out(`  ╚══════╝╚═╝  ╚═╝    Stats:    ${t.projects.items.length} flagship · ${t.certificates.items.length} certs`),
+          out(`                      GitHub:   ${IDENTITY.github}`, "link"),
+        ];
+      }
       case "whoami":
         return [
           out(`${IDENTITY.name} · @${IDENTITY.handle}`, "accent"),
@@ -2427,6 +2583,14 @@ function Terminal() {
         return t.about.facts.map((f) =>
           out(`${(f.label + ":").padEnd(18)}${f.value}`)
         );
+      case "timeline":
+        return [
+          out(tl.heading, "accent"),
+          ...tl.items.flatMap((item) => [
+            out(`  [${item.period}] ${item.title}`, item.active ? "accent" : "out"),
+            out(`      ${item.detail}`, "muted"),
+          ]),
+        ];
       case "skills":
         return [
           out(`${tt.labels.langs}:`, "accent"),
@@ -2437,9 +2601,50 @@ function Terminal() {
         ];
       case "projects":
         return t.projects.items.flatMap((p) => [
-          out(`  ▸ ${p.name} (${p.year}) — ${p.type}`, "accent"),
+          out(`  ▸ ${p.name} (${p.year}) — ${p.status?.[0] || p.type}`, "accent"),
           out(`    ${p.github}`, "link"),
         ]);
+      case "cat": {
+        if (!arg) {
+          const ids = t.projects.items.map((p) => p.id).join(", ");
+          return [out(`${extra.catUsage} ${ids}`, "muted")];
+        }
+        const project = findProject(arg);
+        if (!project) {
+          return [
+            out(`${extra.catNotFound} ${arg}`, "error"),
+            out(`${extra.catUsage} ${t.projects.items.map((p) => p.id).join(", ")}`, "muted"),
+          ];
+        }
+        return [
+          out(`${project.name} · ${project.status?.join(" · ") || project.year}`, "accent"),
+          out(project.description),
+          out(""),
+          out(`${extra.stackLabel} ${project.stack.join(" · ")}`, "link"),
+          out(extra.featuresLabel, "accent"),
+          ...project.features.map((f) => out(`  ✓ ${f}`)),
+          out(`  → ${project.github}`, "link"),
+        ];
+      }
+      case "open": {
+        const targets = {
+          github: IDENTITY.github,
+          linkedin: IDENTITY.linkedin,
+          ...Object.fromEntries(t.projects.items.map((p) => [p.id.toLowerCase(), p.github])),
+        };
+        if (!arg) {
+          return [out(`${extra.openUsage} ${Object.keys(targets).join(", ")}`, "muted")];
+        }
+        const url = targets[arg];
+        if (!url) {
+          return [
+            out(`${extra.openNotFound} ${arg}`, "error"),
+            out(`${extra.openUsage} ${Object.keys(targets).join(", ")}`, "muted"),
+          ];
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+        return [out(`${extra.opening} ${url}`, "accent")];
+      }
       case "certs":
         return [
           out(
@@ -2502,6 +2707,20 @@ function Terminal() {
     if (e.key === "Enter") {
       e.preventDefault();
       submit();
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const parts = input.trimStart().split(/\s+/);
+      if (parts.length === 1 && parts[0]) {
+        const match = TERMINAL_CMDS.find((c) => c.startsWith(parts[0].toLowerCase()));
+        if (match) setInput(match === "cat" || match === "open" ? `${match} ` : match);
+      } else if (parts.length === 2 && (parts[0].toLowerCase() === "cat" || parts[0].toLowerCase() === "open")) {
+        const pool =
+          parts[0].toLowerCase() === "open"
+            ? ["github", "linkedin", ...t.projects.items.map((p) => p.id)]
+            : t.projects.items.map((p) => p.id);
+        const match = pool.find((item) => item.toLowerCase().startsWith(parts[1].toLowerCase()));
+        if (match) setInput(`${parts[0].toLowerCase()} ${match}`);
+      }
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (!hist.length) return;
