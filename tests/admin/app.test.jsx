@@ -23,6 +23,8 @@ describe("AdminApp", () => {
     expect(screen.getByRole("heading", { name: /İçerik.*Görsel.*Yayın/ })).toBeTruthy();
     expect(screen.getByText("Yayındaki projeler")).toBeTruthy();
     expect(screen.getByText("Canlı deploy durumu")).toBeTruthy();
+    expect(screen.getByText("İçerik sağlığı & yedek")).toBeTruthy();
+    expect(screen.getByText("Sağlıklı")).toBeTruthy();
     expect(screen.getByText("Ziyaret analitiği")).toBeTruthy();
     // Publish-safety checklist moved to the Publish Center, not the dashboard.
     expect(screen.queryByText("Durable Object publish kilidi")).toBeNull();
@@ -74,6 +76,21 @@ describe("AdminApp", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Doğrula & yayınla" })[0]);
     expect(screen.getByRole("heading", { name: "Yayın güvenliği" })).toBeTruthy();
     expect(screen.getByText("Durable Object publish kilidi")).toBeTruthy();
+  });
+
+  it("downloads a dated JSON backup from the dashboard health card", () => {
+    const createObjectURL = vi.fn(() => "blob:backup-test");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", Object.assign(URL, { createObjectURL, revokeObjectURL }));
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+
+    render(<AdminApp initialSession={session} initialContent={content} />);
+    fireEvent.click(screen.getByRole("button", { name: /JSON yedek indir/i }));
+
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    expect(clickSpy).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:backup-test");
+    expect(screen.getByText(/Yedek indirildi: layellie-portfolio-backup-/i)).toBeTruthy();
   });
 
   it("opens project management without losing existing projects", () => {

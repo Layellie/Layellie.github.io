@@ -6,11 +6,13 @@ import {
   CheckCircle2,
   ClipboardList,
   Copy,
+  Download,
   ExternalLink,
   Eye,
   FileCheck2,
   GitCommitHorizontal,
   Github,
+  HeartPulse,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -31,10 +33,12 @@ import { portfolioFiles as bundledFiles } from "../content/loadContent.js";
 import { adminApi } from "./api/client.js";
 import { clearDraft, loadDraft, restoreDraftRecord, saveDraft } from "./draft/storage.js";
 import {
+  buildContentHealthReport,
   clonePortfolio,
   certificateSkillOptions,
   createCertificate,
   createDiffSummary,
+  createPortfolioBackup,
   createProject,
   duplicateProject,
   hasDiff,
@@ -333,7 +337,89 @@ function Dashboard({ files, base, onNavigate }) {
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} base={base} onNavigate={onNavigate} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
+}
+
+function ContentHealthPanel({ files, base, onNavigate }) {
+  const [exportedFile, setExportedFile] = useState(null);
+  const report = useMemo(() => buildContentHealthReport(files), [files]);
+
+  const badge =
+    report.status === "error"
+      ? { label: "Hata var", pill: "border-red-400/35 bg-red-500/10 text-red-200", dot: "bg-red-400" }
+      : report.status === "attention"
+        ? { label: "Dikkat", pill: "border-amber-400/35 bg-amber-400/10 text-amber-100", dot: "bg-amber-300" }
+        : { label: "Sağlıklı", pill: "border-accent/30 bg-accent/10 text-accent", dot: "bg-accent shadow-[0_0_10px_rgba(214,255,63,0.75)]" };
+
+  function downloadBackup() {
+    const backup = createPortfolioBackup(files, base);
+    const blob = new Blob([backup.json], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = backup.filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setExportedFile(backup.filename);
+  }
+
+  const metrics = [
+    { label: "Hata", value: report.counts.errors, warn: report.counts.errors > 0, danger: true, to: "publish" },
+    { label: "Çeviri uyarısı", value: report.counts.warnings, warn: report.counts.warnings > 0, to: "publish" },
+    { label: "Taslak proje", value: report.counts.drafts, warn: report.counts.drafts > 0, to: "projects" },
+    { label: "Bekleyen medya", value: report.counts.pendingMedia, warn: report.counts.pendingMedia > 0, to: "publish" },
+  ];
+
+  return (
+    <Panel className="p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <HeartPulse className="h-4 w-4 text-accent" />
+          <h2 className="font-display text-xl font-semibold">İçerik sağlığı & yedek</h2>
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${badge.pill}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
+            {badge.label}
+          </span>
+        </div>
+        <Button variant="ghost" onClick={downloadBackup}>
+          <Download className="h-4 w-4" />
+          JSON yedek indir
+        </Button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {metrics.map((metric) => (
+          <button
+            key={metric.label}
+            type="button"
+            onClick={() => onNavigate(metric.to)}
+            className="rounded-xl border border-line bg-canvas/45 px-3 py-2 text-left transition hover:border-accent/35"
+          >
+            <div className={`font-display text-xl font-semibold ${metric.warn ? (metric.danger ? "text-red-300" : "text-amber-200") : "text-ink"}`}>
+              {metric.value}
+            </div>
+            <div className="mt-0.5 text-[10px] text-muted">{metric.label}</div>
+          </button>
+        ))}
+      </div>
+
+      {exportedFile ? (
+        <div className="mt-3 truncate font-mono text-[11px] text-accent">
+          ✓ Yedek indirildi: {exportedFile}
+        </div>
+      ) : (
+        <div className="mt-3 text-[11px] text-faint">
+          {report.blockingErrors.length > 0
+            ? `Öncelikli kontrol: ${report.blockingErrors.slice(0, 2).join(" · ")}`
+            : report.translationWarnings.length > 0
+              ? `Uyarı: ${report.translationWarnings.slice(0, 2).join(" · ")}`
+              : "Tüm yayınlanan içerik, URL ve çeviri alanları temiz."}
+        </div>
+      )}
+    </Panel>
+  );
 }
 
 function DeployStatusPanel({ deploy, baseCommit, onRefresh }) {

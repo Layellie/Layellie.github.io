@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { portfolioFiles } from "../../src/content/loadContent.js";
 import {
+  buildContentHealthReport,
   clonePortfolio,
   certificateSkillOptions,
   createCertificate,
   createGroupSkillItem,
+  createPortfolioBackup,
   createProject,
   createSkillCard,
   createDiffSummary,
@@ -248,5 +250,36 @@ describe("admin data model", () => {
 
   it("zero-pads local month and day components", () => {
     expect(formatLocalDate({ getFullYear: () => 2026, getMonth: () => 2, getDate: () => 4 })).toBe("2026-03-04");
+  });
+
+  it("computes healthy, attention, and error content health reports", () => {
+    const clean = buildContentHealthReport(portfolioFiles);
+    expect(clean.status).toBe("healthy");
+    expect(clean.counts).toEqual({ errors: 0, warnings: 0, drafts: 0, pendingMedia: 0 });
+
+    const withDraft = clonePortfolio(portfolioFiles);
+    withDraft.projects.items[0].publicationStatus = "draft";
+    const attention = buildContentHealthReport(withDraft);
+    expect(attention.status).toBe("attention");
+    expect(attention.counts.drafts).toBe(1);
+
+    const broken = clonePortfolio(portfolioFiles);
+    broken.projects.items[0].shared.github = "http://insecure.example/repo";
+    const errored = buildContentHealthReport(broken);
+    expect(errored.status).toBe("error");
+    expect(errored.blockingErrors).toContain(`projects.${broken.projects.items[0].id}.github`);
+  });
+
+  it("serializes a dated portfolio backup snapshot with all five content files", () => {
+    const backup = createPortfolioBackup(
+      portfolioFiles,
+      { commitSha: "abc1234" },
+      new Date(2026, 10, 22, 12, 0, 0),
+    );
+    expect(backup.filename).toBe("layellie-portfolio-backup-2026-11-22.json");
+    const parsed = JSON.parse(backup.json);
+    expect(parsed.formatVersion).toBe(1);
+    expect(parsed.baseCommitSha).toBe("abc1234");
+    expect(Object.keys(parsed.files).sort()).toEqual(["certificates", "projects", "site", "skills", "visuals"]);
   });
 });

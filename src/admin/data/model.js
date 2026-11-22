@@ -304,3 +304,71 @@ export function createDiffSummary(base, draft) {
 export function hasDiff(summary) {
   return Object.values(summary).some((group) => group.added.length || group.changed.length || group.removed.length);
 }
+
+function isSafeHttpsUrl(value) {
+  if (typeof value !== "string" || !value.trim()) return false;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function buildContentHealthReport(files) {
+  const { warnings, errors } = publicationIssues(files);
+  const invalidUrls = [];
+  const identity = files.site?.shared?.identity;
+  if (identity) {
+    if (!isSafeHttpsUrl(identity.github)) invalidUrls.push("site.identity.github");
+    if (!isSafeHttpsUrl(identity.linkedin)) invalidUrls.push("site.identity.linkedin");
+  }
+  const draftProjects = [];
+  const pendingMedia = [];
+
+  for (const project of files.projects?.items || []) {
+    if (project.publicationStatus !== "published") draftProjects.push(project.id);
+    if (!isSafeHttpsUrl(project.shared?.github)) invalidUrls.push(`projects.${project.id}.github`);
+    if (project.shared?.visual?.mode === "screenshot" && isPendingMediaPath(project.shared.visual.path)) {
+      pendingMedia.push(`projects.${project.id}`);
+    }
+  }
+  for (const cert of files.certificates?.items || []) {
+    if (isPendingMediaPath(cert.shared?.file)) pendingMedia.push(`certificates.${cert.id}`);
+  }
+
+  const blockingCount = errors.length + invalidUrls.length;
+  const status =
+    blockingCount > 0
+      ? "error"
+      : warnings.length > 0 || pendingMedia.length > 0 || draftProjects.length > 0
+        ? "attention"
+        : "healthy";
+
+  return {
+    status,
+    blockingErrors: [...errors, ...invalidUrls],
+    translationWarnings: warnings,
+    draftProjects,
+    pendingMedia,
+    counts: {
+      errors: blockingCount,
+      warnings: warnings.length,
+      drafts: draftProjects.length,
+      pendingMedia: pendingMedia.length,
+    },
+  };
+}
+
+export function createPortfolioBackup(files, base, now = new Date()) {
+  const payload = {
+    exportedAt: now.toISOString(),
+    formatVersion: 1,
+    baseCommitSha: base?.commitSha || null,
+    files: clonePortfolio(files),
+  };
+  return {
+    filename: `layellie-portfolio-backup-${formatLocalDate(now)}.json`,
+    json: JSON.stringify(payload, null, 2),
+    payload,
+  };
+}
