@@ -33,17 +33,20 @@ export function precomputedContentPlugin() {
         files[key] = JSON.parse(await readFile(file, "utf8"));
       }
 
-      const [{ parsePortfolioFiles }, { buildContentView }] = await Promise.all([
+      const [{ parsePortfolioFiles }, { buildContentView }, { buildSkillRelationIndex }] = await Promise.all([
         import(pathToFileURL(path.join(contentDir(), "schemas.js")).href),
         import(pathToFileURL(path.join(contentDir(), "contentView.js")).href),
+        import(pathToFileURL(path.join(contentDir(), "skillRelations.js")).href),
       ]);
       const parsed = parsePortfolioFiles(files);
       const view = buildContentView(files);
+      const skillRelations = buildSkillRelationIndex(parsed);
 
       return [
         'export { selectSkillsTicker } from "./skillsTicker.js";',
         `export const IDENTITY = ${JSON.stringify(view.identity)};`,
         `export const CONTENT = ${JSON.stringify(view.content)};`,
+        `export const SKILL_RELATIONS = ${JSON.stringify(skillRelations)};`,
         `export const portfolioFiles = ${JSON.stringify({ visuals: parsed.visuals })};`,
         "",
       ].join("\n");

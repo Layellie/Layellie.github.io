@@ -56,11 +56,13 @@ import {
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // Public site: içerik build sırasında doğrulanıp hazır JSON olarak gömülür (bkz. build/precomputed-content.js),
 // bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
-import { CONTENT, IDENTITY, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
+import { CONTENT, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
 import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
 
 // Proje görselleri (Zod şemalarıyla doğrulanan MockupRenderer) ekran dışında olduğundan ayrı chunk'ta yüklenir.
 const ProjectVisual = lazy(() => import("./components/project-visuals/ProjectVisual.jsx"));
+// Terminal mini oyunları (snake / typing) yalnızca kullanıcı komut girdiğinde yüklenir.
+const TerminalGames = lazy(() => import("./components/TerminalGames.jsx"));
 
 // Tarayıcı boştayken çalıştır (ilk boyama / etkileşimi bloklamasın).
 function whenIdle(callback, timeout = 2500) {
@@ -1129,9 +1131,55 @@ function About() {
 /* ================================================================== */
 /*  YETENEKLER                                                         */
 /* ================================================================== */
-function FeatureCard({ item }) {
+const SKILL_CROSSLINK_TEXT = {
+  tr: {
+    projects: "Kullandığım projeler",
+    certificates: "Doğrulayan sertifikalar",
+    jump: "Karta git",
+    close: "Paneli kapat",
+    hint: "Detay için karta tıkla",
+    pdf: "PDF aç",
+    repo: "GitHub",
+  },
+  en: {
+    projects: "Used in projects",
+    certificates: "Verifying certificates",
+    jump: "Jump to card",
+    close: "Close panel",
+    hint: "Click card to inspect",
+    pdf: "Open PDF",
+    repo: "GitHub",
+  },
+};
+
+function jumpToDataTarget(attr, value) {
+  if (typeof document === "undefined") return;
+  const el = Array.from(document.querySelectorAll(`[${attr}]`)).find(
+    (node) => node.getAttribute(attr) === value
+  );
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+  el.classList.remove("crosslink-pulse");
+  void el.offsetWidth;
+  el.classList.add("crosslink-pulse");
+  window.setTimeout(() => el.classList.remove("crosslink-pulse"), 2300);
+}
+
+function FeatureCard({ item, interactive, active, onSelect }) {
+  const Tag = interactive ? "button" : "div";
   return (
-    <div className="group relative h-full overflow-hidden rounded-2xl border border-line bg-surface/50 p-8 transition-colors duration-500 hover:border-[#34343c]">
+    <Tag
+      type={interactive ? "button" : undefined}
+      onClick={interactive ? onSelect : undefined}
+      aria-pressed={interactive ? active : undefined}
+      className={`group relative block h-full w-full overflow-hidden rounded-2xl border bg-surface/50 p-8 text-left transition-colors duration-500 ${
+        active
+          ? "border-accent/60 bg-surface"
+          : interactive
+            ? "cursor-pointer border-line hover:border-accent/40"
+            : "border-line hover:border-[#34343c]"
+      }`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-elevated text-accent transition-transform duration-500 group-hover:-rotate-6">
           <SafeIcon name={item.icon} className="h-6 w-6" />
@@ -1150,16 +1198,24 @@ function FeatureCard({ item }) {
           </span>
         ))}
       </div>
-    </div>
+    </Tag>
   );
 }
 
-function SkillTile({ item, certifiedLabel }) {
+function SkillTile({ item, certifiedLabel, interactive, active, onSelect }) {
+  const Tag = interactive ? "button" : "div";
   return (
-    <div className="border-beam-box group h-full transition-all duration-500 hover:-translate-y-1">
+    <Tag
+      type={interactive ? "button" : undefined}
+      onClick={interactive ? onSelect : undefined}
+      aria-pressed={interactive ? active : undefined}
+      className={`border-beam-box group block h-full w-full text-left transition-all duration-500 hover:-translate-y-1 ${
+        interactive ? "cursor-pointer" : ""
+      } ${active ? "ring-1 ring-accent/70" : ""}`}
+    >
       <div className="relative z-10 flex h-full flex-col rounded-[15px] bg-[#0c0c0f] p-6">
         <div className="flex items-start justify-between">
-          <SafeIcon name={item.icon} className="h-7 w-7 text-muted transition-colors group-hover:text-accent" />
+          <SafeIcon name={item.icon} className={`h-7 w-7 transition-colors ${active ? "text-accent" : "text-muted group-hover:text-accent"}`} />
           {item.certified && (
             <span
               className="ui-label inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent"
@@ -1174,14 +1230,157 @@ function SkillTile({ item, certifiedLabel }) {
         </div>
         <div className="mt-1.5 text-sm text-faint">{item.note}</div>
       </div>
+    </Tag>
+  );
+}
+
+function SkillRelationsPanel({ relations, lang, onClose }) {
+  const text = SKILL_CROSSLINK_TEXT[lang] || SKILL_CROSSLINK_TEXT.tr;
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const { skill, projects, certificates } = relations;
+  return (
+    <div
+      role="region"
+      aria-label={`${skill.name} — ${text.projects}`}
+      className="modal-pop fixed bottom-4 left-1/2 z-[75] w-[calc(100%-1.5rem)] max-w-2xl -translate-x-1/2 overflow-hidden rounded-2xl border border-accent/35 bg-surface/95 shadow-[0_24px_70px_-18px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-line bg-elevated/60 px-5 py-3.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="h-2 w-2 shrink-0 rounded-full bg-accent shadow-[0_0_10px_rgba(214,255,63,0.85)]" />
+          <span className="truncate font-display text-lg font-medium text-ink">
+            {skill.name}
+          </span>
+          <span className="hidden rounded-full border border-line px-2 py-0.5 font-mono text-[10px] text-faint sm:inline-block">
+            {projects.length > 0 && `${projects.length} ${lang === "tr" ? "proje" : "project"}`}
+            {projects.length > 0 && certificates.length > 0 ? " · " : ""}
+            {certificates.length > 0 && `${certificates.length} ${lang === "tr" ? "sertifika" : "cert"}`}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={text.close}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-accent/50 hover:text-ink"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="max-h-[55vh] space-y-4 overflow-y-auto p-5">
+        {projects.length > 0 && (
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-accent">
+              {text.projects}
+            </div>
+            <div className="mt-2 grid gap-2">
+              {projects.map((proj) => (
+                <div
+                  key={proj.id}
+                  className="flex items-center gap-2 rounded-xl border border-line bg-canvas/55 p-3 transition-colors hover:border-accent/35"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      jumpToDataTarget("data-project-id", proj.id);
+                    }}
+                    className="group flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate font-display text-sm font-medium text-ink group-hover:text-accent">
+                        {proj.name}
+                      </div>
+                      <div className="mt-0.5 truncate font-mono text-[11px] text-faint">
+                        {proj.status} · {proj.stack.slice(0, 4).join(" · ")}
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-[11px] text-muted group-hover:text-accent">
+                      {text.jump} →
+                    </span>
+                  </button>
+                  <a
+                    href={proj.github}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`${proj.name} ${text.repo}`}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line text-faint transition-colors hover:border-accent/40 hover:text-ink"
+                  >
+                    <SpriteIcon id="github" className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {certificates.length > 0 && (
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-accent">
+              {text.certificates}
+            </div>
+            <div className="mt-2 grid gap-2">
+              {certificates.map((cert) => (
+                <div
+                  key={cert.code}
+                  className="flex items-center gap-2 rounded-xl border border-line bg-canvas/55 p-3 transition-colors hover:border-accent/35"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      jumpToDataTarget("data-cert-code", cert.code);
+                    }}
+                    className="group flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-ink group-hover:text-accent">
+                        {cert.title}
+                      </div>
+                      <div className="mt-0.5 truncate text-[11px] text-faint">
+                        {cert.issuer} · {cert.date}
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-[11px] text-muted group-hover:text-accent">
+                      {text.jump} →
+                    </span>
+                  </button>
+                  <a
+                    href={cert.file}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`${cert.title} ${text.pdf}`}
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line text-faint transition-colors hover:border-accent/40 hover:text-ink"
+                  >
+                    <SpriteIcon id="file-text" className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 function Skills() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const s = t.skills;
   const certifiedLabel = t.certificates.verified;
+  const [selectedSkillName, setSelectedSkillName] = useState(null);
+  const relationMap = SKILL_RELATIONS[lang] || SKILL_RELATIONS.tr || {};
+  const activeRelations = selectedSkillName ? relationMap[selectedSkillName] || null : null;
+  const toggleSkill = (name) =>
+    setSelectedSkillName((current) => (current === name ? null : name));
+
   return (
     <section id="yetenekler" className={`${WRAP} scroll-mt-28 py-28 md:py-40`}>
       <Reveal>
@@ -1189,27 +1388,44 @@ function Skills() {
       </Reveal>
 
       <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">
-        {s.focus.map((f, i) => (
-          <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
-            <TiltCard maxTilt={5} className="h-full rounded-2xl">
-              <FeatureCard item={f} />
-            </TiltCard>
-          </Reveal>
-        ))}
+        {s.focus.map((f, i) => {
+          const interactive = Boolean(relationMap[f.title]);
+          return (
+            <Reveal key={f.title} delay={i * 0.06} y={0} x={i % 2 === 0 ? -80 : 80}>
+              <TiltCard maxTilt={5} className="h-full rounded-2xl">
+                <FeatureCard
+                  item={f}
+                  interactive={interactive}
+                  active={selectedSkillName === f.title}
+                  onSelect={() => toggleSkill(f.title)}
+                />
+              </TiltCard>
+            </Reveal>
+          );
+        })}
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-5 lg:grid-cols-4">
-        {s.languages.map((l, i) => (
-          <Reveal
-            key={l.name}
-            delay={i * 0.05}
-            y={0}
-            x={i % 2 === 0 ? -64 : 64}
-            className={skillWidthClass(l.width)}
-          >
-            <SkillTile item={l} certifiedLabel={certifiedLabel} />
-          </Reveal>
-        ))}
+        {s.languages.map((l, i) => {
+          const interactive = Boolean(relationMap[l.name]);
+          return (
+            <Reveal
+              key={l.name}
+              delay={i * 0.05}
+              y={0}
+              x={i % 2 === 0 ? -64 : 64}
+              className={skillWidthClass(l.width)}
+            >
+              <SkillTile
+                item={l}
+                certifiedLabel={certifiedLabel}
+                interactive={interactive}
+                active={selectedSkillName === l.name}
+                onSelect={() => toggleSkill(l.name)}
+              />
+            </Reveal>
+          );
+        })}
       </div>
 
       <Reveal delay={0.1}>
@@ -1230,17 +1446,41 @@ function Skills() {
                     <span className="text-sm font-medium">{g.group}</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {g.items.map((it) => (
-                      <span
-                        key={it.name}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/40 px-3 py-1.5 text-sm text-muted"
-                      >
-                        {it.name}
-                        {it.certified && (
-                          <SpriteIcon id="badge-check" className="h-3.5 w-3.5 text-accent" />
-                        )}
-                      </span>
-                    ))}
+                    {g.items.map((it) => {
+                      const interactive = Boolean(relationMap[it.name]);
+                      const isActive = selectedSkillName === it.name;
+                      if (!interactive) {
+                        return (
+                          <span
+                            key={it.name}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/40 px-3 py-1.5 text-sm text-muted"
+                          >
+                            {it.name}
+                            {it.certified && (
+                              <SpriteIcon id="badge-check" className="h-3.5 w-3.5 text-accent" />
+                            )}
+                          </span>
+                        );
+                      }
+                      return (
+                        <button
+                          key={it.name}
+                          type="button"
+                          aria-pressed={isActive}
+                          onClick={() => toggleSkill(it.name)}
+                          className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                            isActive
+                              ? "border-accent/60 bg-accent/12 text-ink"
+                              : "border-line bg-canvas/40 text-muted hover:border-accent/40 hover:text-ink"
+                          }`}
+                        >
+                          {it.name}
+                          {it.certified && (
+                            <SpriteIcon id="badge-check" className="h-3.5 w-3.5 text-accent" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -1249,6 +1489,14 @@ function Skills() {
         </div>
         </TiltCard>
       </Reveal>
+
+      {activeRelations && (
+        <SkillRelationsPanel
+          relations={activeRelations}
+          lang={lang}
+          onClose={() => setSelectedSkillName(null)}
+        />
+      )}
     </section>
   );
 }
@@ -1262,6 +1510,7 @@ export function CertificateCard({ cert, labels }) {
       href={cert.file}
       target="_blank"
       rel="noreferrer"
+      data-cert-code={cert.code}
       className="group flex h-full flex-1 flex-col rounded-2xl border border-line bg-surface/40 p-7 transition-all duration-500 hover:-translate-y-1 hover:border-[#34343c] hover:bg-surface"
     >
       <div className="flex items-start justify-between">
@@ -1907,7 +2156,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel }) {
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
       <TiltCard maxTilt={3} className="rounded-3xl">
-        <article className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
+        <article data-project-id={project.id} className="group grid grid-cols-1 items-center gap-8 rounded-3xl border border-line bg-surface/30 p-6 transition-colors duration-500 hover:border-[#33333a] md:p-8 lg:grid-cols-12 lg:gap-12 lg:p-10">
         <div className={`lg:col-span-6 ${reverse ? "lg:order-2" : ""}`}>
           <DeferredProjectVisual
             reference={project.visual}
@@ -2459,6 +2708,8 @@ const TERMINAL_CMDS = [
   "open",
   "contact",
   "social",
+  "snake",
+  "typing",
   "date",
   "clear",
 ];
@@ -2470,6 +2721,8 @@ const TERMINAL_EXTRA_TEXT = {
       timeline: "eğitim & sertifika zaman çizelgesi",
       cat: "proje detayı (ör: cat standby)",
       open: "link aç (github, linkedin, standby...)",
+      snake: "mini yılan oyunu (easter egg)",
+      typing: "kod yazma hız testi — WPM (easter egg)",
     },
     catUsage: "Kullanım: cat <proje>  — mevcut:",
     catNotFound: "proje bulunamadı:",
@@ -2478,6 +2731,8 @@ const TERMINAL_EXTRA_TEXT = {
     openNotFound: "hedef bulunamadı:",
     stackLabel: "Yığın:",
     featuresLabel: "Öne çıkanlar:",
+    gamesMenu: "Mini oyunlar: 'snake' (yılan) veya 'typing' (kod WPM testi) yaz.",
+    loadingGame: "Modül yükleniyor…",
   },
   en: {
     cmds: {
@@ -2485,6 +2740,8 @@ const TERMINAL_EXTRA_TEXT = {
       timeline: "education & certification timeline",
       cat: "project details (e.g. cat standby)",
       open: "open link (github, linkedin, standby...)",
+      snake: "mini snake game (easter egg)",
+      typing: "code typing speed test — WPM (easter egg)",
     },
     catUsage: "Usage: cat <project>  — available:",
     catNotFound: "project not found:",
@@ -2493,6 +2750,8 @@ const TERMINAL_EXTRA_TEXT = {
     openNotFound: "target not found:",
     stackLabel: "Stack:",
     featuresLabel: "Highlights:",
+    gamesMenu: "Mini games: type 'snake' or 'typing' (code WPM test).",
+    loadingGame: "Loading module…",
   },
 };
 
@@ -2518,6 +2777,7 @@ function Terminal() {
   const [input, setInput] = useState("");
   const [hist, setHist] = useState([]);
   const [histIdx, setHistIdx] = useState(-1);
+  const [activeGame, setActiveGame] = useState(null);
 
   const bodyRef = useRef(null);
   const inputRef = useRef(null);
@@ -2528,6 +2788,7 @@ function Terminal() {
     setInput("");
     setHist([]);
     setHistIdx(-1);
+    setActiveGame(null);
   }, [bootLines]);
 
   // her yeni çıktıda en alta kaydır
@@ -2683,6 +2944,17 @@ function Terminal() {
       case "cv":
         window.dispatchEvent(new CustomEvent("toggle-summary"));
         return [out(lang === "tr" ? "30 saniyelik özet açılıyor…" : "Opening 30-second overview…", "accent")];
+      case "snake":
+        setActiveGame("snake");
+        return [out(lang === "tr" ? "snake.exe başlatıldı…" : "Launching snake.exe…", "accent")];
+      case "typing":
+      case "type":
+      case "wpm":
+        setActiveGame("typing");
+        return [out(lang === "tr" ? "typing-bench başlatıldı…" : "Launching typing-bench…", "accent")];
+      case "games":
+      case "play":
+        return [out(extra.gamesMenu, "accent")];
       case "clear":
         return "CLEAR";
       default:
@@ -2774,42 +3046,68 @@ function Terminal() {
           {/* gövde */}
           <div
             ref={bodyRef}
-            onClick={() => inputRef.current?.focus()}
+            onClick={() => {
+              if (!activeGame) inputRef.current?.focus();
+            }}
             className="h-[340px] cursor-text overflow-y-auto p-4 font-mono text-[13px] leading-relaxed md:h-[400px] md:p-5"
           >
-            {lines.map((l, i) =>
-              l.tone === "cmd" ? (
-                <div key={i} className="flex gap-2 break-all">
-                  <span className="shrink-0 text-accent">{prompt}</span>
-                  <span className="text-ink">{l.text}</span>
-                </div>
-              ) : (
-                <div
-                  key={i}
-                  className={`whitespace-pre-wrap break-words ${
-                    toneClass[l.tone] || "text-muted"
-                  }`}
-                >
-                  {l.text || " "}
-                </div>
-              )
-            )}
+            {activeGame ? (
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-xs text-accent">
+                    {extra.loadingGame}
+                  </div>
+                }
+              >
+                <TerminalGames
+                  mode={activeGame}
+                  lang={lang}
+                  onExit={(summary) => {
+                    setActiveGame(null);
+                    if (summary) {
+                      setLines((prev) => [...prev, out(summary, "muted")]);
+                    }
+                    requestAnimationFrame(() => inputRef.current?.focus());
+                  }}
+                />
+              </Suspense>
+            ) : (
+              <>
+                {lines.map((l, i) =>
+                  l.tone === "cmd" ? (
+                    <div key={i} className="flex gap-2 break-all">
+                      <span className="shrink-0 text-accent">{prompt}</span>
+                      <span className="text-ink">{l.text}</span>
+                    </div>
+                  ) : (
+                    <div
+                      key={i}
+                      className={`whitespace-pre-wrap break-words ${
+                        toneClass[l.tone] || "text-muted"
+                      }`}
+                    >
+                      {l.text || "\u00a0"}
+                    </div>
+                  )
+                )}
 
-            {/* aktif giriş satırı */}
-            <div className="flex gap-2">
-              <span className="shrink-0 text-accent">{prompt}</span>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKeyDown}
-                spellCheck={false}
-                autoComplete="off"
-                autoCapitalize="off"
-                aria-label="terminal"
-                className="flex-1 bg-transparent text-ink caret-accent outline-none"
-              />
-            </div>
+                {/* aktif giriş satırı */}
+                <div className="flex gap-2">
+                  <span className="shrink-0 text-accent">{prompt}</span>
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    spellCheck={false}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    aria-label="terminal"
+                    className="flex-1 bg-transparent text-ink caret-accent outline-none"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </Reveal>

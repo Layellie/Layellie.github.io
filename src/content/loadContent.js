@@ -5,6 +5,7 @@ import skillsJson from "./skills.json";
 import visualsJson from "./visuals.json";
 import { parsePortfolioFiles } from "./schemas.js";
 import { buildContentView } from "./contentView.js";
+import { buildSkillRelationIndex } from "./skillRelations.js";
 
 export { buildContentView };
 export { selectSkillsTicker } from "./skillsTicker.js";
@@ -21,3 +22,4 @@ const hydrated = buildContentView(portfolioFiles);
 
 export const IDENTITY = hydrated.identity;
 export const CONTENT = hydrated.content;
+export const SKILL_RELATIONS = buildSkillRelationIndex(portfolioFiles);
