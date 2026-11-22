@@ -549,6 +549,93 @@ function ScrollProgress() {
   );
 }
 
+const BACK_TO_TOP_CIRCUMFERENCE = 2 * Math.PI * 19;
+
+function BackToTop() {
+  const { lang } = useLang();
+  const [visible, setVisible] = useState(false);
+  const ringRef = useRef(null);
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+      progressRef.current = progress;
+      setVisible((prev) => {
+        const next = y > 420;
+        return prev === next ? prev : next;
+      });
+      if (ringRef.current) {
+        ringRef.current.style.strokeDashoffset = String(
+          BACK_TO_TOP_CIRCUMFERENCE * (1 - progress)
+        );
+      }
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (visible && ringRef.current) {
+      ringRef.current.style.strokeDashoffset = String(
+        BACK_TO_TOP_CIRCUMFERENCE * (1 - progressRef.current)
+      );
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <button
+      type="button"
+      data-print-hide=""
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      aria-label={lang === "tr" ? "Yukarı çık" : "Back to top"}
+      className="modal-pop fixed bottom-6 right-5 z-[65] flex h-11 w-11 items-center justify-center rounded-full bg-surface/90 text-ink shadow-[0_12px_32px_-10px_rgba(0,0,0,0.85)] backdrop-blur-md transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+    >
+      <svg
+        viewBox="0 0 44 44"
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full -rotate-90"
+      >
+        <circle
+          cx="22"
+          cy="22"
+          r="19"
+          fill="none"
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth="2"
+        />
+        <circle
+          ref={ringRef}
+          cx="22"
+          cy="22"
+          r="19"
+          fill="none"
+          stroke="var(--color-accent)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray={BACK_TO_TOP_CIRCUMFERENCE}
+          strokeDashoffset={BACK_TO_TOP_CIRCUMFERENCE}
+        />
+      </svg>
+      <ArrowDown className="relative h-4 w-4 rotate-180" />
+    </button>
+  );
+}
+
 // Scroll-spy: görünürdeki bölümün id'sini döndürür
 function useScrollSpy(ids) {
   const [active, setActive] = useState(ids[0]);
@@ -3412,6 +3499,7 @@ export default function App() {
     <LangCtx.Provider value={{ lang, setLang, t }}>
       <IconSprite />
       <ScrollProgress />
+      <BackToTop />
       <QuickSummaryModal />
       {mountStage >= 6 && <CommandPalette />}
 

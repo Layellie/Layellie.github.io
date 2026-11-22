@@ -163,6 +163,45 @@ export async function latestDeployment(config: AppConfig, token: string): Promis
   return normalizeDeploymentRun(run);
 }
 
+export interface CommitSummary {
+  sha: string;
+  shortSha: string;
+  message: string;
+  author: string | null;
+  date: string | null;
+  url: string;
+}
+
+interface GitHubCommitListItem {
+  sha: string;
+  html_url: string;
+  commit?: {
+    message?: string | null;
+    author?: { name?: string | null; date?: string | null } | null;
+  } | null;
+  author?: { login?: string | null } | null;
+}
+
+export async function recentCommits(config: AppConfig, token: string, limit = 5): Promise<CommitSummary[]> {
+  const clamped = Math.min(10, Math.max(1, Math.trunc(limit) || 5));
+  const items = await githubFetch<GitHubCommitListItem[]>(
+    config,
+    token,
+    `/repos/${config.owner}/${config.repository}/commits?sha=${encodeURIComponent(config.branch)}&per_page=${clamped}`,
+  );
+  return (Array.isArray(items) ? items : []).slice(0, clamped).map((item) => {
+    const firstLine = (item.commit?.message || "").split(/\r?\n/, 1)[0].trim() || "(mesaj yok)";
+    return {
+      sha: item.sha,
+      shortSha: item.sha.slice(0, 7),
+      message: firstLine,
+      author: item.author?.login || item.commit?.author?.name || null,
+      date: item.commit?.author?.date || null,
+      url: item.html_url,
+    };
+  });
+}
+
 export async function revokeToken(config: AppConfig, token: string): Promise<void> {
   const credentials = btoa(`${config.clientId}:${config.clientSecret}`);
   const controller = new AbortController();

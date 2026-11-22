@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { portfolioFiles } from "../../src/content/loadContent.js";
 import { clonePortfolio, createPortfolioBackup } from "../../src/admin/data/model.js";
 import { adminApi } from "../../src/admin/api/client.js";
+import * as draftStorage from "../../src/admin/draft/storage.js";
 import AdminApp from "../../src/admin/AdminApp.jsx";
 
 Object.defineProperty(window, "scrollTo", { value: vi.fn(), writable: true });
@@ -114,6 +115,53 @@ describe("AdminApp", () => {
     fireEvent.click(screen.getByRole("button", { name: "Taslağa yükle" }));
     expect(await screen.findByText("Yedek çalışma kopyasına yüklendi")).toBeTruthy();
     expect(screen.getByText("Yedekten Gelen Proje")).toBeTruthy();
+    // Unsaved changes badge appears in the sticky header and Ctrl+S triggers local draft save.
+    expect(screen.getByRole("button", { name: /1 değişiklik/i })).toBeTruthy();
+
+    const saveSpy = vi.spyOn(draftStorage, "saveDraft").mockResolvedValue(undefined);
+    fireEvent.keyDown(window, { key: "s", ctrlKey: true });
+    expect(await screen.findByText("Taslak yerel olarak korundu")).toBeTruthy();
+    expect(saveSpy).toHaveBeenCalledOnce();
+  });
+
+  it("renders recent commits on the dashboard and refreshes on click", async () => {
+    const commitsSpy = vi.spyOn(adminApi, "commits")
+      .mockResolvedValueOnce({
+        commits: [
+          {
+            sha: "a004847617326c3a26cefbfd2db5979fd2dfa662",
+            shortSha: "a004847",
+            message: "feat(admin): add validated JSON backup import flow",
+            author: "Layellie",
+            date: "2026-11-23T02:11:00Z",
+            url: "https://github.com/Layellie/Layellie.github.io/commit/a004847",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        commits: [
+          {
+            sha: "b115958617326c3a26cefbfd2db5979fd2dfa662",
+            shortSha: "b115958",
+            message: "chore: refreshed commit",
+            author: "Layellie",
+            date: "2026-11-23T02:15:00Z",
+            url: "https://evil.example/commit",
+          },
+        ],
+      });
+
+    render(<AdminApp initialSession={session} initialContent={content} />);
+    expect(await screen.findByText("feat(admin): add validated JSON backup import flow")).toBeTruthy();
+    expect(screen.getByText("a004847")).toBeTruthy();
+    expect(screen.getByRole("link", { name: /GitHub/i }).getAttribute("href")).toBe(
+      "https://github.com/Layellie/Layellie.github.io/commit/a004847",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Commit geçmişini yenile" }));
+    expect(await screen.findByText("chore: refreshed commit")).toBeTruthy();
+    expect(commitsSpy).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("link", { name: /^GitHub$/i })).toBeNull();
   });
 
   it("opens project management without losing existing projects", () => {

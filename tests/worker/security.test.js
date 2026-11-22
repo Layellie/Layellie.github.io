@@ -13,7 +13,7 @@ import {
 import { portfolioFiles } from "../../src/content/loadContent.js";
 import { createProject, validatePortfolio } from "../../src/admin/data/model.js";
 import { createDraftRecord, restoreDraftRecord } from "../../src/admin/draft/storage.js";
-import { deploymentForCommit, githubFetch, latestDeployment } from "../../worker/src/github/client.ts";
+import { deploymentForCommit, githubFetch, latestDeployment, recentCommits } from "../../worker/src/github/client.ts";
 import { analyticsVisitorHash, decryptToken, encryptToken } from "../../worker/src/security/crypto.ts";
 import { ConfigurationError, getConfig, parseOrigin } from "../../worker/src/security/config.ts";
 import { cookies } from "../../worker/src/security/cookies.ts";
@@ -478,5 +478,31 @@ describe("Worker security primitives", () => {
   it("returns not_found when no latest deploy.yml run exists", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ workflow_runs: [] }), { status: 200, headers: { "Content-Type": "application/json" } })));
     await expect(latestDeployment(config, "token")).resolves.toEqual({ status: "not_found" });
+  });
+
+  it("loads and normalizes the latest 5 commits on the configured branch", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([
+      {
+        sha: "a004847617326c3a26cefbfd2db5979fd2dfa662",
+        html_url: "https://github.com/Layellie/Layellie.github.io/commit/a004847",
+        commit: {
+          message: "feat(admin): add backup import\n\nDetailed body",
+          author: { name: "Samet", date: "2026-11-22T23:11:00Z" },
+        },
+        author: { login: "Layellie" },
+      },
+    ]), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(recentCommits(config, "token", 5)).resolves.toEqual([
+      {
+        sha: "a004847617326c3a26cefbfd2db5979fd2dfa662",
+        shortSha: "a004847",
+        message: "feat(admin): add backup import",
+        author: "Layellie",
+        date: "2026-11-22T23:11:00Z",
+        url: "https://github.com/Layellie/Layellie.github.io/commit/a004847",
+      },
+    ]);
+    expect(fetchMock.mock.calls[0][0]).toContain("/commits?sha=main&per_page=5");
   });
 });

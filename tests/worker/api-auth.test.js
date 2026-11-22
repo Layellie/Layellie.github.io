@@ -366,4 +366,32 @@ describe("Worker authentication boundary", () => {
     expect(invalidCommit.status).toBe(400);
     expect((await invalidCommit.json()).code).toBe("COMMIT_INVALID");
   });
+
+  it("protects /api/commits behind the owner session and returns recent commits", async () => {
+    expect((await exports.default.fetch(new Request("https://admin.test/api/commits"))).status).toBe(401);
+    const session = await createSession("commits-owner");
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json([
+      {
+        sha: "1234567890abcdef1234567890abcdef12345678",
+        html_url: "https://github.com/Layellie/Layellie.github.io/commit/1234567",
+        commit: { message: "feat(admin): commit history", author: { name: "Samet", date: "2026-11-23T00:00:00Z" } },
+        author: { login: "Layellie" },
+      },
+    ])));
+
+    const response = await exports.default.fetch(sessionRequest("/api/commits", session));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      commits: [
+        {
+          sha: "1234567890abcdef1234567890abcdef12345678",
+          shortSha: "1234567",
+          message: "feat(admin): commit history",
+          author: "Layellie",
+          date: "2026-11-23T00:00:00Z",
+          url: "https://github.com/Layellie/Layellie.github.io/commit/1234567",
+        },
+      ],
+    });
+  });
 });

@@ -30,4 +30,11 @@ describe("admin API client logout", () => {
     expect(fetchMock.mock.calls[0][0]).toBe("/api/deployments");
     expect(fetchMock.mock.calls[1][0]).toBe(`/api/deployments?commit=${"a".repeat(40)}`);
   });
+
+  it("requests recent commits from /api/commits", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(Response.json({ commits: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(adminApi.commits()).resolves.toEqual({ commits: [] });
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/commits");
+  });
 });

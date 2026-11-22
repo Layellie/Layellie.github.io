@@ -4,7 +4,7 @@ import { authenticate, sessionToken } from "./auth/session";
 import { parseContent, preparePublication, readPublicationRequest } from "./content/validation";
 import { storeCall } from "./durable/client";
 import { AdminSessionStore } from "./durable/AdminSessionStore";
-import { commitChanges, deploymentForCommit, latestDeployment, loadRepositorySnapshot, revokeToken } from "./github/client";
+import { commitChanges, deploymentForCommit, latestDeployment, loadRepositorySnapshot, recentCommits, revokeToken } from "./github/client";
 import { cookies, readCookie } from "./security/cookies";
 import { analyticsVisitorHash, randomToken } from "./security/crypto";
 import { ConfigurationError, getConfig } from "./security/config";
@@ -109,6 +109,12 @@ export default {
         const commit = url.searchParams.get("commit");
         const token = await sessionToken(session, config);
         return json(commit !== null ? await deploymentForCommit(config, token, commit) : await latestDeployment(config, token));
+      }
+      if (url.pathname === "/api/commits" && request.method === "GET") {
+        const session = await authenticate(request, env, config);
+        await storeCall(env, "rate.check", { key: `commits:${session.id}`, limit: 6, periodMs: 60_000 });
+        const token = await sessionToken(session, config);
+        return json({ commits: await recentCommits(config, token, 5) });
       }
       throw httpError(404, "NOT_FOUND", "API yolu bulunamadı.");
     } catch (error) {

@@ -13,6 +13,7 @@ import {
   GitCommitHorizontal,
   Github,
   HeartPulse,
+  History,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -89,6 +90,25 @@ export default function AdminApp({ initialSession, initialContent }) {
   const [draftNeedsRebase, setDraftNeedsRebase] = useState(false);
   const [flash, setFlash] = useState(null);
   const [logoutBusy, setLogoutBusy] = useState(false);
+  const [savedSignature, setSavedSignature] = useState(null);
+
+  const pendingChangeCount = useMemo(() => {
+    if (!draft || !baseFiles) return uploads.length;
+    const summary = createDiffSummary(baseFiles, draft);
+    const diffCount = Object.values(summary).reduce(
+      (total, group) => total + group.added.length + group.changed.length + group.removed.length,
+      0,
+    );
+    return diffCount + uploads.length;
+  }, [baseFiles, draft, uploads.length]);
+
+  const currentSignature = useMemo(() => {
+    if (!draft) return "";
+    return `${JSON.stringify(draft)}|${uploads.map((entry) => `${entry.kind}:${entry.recordId}:${entry.file?.name || ""}`).join(",")}`;
+  }, [draft, uploads]);
+
+  const hasUnsavedWork = pendingChangeCount > 0 && currentSignature !== savedSignature;
+  const saveLocalDraftRef = useRef(null);
 
   useEffect(() => {
     if (initialSession) return;
@@ -100,7 +120,7 @@ export default function AdminApp({ initialSession, initialContent }) {
     setContentState({ status: "loading" });
     adminApi.content().then((data) => {
       setContentState({ status: "ready", data });
-      setBaseFiles(data.files); setDraft(clonePortfolio(data.files)); setBase(data.base);
+      setBaseFiles(data.files); setDraft(clonePortfolio(data.files)); setBase(data.base); setSavedSignature(null);
       loadDraft().then((local) => local && setSavedDraft(local)).catch(() => {});
     }).catch((error) => setContentState({ status: "error", error }));
   }, [sessionState.status, initialContent]);
@@ -122,8 +142,32 @@ export default function AdminApp({ initialSession, initialContent }) {
       return;
     }
     await saveDraft({ files: draft, base, baseFiles, uploads: synchronizeUploads(draft, uploads) });
+    setSavedSignature(currentSignature);
     setFlash({ tone: "success", title: "Taslak yerel olarak korundu", message: "İçerik ve seçtiğin dosyalar bu tarayıcının IndexedDB alanına kaydedildi." });
   }
+  saveLocalDraftRef.current = saveLocalDraft;
+
+  useEffect(() => {
+    if (sessionState.status !== "authenticated" || !draft) return undefined;
+    const onKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        void saveLocalDraftRef.current?.();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [sessionState.status, draft]);
+
+  useEffect(() => {
+    if (!hasUnsavedWork) return undefined;
+    const onBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsavedWork]);
   function restoreSavedDraft() {
     const restored = restoreDraftRecord(savedDraft);
     if (!restored) return;
@@ -188,7 +232,7 @@ export default function AdminApp({ initialSession, initialContent }) {
       </aside>
 
       <div className="relative lg:pl-[286px]">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-line bg-canvas/80 px-4 backdrop-blur-xl sm:px-7 lg:px-10"><div className="flex items-center gap-3"><button type="button" onClick={() => setMobileNav(true)} className="rounded-lg border border-line p-2 text-muted lg:hidden" aria-label="Menüyü aç"><Menu className="h-4 w-4" /></button><span className="text-sm text-muted">{NAVIGATION.find((item) => item.id === screen)?.label}</span></div><div className="flex items-center gap-2"><Button onClick={saveLocalDraft} className="hidden sm:inline-flex"><Save className="h-4 w-4" />Yerel taslağı koru</Button><Button variant="primary" onClick={() => switchScreen("publish")}><Send className="h-4 w-4" /><span className="hidden sm:inline">Yayın merkezi</span></Button></div></header>
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-line bg-canvas/80 px-4 backdrop-blur-xl sm:px-7 lg:px-10"><div className="flex items-center gap-3"><button type="button" onClick={() => setMobileNav(true)} className="rounded-lg border border-line p-2 text-muted lg:hidden" aria-label="Menüyü aç"><Menu className="h-4 w-4" /></button><span className="text-sm text-muted">{NAVIGATION.find((item) => item.id === screen)?.label}</span>{pendingChangeCount > 0 && <button type="button" onClick={() => switchScreen("publish")} className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100 transition hover:border-amber-300/60"><span className={`h-1.5 w-1.5 rounded-full ${hasUnsavedWork ? "bg-amber-300" : "bg-accent"}`} />{pendingChangeCount} değişiklik</button>}</div><div className="flex items-center gap-2"><Button onClick={saveLocalDraft} title="Kısayol: Ctrl+S" className="hidden sm:inline-flex"><Save className="h-4 w-4" />Yerel taslağı koru<kbd className="ml-1 hidden rounded border border-line bg-canvas/60 px-1.5 py-0.5 font-mono text-[10px] text-faint xl:inline-block">Ctrl+S</kbd></Button><Button variant="primary" onClick={() => switchScreen("publish")}><Send className="h-4 w-4" /><span className="hidden sm:inline">Yayın merkezi</span></Button></div></header>
         <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {savedDraft && <div className="mb-6"><Notice tone="warning" title="Bu tarayıcıda yayınlanmamış taslak bulundu"><span>{new Date(savedDraft.savedAt).toLocaleString("tr-TR")} tarihinde kaydedildi. </span><button type="button" className="font-medium text-amber-100 underline" onClick={restoreSavedDraft}>Taslağı geri yükle</button><span> · </span><button type="button" className="underline" onClick={() => { clearDraft(); setSavedDraft(null); }}>Sil</button></Notice></div>}
           {flash && <div className="mb-6"><Notice tone={flash.tone} title={flash.title}>{flash.message}</Notice></div>}
@@ -307,6 +351,7 @@ function describeDeployment(deployment) {
 function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
   const [analytics, setAnalytics] = useState({ status: "loading", data: null });
   const [deploy, setDeploy] = useState({ status: "loading", data: null, error: null });
+  const [commits, setCommits] = useState({ status: "loading", items: [], error: null });
   const [range, setRange] = useState("7d");
   const loadAnalytics = async (nextRange = range) => {
     setAnalytics((current) => ({ ...current, status: "loading" }));
@@ -330,9 +375,32 @@ function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
       }));
     }
   };
+  const loadCommits = async () => {
+    if (typeof adminApi.commits !== "function") {
+      setCommits({ status: "error", items: [], error: "Commit geçmişi alınamadı." });
+      return;
+    }
+    setCommits((current) => ({ ...current, status: "loading", error: null }));
+    try {
+      const data = await adminApi.commits();
+      if (!data || !Array.isArray(data.commits)) {
+        setCommits({ status: "error", items: [], error: "Commit geçmişi şu anda alınamadı." });
+        return;
+      }
+      setCommits({ status: "ready", items: data.commits, error: null, updatedAt: new Date() });
+    } catch (error) {
+      setCommits((current) => ({
+        status: "error",
+        items: current.items,
+        error: error?.status === 429 ? "Çok sık yenilendi; biraz sonra tekrar dene." : "Commit geçmişi şu anda alınamadı.",
+        updatedAt: current.updatedAt,
+      }));
+    }
+  };
   useEffect(() => {
     void loadAnalytics();
     void loadDeployment();
+    void loadCommits();
   }, []);
   const stats = [
     { label: "Yayındaki projeler", value: files.projects.items.filter((item) => item.publicationStatus === "published").length, icon: ClipboardList, to: "projects" },
@@ -340,7 +408,79 @@ function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div><div className="mt-5"><RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} /></div></AdminReveal>;
+}
+
+function RecentCommitsPanel({ commits, onRefresh }) {
+  const isLoading = commits.status === "loading";
+  const hasItems = commits.items.length > 0;
+  return (
+    <Panel className="p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <History className="h-4 w-4 text-accent" />
+          <h2 className="font-display text-xl font-semibold">Son yayın geçmişi</h2>
+          <span className="rounded-full border border-line bg-canvas/60 px-2.5 py-0.5 font-mono text-[10px] text-faint">
+            main · son 5 commit
+          </span>
+        </div>
+        <Button variant="ghost" aria-label="Commit geçmişini yenile" onClick={onRefresh} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin motion-reduce:animate-none" : ""}`} />
+          Yenile
+        </Button>
+      </div>
+
+      {hasItems ? (
+        <div className="mt-4 divide-y divide-line rounded-2xl border border-line bg-canvas/40">
+          {commits.items.map((item) => {
+            const url = safeGithubActionsUrl(item.url);
+            const dateLabel = formatDeployTimestamp(item.date);
+            return (
+              <div key={item.sha} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-ink">{item.message}</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 font-mono text-[11px] text-faint">
+                    <span className="inline-flex items-center gap-1 text-accent/90">
+                      <GitCommitHorizontal className="h-3.5 w-3.5" />
+                      {item.shortSha || item.sha?.slice(0, 7)}
+                    </span>
+                    {item.author && (
+                      <>
+                        <span>·</span>
+                        <span>{item.author}</span>
+                      </>
+                    )}
+                    {dateLabel && (
+                      <>
+                        <span>·</span>
+                        <span>{dateLabel}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {url && (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[11px] text-muted transition hover:border-accent/40 hover:text-ink"
+                  >
+                    GitHub
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : isLoading ? (
+        <div className="mt-4 text-xs text-muted">Son commit geçmişi alınıyor…</div>
+      ) : (
+        <div className="mt-4 text-xs text-amber-100">{commits.error || "Commit geçmişi şu anda alınamadı."}</div>
+      )}
+      {hasItems && commits.error && <div className="mt-2 text-xs text-amber-100">{commits.error}</div>}
+    </Panel>
+  );
 }
 
 function ContentHealthPanel({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
