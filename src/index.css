@@ -389,3 +389,151 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* ================================================================== */
+/*  Deneyim & Eğitim Zaman Çizelgesi (Sağlı-Sollu Zigzag, 0 Ekstra DOM) */
+/* ================================================================== */
+.timeline-track {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-track::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(35, 35, 40, 0.25) 0%,
+    var(--color-line) 12%,
+    var(--color-line) 76%,
+    rgba(214, 255, 63, 0.85) 100%
+  );
+  border-radius: 999px;
+}
+
+.tl-item {
+  position: relative;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--td, 0ms),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s ease,
+    background-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.tl-item::before {
+  content: "";
+  position: absolute;
+  left: -28px;
+  top: 1.75rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: var(--color-surface);
+  border: 2px solid #3a3a44;
+  box-shadow: 0 0 0 4px var(--color-canvas);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  z-index: 2;
+}
+
+.tl-item::after {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: calc(1.75rem + 5.5px);
+  width: 16px;
+  height: 1px;
+  background: var(--color-line);
+  transition: background-color 0.3s ease;
+}
+
+.tl-item:hover::before {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-canvas), 0 0 14px rgba(214, 255, 63, 0.55);
+}
+
+.tl-item:hover::after {
+  background: rgba(214, 255, 63, 0.45);
+}
+
+.tl-active::before {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 5px rgba(214, 255, 63, 0.18), 0 0 18px rgba(214, 255, 63, 0.7);
+}
+
+.tl-active::after {
+  background: rgba(214, 255, 63, 0.45);
+}
+
+.reveal:not(.is-inview) .tl-item {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+}
+
+@media (min-width: 768px) {
+  .timeline-track {
+    padding-left: 0;
+  }
+
+  .timeline-track::before {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .tl-item {
+    width: calc(50% - 32px);
+  }
+
+  .tl-left {
+    margin-right: auto;
+    text-align: right;
+  }
+
+  .tl-left::before {
+    left: auto;
+    right: -38px;
+  }
+
+  .tl-left::after {
+    left: auto;
+    right: -32px;
+    width: 32px;
+  }
+
+  .tl-right {
+    margin-left: auto;
+    text-align: left;
+  }
+
+  .tl-right::before {
+    left: -38px;
+  }
+
+  .tl-right::after {
+    left: -32px;
+    width: 32px;
+  }
+
+  .reveal:not(.is-inview) .tl-left {
+    transform: translate3d(-24px, 14px, 0);
+  }
+
+  .reveal:not(.is-inview) .tl-right {
+    transform: translate3d(24px, 14px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal:not(.is-inview) .tl-item,
+  .reveal:not(.is-inview) .tl-left,
+  .reveal:not(.is-inview) .tl-right {
+    opacity: 1;
+    transform: none;
+  }
+}
