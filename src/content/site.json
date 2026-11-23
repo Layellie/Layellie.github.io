@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "shared": {
     "identity": {
-      "name": "Samet KaÅŸmer",
+      "name": "Samet Kaşmer",
       "handle": "Layellie",
       "githubUser": "Layellie",
       "email": "sametkasmer16@gmail.com",
@@ -17,26 +17,28 @@
     "discordPresence": {
       "enabled": true,
       "userId": "295537828396269569",
-      "professionalFilter": false
+      "professionalFilter": false,
+      "avatarPath": "",
+      "bannerPath": ""
     }
   },
   "tr": {
     "nav": {
-      "about": "HakkÄ±mda",
+      "about": "Hakkımda",
       "skills": "Yetenekler",
       "certificates": "Sertifikalar",
       "projects": "Projeler",
-      "contact": "Ä°letiÅŸim",
-      "login": "GiriÅŸ Yap",
+      "contact": "İletişim",
+      "login": "Giriş Yap",
       "mail": "Mail at"
     },
     "hero": {
-      "available": "Yeni projelere aÃ§Ä±ÄŸÄ±m",
-      "location": "Bursa, TÃ¼rkiye",
-      "role": "Full-Stack Developer & Sistem GeliÅŸtirici",
-      "tagline": "Sistem seviyesindeki optimizasyondan Ã¶lÃ§eklenebilir web mimarilerine kadar; performansÄ± Ã¶lÃ§Ã¼lebilir biÃ§imde artÄ±ran, temiz ve sÃ¼rdÃ¼rÃ¼lebilir yazÄ±lÄ±mlar tasarlÄ±yorum.",
+      "available": "Yeni projelere açığım",
+      "location": "Bursa, Türkiye",
+      "role": "Full-Stack Developer & Sistem Geliştirici",
+      "tagline": "Sistem seviyesindeki optimizasyondan ölçeklenebilir web mimarilerine kadar; performansı ölçülebilir biçimde artıran, temiz ve sürdürülebilir yazılımlar tasarlıyorum.",
       "ctaProjects": "Projelerim",
-      "ctaContact": "Ä°letiÅŸim"
+      "ctaContact": "İletişim"
     },
     "marquee": [
       "C#",
@@ -47,7 +49,7 @@
       "Laravel",
       "Node.js",
       "Sistem Optimizasyonu",
-      "DonanÄ±m GeliÅŸtirme",
+      "Donanım Geliştirme",
       "WPF",
       ".NET 10",
       "WinRT",
@@ -57,43 +59,43 @@
     ],
     "about": {
       "index": "01",
-      "title": "HakkÄ±mda",
-      "kicker": "YazÄ±lÄ±m & sistem geliÅŸtirme Ã¼zerine",
+      "title": "Hakkımda",
+      "kicker": "Yazılım & sistem geliştirme üzerine",
       "statement": [
         {
-          "text": "Kodun yalnÄ±zca Ã§alÄ±ÅŸmasÄ± deÄŸil; ",
+          "text": "Kodun yalnızca çalışması değil; ",
           "tone": "normal"
         },
         {
-          "text": "hÄ±zlÄ±, verimli ve donanÄ±mla uyumlu",
+          "text": "hızlı, verimli ve donanımla uyumlu",
           "tone": "accent"
         },
         {
-          "text": " Ã§alÄ±ÅŸmasÄ± beni heyecanlandÄ±rÄ±yor.",
+          "text": " çalışması beni heyecanlandırıyor.",
           "tone": "normal"
         }
       ],
       "paragraphs": [
-        "KÃ¼tahya DumlupÄ±nar Ãœniversitesi KÃ¼tahya Teknik Bilimler Meslek YÃ¼ksekokulu'nda Bilgisayar ProgramcÄ±lÄ±ÄŸÄ± eÄŸitimimi tamamladÄ±m. YazÄ±lÄ±m dÃ¼nyasÄ±na olan tutkum; bir uygulamanÄ±n yalnÄ±zca arayÃ¼zÃ¼yle deÄŸil, arka planda sistemle nasÄ±l konuÅŸtuÄŸu, belleÄŸi nasÄ±l yÃ¶nettiÄŸi ve her milisaniyeyi nasÄ±l kazandÄ±ÄŸÄ±yla ilgilenmemle ÅŸekillendi. Bir problemi kÃ¶kÃ¼nden anlayÄ±p Ã§Ã¶zÃ¼mÃ¼ mÃ¼mkÃ¼n olan en verimli yoldan kurmak benim iÃ§in her zaman Ã¶nceliklidir.",
-        "C# ve C++ ile masaÃ¼stÃ¼ uygulamalarÄ±; React ve Node.js ile web tarafÄ±nda Ã§Ã¶zÃ¼mler geliÅŸtiriyorum. Ã–zellikle C++ ve C# ile uygulama geliÅŸtirmeyi, sÄ±fÄ±rdan bir mimari kurup onu adÄ±m adÄ±m optimize etmeyi Ã§ok seviyorum. AÃ§Ä±k kaynak araÃ§lar Ã¼reterek performans, optimizasyon ve donanÄ±m seviyesindeki problemlere pratik ve Ã¶lÃ§Ã¼lebilir Ã§Ã¶zÃ¼mler bulmak beni motive ediyor.",
-        "SÃ¼rekli Ã¶ÄŸrenmeyi bir disiplin olarak benimsedim. BTK Akademi'de tamamladÄ±ÄŸÄ±m eÄŸitimlerle C#, C++, veri tabanÄ±, nesne yÃ¶nelimli programlama ve Ã¼retken yapay zekÃ¢ alanlarÄ±nda doÄŸrulanmÄ±ÅŸ sertifikalar aldÄ±m; Bilgisayar ProgramcÄ±lÄ±ÄŸÄ± bÃ¶lÃ¼mÃ¼nÃ¼ 3.09 genel not ortalamasÄ±yla bitirdim ve DGS ile kazandÄ±ÄŸÄ±m Anadolu Ãœniversitesi AÃ§Ä±kÃ¶ÄŸretim FakÃ¼ltesi YÃ¶netim BiliÅŸim Sistemleri bÃ¶lÃ¼mÃ¼nde eÄŸitimime devam ediyorum."
+        "Kütahya Dumlupınar Üniversitesi Kütahya Teknik Bilimler Meslek Yüksekokulu'nda Bilgisayar Programcılığı eğitimimi tamamladım. Yazılım dünyasına olan tutkum; bir uygulamanın yalnızca arayüzüyle değil, arka planda sistemle nasıl konuştuğu, belleği nasıl yönettiği ve her milisaniyeyi nasıl kazandığıyla ilgilenmemle şekillendi. Bir problemi kökünden anlayıp çözümü mümkün olan en verimli yoldan kurmak benim için her zaman önceliklidir.",
+        "C# ve C++ ile masaüstü uygulamaları; React ve Node.js ile web tarafında çözümler geliştiriyorum. Özellikle C++ ve C# ile uygulama geliştirmeyi, sıfırdan bir mimari kurup onu adım adım optimize etmeyi çok seviyorum. Açık kaynak araçlar üreterek performans, optimizasyon ve donanım seviyesindeki problemlere pratik ve ölçülebilir çözümler bulmak beni motive ediyor.",
+        "Sürekli öğrenmeyi bir disiplin olarak benimsedim. BTK Akademi'de tamamladığım eğitimlerle C#, C++, veri tabanı, nesne yönelimli programlama ve üretken yapay zekâ alanlarında doğrulanmış sertifikalar aldım; Bilgisayar Programcılığı bölümünü 3.09 genel not ortalamasıyla bitirdim ve DGS ile kazandığım Anadolu Üniversitesi Açıköğretim Fakültesi Yönetim Bilişim Sistemleri bölümünde eğitimime devam ediyorum."
       ],
       "facts": [
         {
           "label": "Okul (Lisans)",
-          "value": "Anadolu Ãœniversitesi AÃ§Ä±kÃ¶ÄŸretim FakÃ¼ltesi"
+          "value": "Anadolu Üniversitesi Açıköğretim Fakültesi"
         },
         {
-          "label": "EÄŸitim",
-          "value": "YÃ¶netim BiliÅŸim Sistemleri"
+          "label": "Eğitim",
+          "value": "Yönetim Bilişim Sistemleri"
         },
         {
-          "label": "Okul (Ã–nlisans)",
-          "value": "DumlupÄ±nar Ãœniversitesi Teknik Bilimler MYO"
+          "label": "Okul (Önlisans)",
+          "value": "Dumlupınar Üniversitesi Teknik Bilimler MYO"
         },
         {
           "label": "Genel Ortalama",
-          "value": "3.09 / 4.00 (Ã–nlisans)"
+          "value": "3.09 / 4.00 (Önlisans)"
         },
         {
           "label": "Sertifika",
@@ -101,50 +103,50 @@
         },
         {
           "label": "Konum",
-          "value": "Bursa, TÃ¼rkiye"
+          "value": "Bursa, Türkiye"
         },
         {
           "label": "Odak",
           "value": "Junior Full-Stack Developer"
         }
       ],
-      "timelineHeading": "Deneyim, EÄŸitim & Sertifika YolculuÄŸu",
+      "timelineHeading": "Deneyim, Eğitim & Sertifika Yolculuğu",
       "timeline": [
         {
           "period": "2024",
-          "tag": "Ã–nlisans",
-          "title": "KÃ¼tahya DumlupÄ±nar Ãœniversitesi Â· Bilgisayar ProgramcÄ±lÄ±ÄŸÄ± BaÅŸlangÄ±cÄ±",
-          "detail": "C#, C++ ve SQL ile masaÃ¼stÃ¼, veri tabanÄ± ve sistem seviyesi yazÄ±lÄ±m geliÅŸtirme temelleri."
+          "tag": "Önlisans",
+          "title": "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı Başlangıcı",
+          "detail": "C#, C++ ve SQL ile masaüstü, veri tabanı ve sistem seviyesi yazılım geliştirme temelleri."
         },
         {
           "period": "2026",
           "tag": "Mezuniyet",
-          "title": "KÃ¼tahya DumlupÄ±nar Ãœniversitesi Â· Bilgisayar ProgramcÄ±lÄ±ÄŸÄ±",
-          "detail": "Teknik Bilimler MYO'dan 3.09 / 4.00 genel not ortalamasÄ±yla mezuniyet."
+          "title": "Kütahya Dumlupınar Üniversitesi · Bilgisayar Programcılığı",
+          "detail": "Teknik Bilimler MYO'dan 3.09 / 4.00 genel not ortalamasıyla mezuniyet."
         },
         {
-          "period": "May â€“ Tem 2026",
+          "period": "May – Tem 2026",
           "tag": "Sertifika",
-          "title": "BTK Akademi Â· YazÄ±lÄ±m, Veri TabanÄ± & Yapay Zeka",
-          "detail": "C#, C++, OOP, Veri TabanÄ±na GiriÅŸ, Git & GitHub, Yapay Zeka ve Anthropic Claude alanlarÄ±nda 9 doÄŸrulanmÄ±ÅŸ sertifika."
+          "title": "BTK Akademi · Yazılım, Veri Tabanı & Yapay Zeka",
+          "detail": "C#, C++, OOP, Veri Tabanına Giriş, Git & GitHub, Yapay Zeka ve Anthropic Claude alanlarında 9 doğrulanmış sertifika."
         },
         {
           "period": "Tem 2026",
-          "tag": "Deneyim Â· Staj",
-          "title": "Data Destek YazÄ±lÄ±m Hizmetleri A.Å. Â· YazÄ±lÄ±m Stajyeri",
-          "detail": "Bursa (Ofiste, 1 ay). Ã–n uÃ§ geliÅŸtirme ve nesne yÃ¶nelimli programlama (OOP) Ã¼zerine pratik geliÅŸtirme deneyimi."
+          "tag": "Deneyim · Staj",
+          "title": "Data Destek Yazılım Hizmetleri A.Ş. · Yazılım Stajyeri",
+          "detail": "Bursa (Ofiste, 1 ay). Ön uç geliştirme ve nesne yönelimli programlama (OOP) üzerine pratik geliştirme deneyimi."
         },
         {
-          "period": "Tem â€“ Eki 2026",
+          "period": "Tem – Eki 2026",
           "tag": "Sertifika",
-          "title": "Kodluyoruz & IBM SkillsBuild Â· AI4Future & Siber GÃ¼venlik",
-          "detail": "AI4Future (Ä°leri Seviye), CyberStart 2.0, Siber GÃ¼venlik ve Kurumsal TasarÄ±m OdaklÄ± DÃ¼ÅŸÃ¼nme dahil 5 uluslararasÄ± sertifika."
+          "title": "Kodluyoruz & IBM SkillsBuild · AI4Future & Siber Güvenlik",
+          "detail": "AI4Future (İleri Seviye), CyberStart 2.0, Siber Güvenlik ve Kurumsal Tasarım Odaklı Düşünme dahil 5 uluslararası sertifika."
         },
         {
-          "period": "2026 â€” Devam",
+          "period": "2026 — Devam",
           "tag": "Lisans",
-          "title": "Anadolu Ãœniversitesi AÃ–F Â· YÃ¶netim BiliÅŸim Sistemleri",
-          "detail": "DGS ile geÃ§iÅŸ yaptÄ±m. Lisans eÄŸitimime devam ederken aÃ§Ä±k kaynak masaÃ¼stÃ¼ ve web projeleri geliÅŸtirmeyi sÃ¼rdÃ¼rÃ¼yorum.",
+          "title": "Anadolu Üniversitesi AÖF · Yönetim Bilişim Sistemleri",
+          "detail": "DGS ile geçiş yaptım. Lisans eğitimime devam ederken açık kaynak masaüstü ve web projeleri geliştirmeyi sürdürüyorum.",
           "active": true
         }
       ]
@@ -152,110 +154,110 @@
     "skills": {
       "index": "02",
       "title": "Yetenekler",
-      "kicker": "Diller, Ã§atÄ±lar ve uzmanlÄ±k alanlarÄ±",
+      "kicker": "Diller, çatılar ve uzmanlık alanları",
       "moreLabel": "Daha Fazla"
     },
     "certificates": {
       "index": "04",
       "title": "Sertifikalar",
-      "kicker": "BTK Akademi Â· doÄŸrulanmÄ±ÅŸ eÄŸitimler ve eÅŸleÅŸen yetenekler",
-      "verified": "DoÄŸrulandÄ±",
-      "validates": "DoÄŸruladÄ±ÄŸÄ± yetenek",
-      "view": "GÃ¶rÃ¼ntÃ¼le",
-      "prev": "Ã–nceki",
+      "kicker": "BTK Akademi · doğrulanmış eğitimler ve eşleşen yetenekler",
+      "verified": "Doğrulandı",
+      "validates": "Doğruladığı yetenek",
+      "view": "Görüntüle",
+      "prev": "Önceki",
       "next": "Sonraki"
     },
     "projects": {
       "index": "03",
       "title": "Projeler",
-      "kicker": "AÃ§Ä±k kaynak masaÃ¼stÃ¼ & sistem araÃ§larÄ±",
-      "view": "GitHub'da Ä°ncele",
+      "kicker": "Açık kaynak masaüstü & sistem araçları",
+      "view": "GitHub'da İncele",
       "statusLabel": "Proje durumu",
       "stats": {
         "repos": "Depo",
-        "stars": "YÄ±ldÄ±z",
-        "followers": "TakipÃ§i"
+        "stars": "Yıldız",
+        "followers": "Takipçi"
       },
-      "contributions": "KatkÄ± grafiÄŸi",
+      "contributions": "Katkı grafiği",
       "more": {
-        "title": "GitHub'da daha fazlasÄ±",
-        "subtitle": "Profilimden otomatik Ã§ekilen diÄŸer aÃ§Ä±k kaynak repolar",
-        "noDesc": "AÃ§Ä±klama eklenmemiÅŸ.",
-        "viewAll": "TÃ¼m repolarÄ± GitHub'da gÃ¶r"
+        "title": "GitHub'da daha fazlası",
+        "subtitle": "Profilimden otomatik çekilen diğer açık kaynak repolar",
+        "noDesc": "Açıklama eklenmemiş.",
+        "viewAll": "Tüm repoları GitHub'da gör"
       }
     },
     "contact": {
       "index": "06",
-      "label": "Ä°letiÅŸim",
+      "label": "İletişim",
       "big": [
         "Birlikte",
-        "Ã‡alÄ±ÅŸalÄ±m"
+        "Çalışalım"
       ],
-      "blurb": "Bir proje fikri, iÅŸ birliÄŸi ya da yalnÄ±zca merhaba demek iÃ§in â€” bana bir mesaj bÄ±rak. En kÄ±sa sÃ¼rede dÃ¶nÃ¼ÅŸ yaparÄ±m."
+      "blurb": "Bir proje fikri, iş birliği ya da yalnızca merhaba demek için — bana bir mesaj bırak. En kısa sürede dönüş yaparım."
     },
     "terminal": {
       "index": "05",
       "title": "Terminal",
-      "kicker": "Komut yazarak hakkÄ±mda daha fazlasÄ±nÄ± keÅŸfet",
+      "kicker": "Komut yazarak hakkımda daha fazlasını keşfet",
       "user": "ziyaretci",
       "host": "layellie",
-      "welcome": "Layellie portfÃ¶y terminaline hoÅŸ geldin.",
-      "hint": "BaÅŸlamak iÃ§in 'help' yaz Â· geÃ§miÅŸ iÃ§in â†‘ â†“ tuÅŸlarÄ±",
-      "helpTitle": "KullanÄ±labilir komutlar",
-      "notFound": "komut bulunamadÄ±",
-      "tryHelp": "'help' yazarak tÃ¼m komutlarÄ± gÃ¶rebilirsin.",
+      "welcome": "Layellie portföy terminaline hoş geldin.",
+      "hint": "Başlamak için 'help' yaz · geçmiş için ↑ ↓ tuşları",
+      "helpTitle": "Kullanılabilir komutlar",
+      "notFound": "komut bulunamadı",
+      "tryHelp": "'help' yazarak tüm komutları görebilirsin.",
       "labels": {
-        "langs": "Diller & Ã‡atÄ±lar",
-        "focus": "Odak AlanlarÄ±",
-        "certCount": "doÄŸrulanmÄ±ÅŸ sertifika",
-        "sudo": "ziyaretci sudoers dosyasÄ±nda yok. Bu olay bildirilecek. ğŸ˜"
+        "langs": "Diller & Çatılar",
+        "focus": "Odak Alanları",
+        "certCount": "doğrulanmış sertifika",
+        "sudo": "ziyaretci sudoers dosyasında yok. Bu olay bildirilecek. 😏"
       },
       "cmds": {
-        "help": "bu menÃ¼yÃ¼ gÃ¶sterir",
-        "whoami": "kim olduÄŸumu gÃ¶sterir",
-        "about": "kÄ±sa kÃ¼nye & bilgiler",
+        "help": "bu menüyü gösterir",
+        "whoami": "kim olduğumu gösterir",
+        "about": "kısa künye & bilgiler",
         "skills": "yeteneklerimi listeler",
-        "projects": "aÃ§Ä±k kaynak projelerim",
-        "certs": "sertifikalarÄ±m",
-        "contact": "iletiÅŸim bilgilerim",
-        "social": "sosyal medya hesaplarÄ±m",
-        "date": "bugÃ¼nÃ¼n tarihi",
-        "clear": "ekranÄ± temizler"
+        "projects": "açık kaynak projelerim",
+        "certs": "sertifikalarım",
+        "contact": "iletişim bilgilerim",
+        "social": "sosyal medya hesaplarım",
+        "date": "bugünün tarihi",
+        "clear": "ekranı temizler"
       }
     },
     "footer": {
-      "backToTop": "BaÅŸa dÃ¶n â†‘"
+      "backToTop": "Başa dön ↑"
     },
     "cmd": {
-      "placeholder": "Komut ara veya bir bÃ¶lÃ¼me gitâ€¦",
-      "empty": "SonuÃ§ yok",
-      "goto": "BÃ¶lÃ¼m",
+      "placeholder": "Komut ara veya bir bölüme git…",
+      "empty": "Sonuç yok",
+      "goto": "Bölüm",
       "lang": "Dil",
       "copyEmail": "Kopyala",
-      "open": "AÃ§",
-      "toTop": "BaÅŸa dÃ¶n"
+      "open": "Aç",
+      "toTop": "Başa dön"
     },
     "mock": {
-      "search": "Pano geÃ§miÅŸinde araâ€¦",
-      "ocrCaption": "gÃ¶rselden Ã§Ä±karÄ±lan metin",
-      "ocrEngine": "OCR Motoru Â· C++20 / WinRT",
+      "search": "Pano geçmişinde ara…",
+      "ocrCaption": "görselden çıkarılan metin",
+      "ocrEngine": "OCR Motoru · C++20 / WinRT",
       "reverse": "Tersine Arama",
-      "admin": "YÃ¶netici",
-      "timerRes": "Timer Ã‡Ã¶zÃ¼nÃ¼rlÃ¼ÄŸÃ¼",
+      "admin": "Yönetici",
+      "timerRes": "Timer Çözünürlüğü",
       "locked": "Kilitli",
       "standbyMem": "Standby Bellek",
       "cleared": "temizlendi",
       "gameMode": "Oyun Modu",
-      "on": "AÃ§Ä±k",
-      "affinity": "YÃ¼ksek Ã¶ncelik Â· Tam affinity",
+      "on": "Açık",
+      "affinity": "Yüksek öncelik · Tam affinity",
       "eyeNext": "Sonraki mola",
-      "eyeWork": "Ã‡alÄ±ÅŸma",
+      "eyeWork": "Çalışma",
       "eyeBreak": "Mola",
-      "eyeFullscreen": "Tam ekran algÄ±lama",
+      "eyeFullscreen": "Tam ekran algılama",
       "eyePostpone": "Sessizce ertele",
       "eyeRunning": "Aktif",
-      "eyeRule": "20-20-20 kuralÄ±",
-      "eyeNative": "Yerel C++ Â· ~30 MB"
+      "eyeRule": "20-20-20 kuralı",
+      "eyeNative": "Yerel C++ · ~30 MB"
     }
   },
   "en": {
@@ -272,7 +274,7 @@
       "available": "Open to new projects",
       "location": "Bursa, Turkey",
       "role": "Full-Stack Developer & Systems Engineer",
-      "tagline": "From system-level optimization to scalable web architectures â€” I design clean, maintainable software that improves performance in measurable ways.",
+      "tagline": "From system-level optimization to scalable web architectures — I design clean, maintainable software that improves performance in measurable ways.",
       "ctaProjects": "My Work",
       "ctaContact": "Contact"
     },
@@ -299,7 +301,7 @@
       "kicker": "On software & systems development",
       "statement": [
         {
-          "text": "What excites me isn't just code that works â€” it's code that runs ",
+          "text": "What excites me isn't just code that works — it's code that runs ",
           "tone": "normal"
         },
         {
@@ -312,8 +314,8 @@
         }
       ],
       "paragraphs": [
-        "I completed my Computer Programming degree at KÃ¼tahya DumlupÄ±nar University's Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI â€” how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
-        "I build desktop applications with C# and C++, and web solutions with React and Node.js. I especially love developing applications with C++ and C# â€” designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
+        "I completed my Computer Programming degree at Kütahya Dumlupınar University's Vocational School of Technical Sciences. My passion for software grew from caring about more than a UI — how a program talks to the system underneath, manages memory and squeezes out every millisecond. Understanding a problem at its root and building the solution in the most efficient way possible is always my priority.",
+        "I build desktop applications with C# and C++, and web solutions with React and Node.js. I especially love developing applications with C++ and C# — designing an architecture from scratch and optimizing it step by step. Shipping open-source tools that solve performance, optimization and hardware-level problems in practical, measurable ways is what truly drives me.",
         "I treat learning as an ongoing discipline: through BTK Akademi I've earned verified certificates in C#, C++, databases, object-oriented programming and generative AI. I graduated from the Computer Programming program with a 3.09 GPA and am now continuing my studies in Management Information Systems at Anadolu University's Open Education Faculty."
       ],
       "facts": [
@@ -327,7 +329,7 @@
         },
         {
           "label": "School (Associate)",
-          "value": "DumlupÄ±nar University, Vocational School of Technical Sciences"
+          "value": "Dumlupınar University, Vocational School of Technical Sciences"
         },
         {
           "label": "GPA",
@@ -351,37 +353,37 @@
         {
           "period": "2024",
           "tag": "Associate",
-          "title": "KÃ¼tahya DumlupÄ±nar University Â· Started Computer Programming",
+          "title": "Kütahya Dumlupınar University · Started Computer Programming",
           "detail": "Built core foundations in desktop, database and system-level software engineering with C#, C++ and SQL."
         },
         {
           "period": "2026",
           "tag": "Graduation",
-          "title": "KÃ¼tahya DumlupÄ±nar University Â· Computer Programming",
+          "title": "Kütahya Dumlupınar University · Computer Programming",
           "detail": "Graduated from the Vocational School of Technical Sciences with a 3.09 / 4.00 GPA."
         },
         {
-          "period": "May â€“ Jul 2026",
+          "period": "May – Jul 2026",
           "tag": "Certificates",
-          "title": "BTK Akademi Â· Software, Databases & AI",
+          "title": "BTK Akademi · Software, Databases & AI",
           "detail": "9 verified certificates across C#, C++, OOP, Databases, Git & GitHub, AI and Anthropic Claude."
         },
         {
           "period": "Jul 2026",
-          "tag": "Experience Â· Internship",
-          "title": "Data Destek YazÄ±lÄ±m Hizmetleri A.Å. Â· Software Intern",
+          "tag": "Experience · Internship",
+          "title": "Data Destek Yazılım Hizmetleri A.Ş. · Software Intern",
           "detail": "Bursa (On-site, 1 month). Hands-on front-end development and object-oriented programming (OOP)."
         },
         {
-          "period": "Jul â€“ Oct 2026",
+          "period": "Jul – Oct 2026",
           "tag": "Certificates",
-          "title": "Kodluyoruz & IBM SkillsBuild Â· AI4Future & Cybersecurity",
+          "title": "Kodluyoruz & IBM SkillsBuild · AI4Future & Cybersecurity",
           "detail": "5 verified certificates including AI4Future (Advanced), CyberStart 2.0, Cybersecurity and Enterprise Design Thinking."
         },
         {
-          "period": "2026 â€” Present",
+          "period": "2026 — Present",
           "tag": "Bachelor's",
-          "title": "Anadolu University OEF Â· Management Information Systems",
+          "title": "Anadolu University OEF · Management Information Systems",
           "detail": "Transferred via DGS. Continuing my bachelor's degree while building open-source desktop and web projects.",
           "active": true
         }
@@ -396,7 +398,7 @@
     "certificates": {
       "index": "04",
       "title": "Certificates",
-      "kicker": "BTK Akademi Â· verified training mapped to skills",
+      "kicker": "BTK Akademi · verified training mapped to skills",
       "verified": "Verified",
       "validates": "Validates",
       "view": "View",
@@ -429,7 +431,7 @@
         "Let's",
         "Talk."
       ],
-      "blurb": "Got a project idea, a collaboration, or just want to say hi? Drop me a message â€” I'll get back to you soon."
+      "blurb": "Got a project idea, a collaboration, or just want to say hi? Drop me a message — I'll get back to you soon."
     },
     "terminal": {
       "index": "05",
@@ -438,7 +440,7 @@
       "user": "visitor",
       "host": "layellie",
       "welcome": "Welcome to the Layellie portfolio terminal.",
-      "hint": "Type 'help' to start Â· use â†‘ â†“ for history",
+      "hint": "Type 'help' to start · use ↑ ↓ for history",
       "helpTitle": "Available commands",
       "notFound": "command not found",
       "tryHelp": "Type 'help' to see all commands.",
@@ -446,7 +448,7 @@
         "langs": "Languages & Frameworks",
         "focus": "Focus Areas",
         "certCount": "verified certificates",
-        "sudo": "visitor is not in the sudoers file. This incident will be reported. ğŸ˜"
+        "sudo": "visitor is not in the sudoers file. This incident will be reported. 😏"
       },
       "cmds": {
         "help": "show this menu",
@@ -462,10 +464,10 @@
       }
     },
     "footer": {
-      "backToTop": "Back to top â†‘"
+      "backToTop": "Back to top ↑"
     },
     "cmd": {
-      "placeholder": "Search a command or jump to a sectionâ€¦",
+      "placeholder": "Search a command or jump to a section…",
       "empty": "No results",
       "goto": "Section",
       "lang": "Language",
@@ -474,9 +476,9 @@
       "toTop": "Back to top"
     },
     "mock": {
-      "search": "Search clipboard historyâ€¦",
+      "search": "Search clipboard history…",
       "ocrCaption": "text extracted from image",
-      "ocrEngine": "OCR Engine Â· C++20 / WinRT",
+      "ocrEngine": "OCR Engine · C++20 / WinRT",
       "reverse": "Reverse Search",
       "admin": "Admin",
       "timerRes": "Timer Resolution",
@@ -485,7 +487,7 @@
       "cleared": "cleared",
       "gameMode": "Game Mode",
       "on": "On",
-      "affinity": "High priority Â· Full affinity",
+      "affinity": "High priority · Full affinity",
       "eyeNext": "Next break",
       "eyeWork": "Work",
       "eyeBreak": "Break",
@@ -493,7 +495,7 @@
       "eyePostpone": "Postpone silently",
       "eyeRunning": "Running",
       "eyeRule": "20-20-20 rule",
-      "eyeNative": "Native C++ Â· ~30 MB"
+      "eyeNative": "Native C++ · ~30 MB"
     }
   }
 }
