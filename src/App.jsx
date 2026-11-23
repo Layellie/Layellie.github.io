@@ -1064,7 +1064,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       aria-label={lang === "en" ? "Discord live profile" : "Discord canlı profil kartı"}
       data-discord-presence={isOnline ? "online" : "offline"}
       data-presence-kind={presence?.kind || "offline"}
-      className="hero-rise flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:w-[326px] lg:shrink-0"
+      className="hero-rise mx-auto flex w-full max-w-[342px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:mx-0 lg:w-[326px] lg:shrink-0"
       style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
     >
       <div
@@ -1174,7 +1174,8 @@ function Hero() {
   const ref = useRef(null);
   const parallaxRef = useRef(null);
 
-  // Hafif parallax: bölüm yukarı çıkarken içerik 130px kayar ve solar (rAF + passive scroll).
+  // Hafif parallax (yalnızca masaüstünde): mobilde kaydırma sırasında alt bölümlerin
+  // üzerine binmeyi önlemek için kapatılır.
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -1182,13 +1183,22 @@ function Hero() {
       const section = ref.current;
       const inner = parallaxRef.current;
       if (!section || !inner) return;
+      if (
+        window.matchMedia("(max-width: 1023px)").matches ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        inner.style.transform = "";
+        inner.style.opacity = "";
+        return;
+      }
       const progress = Math.min(1, Math.max(0, window.scrollY / (section.offsetHeight || 1)));
-      inner.style.transform = `translate3d(0, ${(progress * 130).toFixed(1)}px, 0)`;
+      inner.style.transform = `translate3d(0, ${(progress * 64).toFixed(1)}px, 0)`;
       inner.style.opacity = String(Math.max(0, 1 - progress / 0.85));
     };
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
+    update();
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     return () => {
@@ -1204,11 +1214,11 @@ function Hero() {
     <section
       id="anasayfa"
       ref={ref}
-      className={`${WRAP} relative flex min-h-screen flex-col justify-center pb-16 pt-28`}
+      className={`${WRAP} relative flex flex-col justify-center pb-14 pt-24 lg:min-h-screen lg:pb-16 lg:pt-28`}
     >
       <div ref={parallaxRef}>
         <div
-          className="hero-rise mb-8 flex flex-wrap items-center gap-3 text-sm"
+          className="hero-rise mb-5 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm lg:mb-8 lg:gap-3"
           style={{ "--hero-dur": "0.7s" }}
         >
           <span className="relative flex h-2.5 w-2.5">
@@ -1222,7 +1232,7 @@ function Hero() {
           </span>
         </div>
 
-        <div className={showDiscordCard ? "relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10" : "relative"}>
+        <div className={showDiscordCard ? "relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between lg:gap-10" : "relative"}>
           <div className="relative min-w-0">
             <div
               aria-hidden
@@ -1234,9 +1244,9 @@ function Hero() {
             />
             <h1
               aria-label={`${IDENTITY.name}.`}
-              className={`relative font-display font-semibold leading-[0.82] tracking-[-0.03em] ${
+              className={`relative font-display font-semibold tracking-[-0.03em] leading-[0.9] lg:leading-[0.82] ${
                 showDiscordCard
-                  ? "text-[clamp(3.25rem,10.5vw,10.5rem)]"
+                  ? "text-[clamp(3rem,13.5vw,4.5rem)] lg:text-[clamp(3.25rem,10.5vw,10.5rem)]"
                   : "text-[clamp(3.25rem,14vw,12.5rem)]"
               }`}
             >
@@ -1256,18 +1266,18 @@ function Hero() {
         </div>
 
         <div
-          className="hero-rise mt-12 flex flex-col gap-8 border-t border-line pt-8 lg:flex-row lg:items-end lg:justify-between"
+          className="hero-rise mt-8 flex flex-col gap-6 border-t border-line pt-6 lg:mt-12 lg:flex-row lg:items-end lg:justify-between lg:gap-8 lg:pt-8"
           style={{ "--hero-delay": "0.15s", "--hero-dur": "0.7s" }}
         >
           <div className="max-w-xl">
-            <h2 className="font-display text-xl tracking-tight md:text-2xl">
+            <h2 className="font-display text-lg tracking-tight sm:text-xl md:text-2xl">
               {t.hero.role}
             </h2>
-            <p className="mt-3 leading-relaxed text-muted md:text-lg">
+            <p className="mt-2.5 text-sm leading-relaxed text-muted sm:text-base md:mt-3 md:text-lg">
               {t.hero.tagline}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <MagneticButton
               href="#projeler"
               className="group items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition hover:opacity-90"
@@ -3921,7 +3931,7 @@ export default function App() {
 
       <Navbar />
 
-      <main className="relative z-10">
+      <main className="relative z-10 overflow-x-clip">
         {/* Meteorlar yalnızca ilk ekranda (Hero/gökyüzü) süzülür; absolute olduğu için aşağı kaydırınca kullanıcıyla birlikte aşağı inmez, en üstte kalır */}
         <div
           aria-hidden
