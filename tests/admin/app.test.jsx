@@ -204,7 +204,13 @@ describe("AdminApp", () => {
   });
 
   it("lets admin toggle Discord live presence and professional filter with ID validation", () => {
-    render(<AdminApp initialSession={session} initialContent={content} />);
+    const cleanContent = structuredClone(content);
+    cleanContent.files.site.shared.discordPresence = {
+      enabled: false,
+      userId: "",
+      professionalFilter: true,
+    };
+    render(<AdminApp initialSession={session} initialContent={cleanContent} />);
 
     const presenceSwitch = screen.getByRole("switch", { name: "Discord canlı durum rozeti" });
     const filterSwitch = screen.getByRole("switch", { name: "Profesyonellik filtresi" });

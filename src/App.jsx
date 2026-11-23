@@ -1700,9 +1700,6 @@ function Skills() {
 const CERT_SPRITE_ICONS = {
   Award: "award",
   Hash: "hash",
-  BadgeCheck: "badge-check",
-  Calendar: "calendar",
-  FileText: "file-text",
 };
 
 export function CertificateCard({ cert, labels }) {
