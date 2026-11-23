@@ -167,50 +167,37 @@ function IconSprite() {
   return (
     <svg aria-hidden="true" style={{ display: "none" }}>
       <symbol id="ic-badge-check" viewBox="0 0 24 24">
-        <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
-        <path d="m9 12 2 2 4-4" />
+        <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76ZM9 12l2 2 4-4" />
       </symbol>
       <symbol id="ic-award" viewBox="0 0 24 24">
         <path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526" />
         <circle cx="12" cy="8" r="6" />
       </symbol>
       <symbol id="ic-calendar" viewBox="0 0 24 24">
-        <path d="M8 2v4" />
-        <path d="M16 2v4" />
+        <path d="M8 2v4M16 2v4M3 10h18" />
         <rect width="18" height="18" x="3" y="4" rx="2" />
-        <path d="M3 10h18" />
       </symbol>
       <symbol id="ic-hash" viewBox="0 0 24 24">
-        <line x1="4" x2="20" y1="9" y2="9" />
-        <line x1="4" x2="20" y1="15" y2="15" />
-        <line x1="10" x2="8" y1="3" y2="21" />
-        <line x1="16" x2="14" y1="3" y2="21" />
+        <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" />
       </symbol>
       <symbol id="ic-file-text" viewBox="0 0 24 24">
-        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-        <path d="M10 9H8" />
-        <path d="M16 13H8" />
-        <path d="M16 17H8" />
+        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8" />
       </symbol>
       <symbol id="ic-arrow-up-right" viewBox="0 0 24 24">
-        <path d="M7 7h10v10" />
-        <path d="M7 17 17 7" />
+        <path d="M7 7h10v10M7 17 17 7" />
       </symbol>
       <symbol id="ic-check" viewBox="0 0 24 24">
         <path d="M20 6 9 17l-5-5" />
       </symbol>
       <symbol id="ic-github" viewBox="0 0 24 24">
-        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-        <path d="M9 18c-4.51 2-5-2-7-2" />
+        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4M9 18c-4.51 2-5-2-7-2" />
       </symbol>
       <symbol id="ic-star" viewBox="0 0 24 24">
         <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
       </symbol>
       <symbol id="ic-folder-git-2" viewBox="0 0 24 24">
-        <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5" />
+        <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5M18 19c-2.8 0-5-2.2-5-5v8" />
         <circle cx="13" cy="12" r="2" />
-        <path d="M18 19c-2.8 0-5-2.2-5-5v8" />
         <circle cx="20" cy="19" r="2" />
       </symbol>
     </svg>
@@ -949,7 +936,7 @@ function AnimatedWord({ text, offset = 0 }) {
 }
 
 const DISCORD_POLL_MS = 60_000;
-const PROFILE_ROLE_TAGS = ["C#", "C++", "React", "Node.js"];
+const IDLE_MARQUEE_TEXT = "C 0 D 3   ·   C 0 D 3   ·   C 0 D 3   ·   C 0 D 3   ·   ";
 
 function useDiscordPresence(config, lang) {
   const enabled = Boolean(config?.enabled) && isValidDiscordUserId(config?.userId);
@@ -1035,16 +1022,20 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
     ? (ACTIVITY_HEADING[lang === "en" ? "en" : "tr"][presence.kind] || "ACTIVE")
     : "";
 
+  const activityTrack = hasActivity
+    ? `${presence.label}   ·   ${presence.label}   ·   `
+    : IDLE_MARQUEE_TEXT;
+
   return (
     <aside
       aria-label={lang === "en" ? "Discord live profile" : "Discord canlı profil kartı"}
       data-discord-presence={isOnline ? "online" : "offline"}
       data-presence-kind={presence?.kind || "offline"}
-      className="hero-rise w-full max-w-[330px] overflow-hidden rounded-2xl border border-line bg-[#111114]/95 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-sm lg:w-[308px] lg:shrink-0"
+      className="hero-rise flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-line bg-[#111114]/95 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-sm lg:w-[324px] lg:shrink-0"
       style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
     >
       <div
-        className="h-24 w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.22),transparent_56%),linear-gradient(135deg,#1a1a22_0%,#0d0d11_100%)]"
+        className="h-24 w-full shrink-0 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.22),transparent_56%),linear-gradient(135deg,#1a1a22_0%,#0d0d11_100%)] lg:h-[104px]"
       >
         {config.bannerPath && (
           <img
@@ -1056,9 +1047,9 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
         )}
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="flex flex-1 flex-col px-4 pb-3.5">
         <div className="-mt-9 flex items-end justify-between gap-3">
-          <div className="relative h-[68px] w-[68px] shrink-0 rounded-full border-4 border-[#111114] bg-elevated">
+          <div className="relative flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full border-4 border-[#111114] bg-elevated font-display text-2xl font-semibold text-accent">
             {config.avatarPath ? (
               <img
                 src={config.avatarPath}
@@ -1067,9 +1058,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
                 decoding="async"
               />
             ) : (
-              <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-accent">
-                L
-              </span>
+              "L"
             )}
             <span
               aria-hidden
@@ -1092,37 +1081,34 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           </span>
         </div>
 
-        <div className="mt-2.5">
-          <div className="truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
-            {IDENTITY.name}
-          </div>
-          <div className="mt-0.5 font-mono text-xs text-faint">
-            @{IDENTITY.handle.toLowerCase()}
-          </div>
+        <div className="mt-2.5 truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
+          {IDENTITY.name}
+        </div>
+        <div className="mt-0.5 font-mono text-xs text-faint">
+          @{IDENTITY.handle.toLowerCase()}
         </div>
 
-        <div className="mt-3 rounded-xl border border-line/80 bg-canvas/75 px-3 py-2.5">
-          {hasActivity ? (
-            <>
-              <div className="font-mono text-[10px] tracking-[0.14em] text-accent">
+        <div className="mt-auto pt-3">
+          <div className="overflow-hidden rounded-xl border border-line/80 bg-canvas/75 px-3 py-2">
+            {hasActivity && (
+              <div className="mb-0.5 font-mono text-[10px] tracking-[0.14em] text-accent">
                 {activityHeading}
               </div>
-              <div className="mt-0.5 truncate text-xs font-medium text-ink">
-                {presence.label}
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {PROFILE_ROLE_TAGS.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-md border border-line bg-surface/70 px-2 py-0.5 font-mono text-[11px] text-muted"
-                >
-                  {tag}
+            )}
+            <div className="profile-marquee-mask overflow-hidden">
+              <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs tracking-[0.14em]">
+                <span className={hasActivity ? "pr-6 font-medium tracking-normal text-ink" : "pr-6 text-accent/90"}>
+                  {activityTrack}
                 </span>
-              ))}
+                <span
+                  aria-hidden
+                  className={hasActivity ? "pr-6 font-medium tracking-normal text-ink" : "pr-6 text-accent/90"}
+                >
+                  {activityTrack}
+                </span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </aside>
@@ -1182,7 +1168,7 @@ function Hero() {
           </span>
         </div>
 
-        <div className={showDiscordCard ? "relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between lg:gap-10" : "relative"}>
+        <div className={showDiscordCard ? "relative flex flex-col gap-8 lg:flex-row lg:items-stretch lg:justify-between lg:gap-10" : "relative"}>
           <div className="relative min-w-0">
             <div
               aria-hidden
@@ -1201,17 +1187,13 @@ function Hero() {
               }`}
             >
               <span aria-hidden className="block overflow-hidden pb-[0.08em]">
-                <span className="block">
-                  <AnimatedWord text="Samet" />
-                </span>
+                <AnimatedWord text="Samet" />
               </span>
               <span className="sr-only"> </span>
               <span aria-hidden className="block overflow-hidden pb-[0.08em]">
-                <span className="block">
-                  <AnimatedWord text="Kaşmer" offset={5} />
-                  <span className="hero-char inline-block text-accent" style={{ "--i": 11 }}>
-                    <span className="hero-dot inline-block">.</span>
-                  </span>
+                <AnimatedWord text="Kaşmer" offset={5} />
+                <span className="hero-char inline-block text-accent" style={{ "--i": 11 }}>
+                  <span className="hero-dot inline-block">.</span>
                 </span>
               </span>
             </h1>

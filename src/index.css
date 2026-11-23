@@ -622,3 +622,27 @@ body {
     display: none !important;
   }
 }
+
+
+/* Hero Discord profil kartı kayan durum şeridi */
+.animate-profile-marquee {
+  display: inline-flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee 14s linear infinite;
+}
+
+.animate-profile-marquee:hover {
+  animation-play-state: paused;
+}
+
+.profile-marquee-mask {
+  mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-profile-marquee {
+    animation: none;
+  }
+}
