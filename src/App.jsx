@@ -1060,13 +1060,13 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
     >
       <div
-        className="min-h-[96px] w-full flex-1 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]"
+        className="relative min-h-[96px] w-full flex-1 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]"
       >
         {config.bannerPath && (
           <img
             src={config.bannerPath}
             alt=""
-            className="h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
             decoding="async"
           />
         )}
