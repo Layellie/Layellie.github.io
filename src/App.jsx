@@ -2603,20 +2603,20 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo }
             ))}
           </div>
 
-          <p className="mt-4 max-w-xl leading-relaxed text-muted md:text-lg">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">
             {project.description}
           </p>
 
-          <ul className="mt-6 grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
+          <ul className="mt-5 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
             {project.features.map((f) => (
-              <li key={f} className="flex items-start gap-2.5 text-sm text-ink/85">
-                <SpriteIcon id="check" className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <li key={f} className="flex items-start gap-2 text-xs leading-relaxed text-ink/85 md:text-sm">
+                <SpriteIcon id="check" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
                 {f}
               </li>
             ))}
           </ul>
 
-          <div className="mt-7 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {project.stack.map((stk) => (
               <span
                 key={stk}
@@ -2632,7 +2632,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo }
             target="_blank"
             rel="noreferrer"
             aria-label={`${project.name} — ${viewLabel}`}
-            className="group/btn mt-8 items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
+            className="group/btn mt-6 items-center gap-2 rounded-full border border-line px-5 py-3 text-sm font-medium transition-colors hover:bg-ink hover:text-canvas"
           >
             <SpriteIcon id="github" className="h-4 w-4" />
             <span className="ui-label" data-label={viewLabel} />
