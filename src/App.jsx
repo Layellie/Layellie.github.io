@@ -14,33 +14,14 @@ import { githubRepositoryName, selectMoreGithubRepositories } from "./content/gi
 // framer-motion kullanılmaz: tüm animasyonlar saf CSS + IntersectionObserver ile
 // çalıştırılarak ~120 KB kütüphane maliyeti ve ana iş parçacığı yükü kaldırılmıştır.
 import {
-  ArrowUpRight,
   ArrowDown,
-  Github,
   Mail,
   Copy,
   Check,
   MapPin,
-  Gauge,
-  Cpu,
-  Hash,
-  Code2,
-  ScanText,
-  MemoryStick,
-  Gamepad2,
-  Lock,
   Search,
   Menu,
   X,
-  ClipboardList,
-  Link2,
-  Image as ImageIcon,
-  Award,
-  BadgeCheck,
-  Calendar,
-  Languages,
-  FileText,
-  Linkedin,
   LogIn,
   Sparkles,
   Star,
@@ -49,9 +30,6 @@ import {
   Globe,
   ChevronLeft,
   ChevronRight,
-  Eye,
-  Monitor,
-  BellRing,
 } from "lucide-react";
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // Public site: içerik build sırasında doğrulanıp hazır JSON olarak gömülür (bkz. build/precomputed-content.js),
@@ -65,8 +43,15 @@ import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./a
 
 const SITE_BUILD = typeof __SITE_BUILD__ !== "undefined" ? __SITE_BUILD__ : { commit: "local", builtAt: "" };
 
-// Proje görselleri (Zod şemalarıyla doğrulanan MockupRenderer) ekran dışında olduğundan ayrı chunk'ta yüklenir.
+// Ekran dışı veya yalnızca tıklanınca açılan bileşenler ayrı chunk'larda yüklenir.
 const ProjectVisual = lazy(() => import("./components/project-visuals/ProjectVisual.jsx"));
+const LegacyProjectVisual = lazy(() => import("./components/LegacyProjectVisuals.jsx"));
+const CommandPaletteOverlay = lazy(() =>
+  import("./components/PortfolioOverlays.jsx").then((m) => ({ default: m.CommandPaletteOverlay })),
+);
+const QuickSummaryOverlay = lazy(() =>
+  import("./components/PortfolioOverlays.jsx").then((m) => ({ default: m.QuickSummaryOverlay })),
+);
 // Terminal mini oyunları (snake / typing) yalnızca kullanıcı komut girdiğinde yüklenir.
 const TerminalGames = lazy(() => import("./components/TerminalGames.jsx"));
 
@@ -113,7 +98,7 @@ function useNearViewport(ref, rootMargin = "600px 0px") {
 }
 
 function DeferredProjectVisual(props) {
-  const { reference, legacyVisuals = {} } = props;
+  const { reference, mock } = props;
   const ref = useRef(null);
   const near = useNearViewport(ref, "900px 0px");
 
@@ -122,10 +107,19 @@ function DeferredProjectVisual(props) {
   );
 
   // Dekoratif proje mockup'ları bölüm görüş alanına yaklaşırken (900px önce)
-  // yüklenir; metin ve SEO bağlantıları ilk boyamada hazırdır.
-  if (reference?.mode === "custom" && legacyVisuals[reference.componentId]) {
-    const Legacy = legacyVisuals[reference.componentId];
-    return <div ref={ref}>{near ? <Legacy /> : placeholder}</div>;
+  // ayrı chunk'tan yüklenir; metin ve SEO bağlantıları ilk boyamada hazırdır.
+  if (reference?.mode === "custom" && reference.componentId) {
+    return (
+      <div ref={ref}>
+        {near ? (
+          <Suspense fallback={placeholder}>
+            <LegacyProjectVisual componentId={reference.componentId} mock={mock} />
+          </Suspense>
+        ) : (
+          placeholder
+        )}
+      </div>
+    );
   }
 
   return (
@@ -1103,6 +1097,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             alt={lang === "en" ? "Layellie profile banner" : "Layellie profil banner"}
             width={324}
             height={108}
+            fetchpriority="high"
             className="absolute inset-0 h-full w-full object-cover"
             decoding="async"
           />
@@ -2101,248 +2096,6 @@ function WindowDots() {
   );
 }
 
-function ClipboardMock() {
-  const { t } = useLang();
-  const m = t.mock;
-  return (
-    <div className="relative w-full rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40">
-      <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-        <WindowDots />
-        <div className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
-          <ClipboardList className="h-3.5 w-3.5" /> AIO Hybrid Clipboard
-        </div>
-        <span className="ml-auto rounded-md border border-line px-2 py-1 font-mono text-[10px] text-faint">
-          ALT + SPACE
-        </span>
-      </div>
-
-      <div className="px-5 pt-5">
-        <div className="flex items-center gap-2 rounded-lg border border-line bg-canvas/60 px-3 py-2.5 text-sm text-faint">
-          <Search className="h-4 w-4" /> {m.search}
-        </div>
-      </div>
-
-      <div className="space-y-2 p-5">
-        <div className="flex items-center gap-3 rounded-lg border border-line bg-canvas/40 px-3 py-2.5">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-line text-[10px] text-faint">
-            1
-          </span>
-          <Code2 className="h-4 w-4 shrink-0 text-muted" />
-          <span className="truncate font-mono text-xs text-ink/90">
-            git commit -m "perf: 0.5ms timer"
-          </span>
-          <span className="ml-auto shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-faint">
-            ALT+1
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 rounded-lg border border-line bg-canvas/40 px-3 py-2.5">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-line text-[10px] text-faint">
-            2
-          </span>
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gradient-to-br from-[#26262c] to-[#16161a] text-faint">
-            <ImageIcon className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-accent px-1.5 py-0.5 text-[9px] font-semibold text-canvas">
-                OCR
-              </span>
-              <span className="truncate text-xs text-ink/90">
-                Fatura No: 2026-0192
-              </span>
-            </div>
-            <div className="truncate text-[10px] text-faint">{m.ocrCaption}</div>
-          </div>
-          <span className="ml-auto shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-faint">
-            ALT+2
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 rounded-lg border border-line bg-canvas/40 px-3 py-2.5">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-line text-[10px] text-faint">
-            3
-          </span>
-          <Link2 className="h-4 w-4 shrink-0 text-muted" />
-          <span className="truncate font-mono text-xs text-ink/90">
-            github.com/Layellie
-          </span>
-          <span className="ml-auto shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-faint">
-            ALT+3
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-line px-5 py-3 text-[11px] text-faint">
-        <span className="inline-flex items-center gap-1.5">
-          <ScanText className="h-3.5 w-3.5" /> {m.ocrEngine}
-        </span>
-        <span className="rounded-full border border-line px-2 py-0.5">
-          {m.reverse}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function TimerMock() {
-  const { t } = useLang();
-  const m = t.mock;
-  return (
-    <div className="relative w-full rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40">
-      <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-        <WindowDots />
-        <div className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
-          <Gauge className="h-3.5 w-3.5" /> StandbyAndTimer
-        </div>
-        <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-[10px] text-faint">
-          <Lock className="h-3 w-3" /> {m.admin}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 p-5">
-        <div className="col-span-2 rounded-xl border border-line bg-canvas/40 p-5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-faint">
-              {m.timerRes}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">
-              <Lock className="h-3 w-3" /> {m.locked}
-            </span>
-          </div>
-          <div className="mt-3 flex items-end gap-1.5">
-            <span className="font-display text-5xl leading-none tracking-tight md:text-6xl">
-              0.50
-            </span>
-            <span className="mb-1 text-lg text-muted">ms</span>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-line bg-canvas/40 p-5">
-          <div className="flex items-center gap-2 text-xs text-faint">
-            <MemoryStick className="h-4 w-4" /> {m.standbyMem}
-          </div>
-          <div className="mt-3 font-display text-2xl">3.4 GB</div>
-          <div className="mt-1 text-[11px] text-faint">{m.cleared}</div>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-line">
-            <div className="h-full w-[82%] rounded-full bg-accent" />
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-line bg-canvas/40 p-5">
-          <div className="flex items-center gap-2 text-xs text-faint">
-            <Gamepad2 className="h-4 w-4" /> {m.gameMode}
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <span className="relative inline-flex h-5 w-9 items-center rounded-full bg-accent px-0.5">
-              <span className="ml-auto h-4 w-4 rounded-full bg-canvas" />
-            </span>
-            <span className="text-sm text-ink">{m.on}</span>
-          </div>
-          <div className="mt-2 text-[11px] text-faint">{m.affinity}</div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-line px-5 py-3 text-[11px] text-faint">
-        <span className="inline-flex items-center gap-1.5">
-          <Cpu className="h-3.5 w-3.5" /> NtSetTimerResolution · Win32 P/Invoke
-        </span>
-        <span className="rounded-full border border-line px-2 py-0.5">MVVM</span>
-      </div>
-    </div>
-  );
-}
-
-function EyeHealthMock() {
-  const { t } = useLang();
-  const m = t.mock;
-  return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-line bg-elevated/90 shadow-2xl shadow-black/40">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 opacity-70"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 0%, rgba(214,255,63,0.13), transparent 68%)",
-        }}
-      />
-
-      <div className="relative flex items-center gap-3 border-b border-line px-5 py-4">
-        <WindowDots />
-        <div className="ml-2 inline-flex items-center gap-2 text-xs text-muted">
-          <Eye className="h-4 w-4 text-accent" /> EyeHealth
-        </div>
-        <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/10 px-2 py-1 text-[10px] text-accent">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent" /> {m.eyeRunning}
-        </span>
-      </div>
-
-      <div className="relative grid gap-4 p-5 sm:grid-cols-[1.15fr_0.85fr]">
-        <div className="flex min-h-52 flex-col items-center justify-center rounded-xl border border-line bg-canvas/40 p-5 text-center">
-          <div
-            className="relative flex h-36 w-36 items-center justify-center rounded-full p-[7px]"
-            style={{
-              background:
-                "conic-gradient(var(--color-accent) 0deg 292deg, var(--color-line) 292deg 360deg)",
-            }}
-          >
-            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-[#111114]">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-faint">
-                {m.eyeNext}
-              </span>
-              <span className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink">
-                19:42
-              </span>
-            </div>
-          </div>
-          <div className="mt-4 inline-flex items-center gap-2 text-xs text-muted">
-            <BellRing className="h-3.5 w-3.5 text-accent" /> {m.eyeRule}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
-          <div className="rounded-xl border border-line bg-canvas/40 p-4">
-            <div className="text-[10px] uppercase tracking-wider text-faint">
-              {m.eyeWork}
-            </div>
-            <div className="mt-1 font-display text-2xl text-ink">20 min</div>
-          </div>
-          <div className="rounded-xl border border-line bg-canvas/40 p-4">
-            <div className="text-[10px] uppercase tracking-wider text-faint">
-              {m.eyeBreak}
-            </div>
-            <div className="mt-1 font-display text-2xl text-ink">20 sec</div>
-          </div>
-          <div className="col-span-2 rounded-xl border border-line bg-canvas/40 p-4 sm:col-span-1">
-            <div className="flex items-center gap-2 text-xs text-faint">
-              <Monitor className="h-4 w-4" /> {m.eyeFullscreen}
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="text-xs text-ink/90">{m.eyePostpone}</span>
-              <span className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-accent px-0.5">
-                <span className="ml-auto h-4 w-4 rounded-full bg-canvas" />
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative flex items-center justify-between border-t border-line px-5 py-3 text-[11px] text-faint">
-        <span className="inline-flex items-center gap-1.5">
-          <Eye className="h-3.5 w-3.5" /> {m.eyeNative}
-        </span>
-        <span className="rounded-full border border-line px-2 py-0.5">TR / EN</span>
-      </div>
-    </div>
-  );
-}
-
-const LEGACY_VISUALS = {
-  "legacy-clipboard": ClipboardMock,
-  "legacy-standby": TimerMock,
-  "legacy-eyehealth": EyeHealthMock,
-};
-
 /* ================================================================== */
 /*  GitHub canlı istatistik şeridi                                     */
 /* ================================================================== */
@@ -2595,7 +2348,7 @@ export function formatRelativePush(isoDate, lang = "tr", now = Date.now()) {
 /*  PROJELER                                                           */
 /* ================================================================== */
 function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, releaseDownloads = 0 }) {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
   const updatedLabel = liveRepo?.pushed_at ? formatRelativePush(liveRepo.pushed_at, lang) : "";
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
@@ -2606,7 +2359,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, 
             reference={project.visual}
             presets={portfolioFiles.visuals.presets}
             lang={lang}
-            legacyVisuals={LEGACY_VISUALS}
+            mock={t.mock}
           />
         </div>
 
@@ -3057,80 +2810,6 @@ const META_LABEL = IS_MAC ? "⌘" : "Ctrl";
 function CommandPalette() {
   const { t, lang, setLang } = useLang();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [index, setIndex] = useState(0);
-  const inputRef = useRef(null);
-  const activeRef = useRef(null);
-
-  const commands = useMemo(() => {
-    const go = (href) => () => {
-      const el = document.querySelector(href);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    };
-    const sections = NAV_KEYS.map((n) => ({
-      id: n.href,
-      label: t.nav[n.key],
-      hint: t.cmd.goto,
-      icon: ChevronRight,
-      action: go(n.href),
-    }));
-    return [
-      ...sections,
-      {
-        id: "summary",
-        label: lang === "tr" ? "30 Saniyelik Özet (İK / TL;DR)" : "30-Second Overview (TL;DR)",
-        hint: t.cmd.open,
-        icon: FileText,
-        action: () => window.dispatchEvent(new CustomEvent("toggle-summary")),
-      },
-      {
-        id: "lang",
-        label:
-          lang === "tr" ? "Switch to English" : "Türkçe'ye geç",
-        hint: t.cmd.lang,
-        icon: Languages,
-        action: () => setLang(lang === "tr" ? "en" : "tr"),
-      },
-      {
-        id: "email",
-        label: IDENTITY.email,
-        hint: t.cmd.copyEmail,
-        icon: Copy,
-        action: () => navigator.clipboard?.writeText(IDENTITY.email),
-      },
-      {
-        id: "github",
-        label: `GitHub · @${IDENTITY.githubUser}`,
-        hint: t.cmd.open,
-        icon: Github,
-        action: () => window.open(IDENTITY.github, "_blank", "noopener"),
-      },
-      {
-        id: "linkedin",
-        label: "LinkedIn",
-        hint: t.cmd.open,
-        icon: Linkedin,
-        action: () => window.open(IDENTITY.linkedin, "_blank", "noopener"),
-      },
-      {
-        id: "top",
-        label: t.cmd.toTop,
-        hint: "",
-        icon: ArrowUpRight,
-        action: () => window.scrollTo({ top: 0, behavior: "smooth" }),
-      },
-    ];
-  }, [t, lang, setLang]);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return commands;
-    return commands.filter(
-      (c) =>
-        c.label.toLowerCase().includes(q) ||
-        (c.hint || "").toLowerCase().includes(q)
-    );
-  }, [commands, query]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -3148,104 +2827,19 @@ function CommandPalette() {
     };
   }, []);
 
-  useEffect(() => {
-    if (open) {
-      setQuery("");
-      setIndex(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
-  }, [open]);
-
-  useEffect(() => setIndex(0), [query]);
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: "nearest" });
-  }, [index]);
-
-  const run = (cmd) => {
-    setOpen(false);
-    setTimeout(() => cmd.action(), 0);
-  };
-
-  const onKeyDown = (e) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setIndex((i) => Math.min(i + 1, filtered.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (filtered[index]) run(filtered[index]);
-    } else if (e.key === "Escape") {
-      setOpen(false);
-    }
-  };
+  if (!open) return null;
 
   return (
-    <>
-      {open && (
-        <div
-          className="overlay-fade fixed inset-0 z-[90] flex items-start justify-center px-4 pt-[12vh]"
-        >
-          <div
-            className="absolute inset-0 bg-canvas/70 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="modal-pop relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl shadow-black/50"
-          >
-            <div className="flex items-center gap-3 border-b border-line px-4">
-              <Search className="h-4 w-4 shrink-0 text-faint" />
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder={t.cmd.placeholder}
-                className="w-full bg-transparent py-4 text-sm text-ink outline-none placeholder:text-faint"
-              />
-              <kbd className="shrink-0 rounded border border-line px-1.5 py-0.5 font-mono text-[10px] text-faint">
-                ESC
-              </kbd>
-            </div>
-            <div className="max-h-[320px] overflow-y-auto p-2">
-              {filtered.length === 0 ? (
-                <div className="px-3 py-8 text-center text-sm text-faint">
-                  {t.cmd.empty}
-                </div>
-              ) : (
-                filtered.map((cmd, i) => {
-                  const Icon = cmd.icon;
-                  return (
-                    <button
-                      key={cmd.id}
-                      ref={i === index ? activeRef : null}
-                      onMouseMove={() => setIndex(i)}
-                      onClick={() => run(cmd)}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
-                        i === index
-                          ? "bg-elevated text-ink"
-                          : "text-muted hover:bg-elevated/60"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0 text-accent" />
-                      <span className="truncate">{cmd.label}</span>
-                      {cmd.hint && (
-                        <span className="ml-auto shrink-0 text-[11px] uppercase tracking-wider text-faint">
-                          {cmd.hint}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <Suspense fallback={null}>
+      <CommandPaletteOverlay
+        t={t}
+        lang={lang}
+        setLang={setLang}
+        navKeys={NAV_KEYS}
+        identity={IDENTITY}
+        onClose={() => setOpen(false)}
+      />
+    </Suspense>
   );
 }
 
@@ -3711,38 +3305,9 @@ function Terminal() {
 /* ================================================================== */
 /*  30 SANİYELİK ÖZET (İK / TL;DR MODU + YAZDIRILABİLİR PDF)          */
 /* ================================================================== */
-const SUMMARY_TEXT = {
-  tr: {
-    badge: "30 sn Özet · TL;DR",
-    print: "Yazdır / PDF",
-    close: "Kapat",
-    stackTitle: "Ana Teknoloji Yığını",
-    projectsTitle: "Öne Çıkan Açık Kaynak Projeler",
-    timelineTitle: "Deneyim & Eğitim",
-    certsNote: "doğrulanmış sertifika (BTK Akademi, Kodluyoruz & IBM SkillsBuild)",
-    copied: "Kopyalandı",
-    copyEmail: "E-posta kopyala",
-    mailBtn: "Mail gönder",
-  },
-  en: {
-    badge: "30s Overview · TL;DR",
-    print: "Print / PDF",
-    close: "Close",
-    stackTitle: "Core Tech Stack",
-    projectsTitle: "Featured Open-Source Projects",
-    timelineTitle: "Experience & Education",
-    certsNote: "verified certificates (BTK Akademi, Kodluyoruz & IBM SkillsBuild)",
-    copied: "Copied",
-    copyEmail: "Copy email",
-    mailBtn: "Send email",
-  },
-};
-
 function QuickSummaryModal() {
   const { t, lang } = useLang();
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const s = SUMMARY_TEXT[lang] || SUMMARY_TEXT.tr;
 
   useEffect(() => {
     const onToggle = () => setOpen((v) => !v);
@@ -3757,216 +3322,17 @@ function QuickSummaryModal() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!open) return undefined;
-    document.body.style.overflow = "hidden";
-    document.body.classList.add("summary-open");
-    return () => {
-      document.body.style.overflow = "";
-      document.body.classList.remove("summary-open");
-    };
-  }, [open]);
-
   if (!open) return null;
 
-  const timeline = Array.isArray(t.about.timeline) ? [...t.about.timeline].reverse() : [];
-  const copyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText(IDENTITY.email);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      /* pano reddedilirse geç */
-    }
-  };
-
   return (
-    <div
-      data-summary-modal=""
-      role="dialog"
-      aria-modal="true"
-      aria-label={s.badge}
-      onClick={() => setOpen(false)}
-      className="overlay-fade fixed inset-0 z-[95] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm md:p-6"
-    >
-      <div
-        data-summary-card=""
-        onClick={(e) => e.stopPropagation()}
-        className="modal-pop flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-2xl shadow-black/80"
-      >
-        {/* Üst çubuk */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-elevated/60 px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
-            <span className="font-mono text-xs uppercase tracking-wider text-accent">
-              {s.badge}
-            </span>
-          </div>
-          <div data-print-hide="" className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/60 px-3.5 py-1.5 text-xs font-medium text-ink transition-colors hover:border-accent/50 hover:text-accent"
-            >
-              <SpriteIcon id="file-text" className="h-3.5 w-3.5" />
-              {s.print}
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label={s.close}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-accent/50 hover:text-ink"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Kaydırılabilir özet gövdesi */}
-        <div className="space-y-6 overflow-y-auto p-6 md:p-7">
-          {/* Kimlik */}
-          <div className="flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="font-display text-2xl font-semibold tracking-tight text-ink md:text-3xl">
-                {IDENTITY.name}
-                <span className="text-accent">.</span>
-              </h2>
-              <p className="mt-1 text-sm font-medium text-ink/90">{t.hero.role}</p>
-              <p className="mt-1 text-xs text-muted">
-                {t.hero.location} · {t.hero.available}
-              </p>
-            </div>
-            <div className="font-mono text-xs text-muted">
-              {t.certificates.items.length} {s.certsNote}
-            </div>
-          </div>
-
-          {/* Ana teknoloji yığını */}
-          <div>
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-faint">
-              {s.stackTitle}
-            </h3>
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              {t.skills.languages.map((l) => (
-                <span
-                  key={l.name}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-canvas/50 px-3 py-1 text-xs text-ink"
-                >
-                  <span className="font-medium">{l.name}</span>
-                  <span className="text-faint">· {l.note}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Öne çıkan projeler */}
-          <div>
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-faint">
-              {s.projectsTitle}
-            </h3>
-            <div className="mt-2.5 grid gap-3">
-              {t.projects.items.map((p) => (
-                <a
-                  key={p.id}
-                  href={p.github}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group block rounded-2xl border border-line bg-canvas/40 p-4 transition-colors hover:border-accent/40 hover:bg-canvas/70"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display text-base font-medium text-ink group-hover:text-accent">
-                        {p.name}
-                      </span>
-                      {p.status?.[0] && (
-                        <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
-                          {p.status[0]}
-                        </span>
-                      )}
-                    </div>
-                    <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted group-hover:text-ink">
-                      {p.stack.slice(0, 4).join(" · ")}
-                      <SpriteIcon id="arrow-up-right" className="h-3.5 w-3.5" />
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted">
-                    {p.description}
-                  </p>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Deneyim & Eğitim */}
-          {timeline.length > 0 && (
-            <div>
-              <h3 className="font-mono text-[11px] uppercase tracking-wider text-faint">
-                {s.timelineTitle}
-              </h3>
-              <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
-                {timeline.map((item, i) => (
-                  <div
-                    key={`${item.period}-${i}`}
-                    className={`rounded-xl border p-3.5 ${
-                      item.active ? "border-accent/35 bg-accent/[0.06]" : "border-line bg-canvas/35"
-                    }`}
-                  >
-                    <div className="font-mono text-[10px] uppercase tracking-wider text-accent">
-                      {item.period} · {item.tag}
-                    </div>
-                    <div className="mt-1 font-display text-sm font-medium text-ink">
-                      {item.title}
-                    </div>
-                    <p className="mt-1 text-xs leading-relaxed text-muted">{item.detail}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Alt iletişim çubuğu */}
-        <div
-          data-print-hide=""
-          className="flex flex-wrap items-center justify-between gap-2 border-t border-line bg-elevated/50 px-6 py-3.5"
-        >
-          <button
-            type="button"
-            onClick={copyEmail}
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-canvas/60 px-3.5 py-1.5 text-xs text-ink transition-colors hover:border-accent/40"
-          >
-            <Mail className="h-3.5 w-3.5 text-accent" />
-            <ObfuscatedEmail email={IDENTITY.email} className="font-mono" />
-            <span className="text-faint">{copied ? `✓ ${s.copied}` : ""}</span>
-          </button>
-          <div className="flex flex-wrap items-center gap-2">
-            <a
-              href={IDENTITY.github}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent/40 hover:text-ink"
-            >
-              <SpriteIcon id="github" className="h-3.5 w-3.5" /> GitHub
-            </a>
-            <a
-              href={IDENTITY.linkedin}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent/40 hover:text-ink"
-            >
-              <Linkedin className="h-3.5 w-3.5" /> LinkedIn
-            </a>
-            <button
-              type="button"
-              onClick={() => openMailto(IDENTITY.email)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-canvas transition-opacity hover:opacity-90"
-            >
-              {s.mailBtn}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Suspense fallback={null}>
+      <QuickSummaryOverlay
+        t={t}
+        lang={lang}
+        identity={IDENTITY}
+        onClose={() => setOpen(false)}
+      />
+    </Suspense>
   );
 }
 

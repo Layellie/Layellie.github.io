@@ -26,7 +26,7 @@ export default defineConfig({
     __SITE_BUILD__: JSON.stringify(resolveBuildInfo()),
   },
   plugins: [
-    tailwindSourceScope(["./App.jsx", "./main.jsx", "./components/project-visuals"]),
+    tailwindSourceScope(["./App.jsx", "./main.jsx", "./components/LegacyProjectVisuals.jsx", "./components/PortfolioOverlays.jsx", "./components/project-visuals"]),
     react(),
     tailwindcss(),
     adminRedirectPlugin(),

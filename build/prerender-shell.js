@@ -330,6 +330,17 @@ export function inlineAndPrerenderShellPlugin() {
         }
       }
 
+      // Hero Discord kartı aktifse LCP banner görselini ilk HTML'de yüksek öncelikle ön-yükle.
+      const bannerPath = view.discordPresence?.enabled ? view.discordPresence.bannerPath : "";
+      if (bannerPath) {
+        const imageSrcSet =
+          bannerPath === "/media/profile/banner/layellie-banner.webp"
+            ? ' imagesrcset="/media/profile/banner/layellie-banner-1x.webp 1x, /media/profile/banner/layellie-banner.webp 1.25x"'
+            : "";
+        const preloadTag = `<link rel="preload" as="image" href="${escapeHtml(bannerPath)}"${imageSrcSet} fetchpriority="high" />`;
+        html = html.replace("</head>", `    ${preloadTag}\n  </head>`);
+      }
+
       // Yapısal veriyi (JSON-LD) güncel portfolyo içeriğiyle (@graph) değiştir.
       const structuredDataJson = renderStructuredData({
         identity: view.identity,
