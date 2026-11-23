@@ -1053,7 +1053,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       aria-label={lang === "en" ? "Discord live profile" : "Discord canlı profil kartı"}
       data-discord-presence={isOnline ? "online" : "offline"}
       data-presence-kind={presence?.kind || "offline"}
-      className="hero-rise flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:w-[324px] lg:shrink-0"
+      className="hero-rise flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:w-[326px] lg:shrink-0"
       style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
     >
       <div
@@ -1064,7 +1064,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             src={config.bannerPath}
             srcSet={
               config.bannerPath === "/media/profile/banner/layellie-banner.webp"
-                ? "/media/profile/banner/layellie-banner-1x.webp 1x, /media/profile/banner/layellie-banner.webp 2x"
+                ? "/media/profile/banner/layellie-banner-1x.webp 1x, /media/profile/banner/layellie-banner.webp 1.25x"
                 : undefined
             }
             alt={lang === "en" ? "Layellie profile banner" : "Layellie profil banner"}
@@ -1076,7 +1076,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
         )}
       </div>
 
-      <div className="shrink-0 px-4 pb-2.5">
+      <div className="flex flex-1 flex-col px-4 pb-3">
         <div className="-mt-8 flex items-end justify-between gap-3">
           <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#050507] bg-[#0d0d11] font-display text-xl font-semibold text-accent">
             {config.avatarPath ? (
@@ -1084,12 +1084,12 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
                 src={config.avatarPath}
                 srcSet={
                   config.avatarPath === "/media/profile/avatar/layellie-pp.webp"
-                    ? "/media/profile/avatar/layellie-pp-1x.webp 1x, /media/profile/avatar/layellie-pp.webp 2x"
+                    ? "/media/profile/avatar/layellie-pp-1x.webp 1x, /media/profile/avatar/layellie-pp.webp 1.25x"
                     : undefined
                 }
                 alt={IDENTITY.name}
-                width={64}
-                height={64}
+                width={56}
+                height={56}
                 className="h-full w-full rounded-full object-cover"
                 decoding="async"
               />
@@ -1132,13 +1132,13 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           {t.hero.role}
         </p>
 
-        <div className="mt-2 overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2">
+        <div className="mt-auto overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2.5">
           {hasActivity && (
-            <div className="mb-0.5 font-mono text-[10px] tracking-[0.14em] text-accent">
+            <div className="mb-1 font-mono text-[10px] leading-none tracking-[0.14em] text-accent">
               {activityHeading}
             </div>
           )}
-          <div className="profile-marquee-mask overflow-hidden">
+          <div className="profile-marquee-mask flex items-center overflow-hidden">
             <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">
               <span className={hasActivity ? "tracking-normal" : undefined}>
                 {activityTrack}

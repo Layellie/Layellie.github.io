@@ -626,8 +626,10 @@ body {
 
 /* Hero Discord profil kartı kayan durum şeridi */
 .animate-profile-marquee {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
   width: max-content;
+  line-height: 1;
   will-change: transform;
   animation: marquee 14s linear infinite;
 }
