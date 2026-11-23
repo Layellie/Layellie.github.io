@@ -1087,7 +1087,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-4 pb-2.5">
+      <div className="px-4 pb-3.5">
         <div className="-mt-8 flex items-end justify-between gap-3">
           <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#050507] bg-[#0d0d11] font-display text-xl font-semibold text-accent">
             {config.avatarPath ? (
@@ -1128,7 +1128,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           </span>
         </div>
 
-        <div className="mt-1 truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
+        <div className="mt-2 truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
           {IDENTITY.name}
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2 font-mono text-[11px] text-faint">
@@ -1139,40 +1139,27 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             </span>
           )}
         </div>
-        <p className="mt-0.5 truncate text-xs text-muted">
+        <p className="mt-1.5 truncate text-xs text-muted">
           {t.hero.role}
         </p>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-[10px] leading-none text-ink/80">
-          {["C# / .NET", "C++ / Qt", "React", lang === "en" ? "Tech SEO" : "Teknik SEO"].map((tag) => (
-            <span
-              key={tag}
-              className="rounded-md border border-[#1f1f24] bg-[#0a0a0d] px-2 py-0.5"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-auto pt-1.5">
-          <div className="overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2">
-            {hasActivity && (
-              <div className="mb-1 font-mono text-[10px] leading-none tracking-[0.14em] text-accent">
-                {activityHeading}
-              </div>
-            )}
-            <div className="profile-marquee-mask flex items-center overflow-hidden">
-              <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">
-                <span className={hasActivity ? "tracking-normal" : undefined}>
-                  {activityTrack}
-                </span>
-                <span
-                  aria-hidden
-                  className={hasActivity ? "tracking-normal" : undefined}
-                >
-                  {activityTrack}
-                </span>
-              </div>
+        <div className="mt-3 overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2.5">
+          {hasActivity && (
+            <div className="mb-1 font-mono text-[10px] leading-none tracking-[0.14em] text-accent">
+              {activityHeading}
+            </div>
+          )}
+          <div className="profile-marquee-mask flex items-center overflow-hidden">
+            <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">
+              <span className={hasActivity ? "tracking-normal" : undefined}>
+                {activityTrack}
+              </span>
+              <span
+                aria-hidden
+                className={hasActivity ? "tracking-normal" : undefined}
+              >
+                {activityTrack}
+              </span>
             </div>
           </div>
         </div>
@@ -1234,7 +1221,7 @@ function Hero() {
           </span>
         </div>
 
-        <div className={showDiscordCard ? "relative flex flex-col gap-8 lg:flex-row lg:items-stretch lg:justify-between lg:gap-10" : "relative"}>
+        <div className={showDiscordCard ? "relative flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10" : "relative"}>
           <div className="relative min-w-0">
             <div
               aria-hidden
