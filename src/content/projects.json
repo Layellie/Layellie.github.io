@@ -24,7 +24,7 @@
       "tr": {
         "name": "StandbyAndTimer",
         "type": "Açık Kaynak · Sistem Aracı",
-        "description": "Gelişmiş RAM temizliği ve 0.5 ms sistem timer çözünürlüğü ile giriş gecikmesini düşüren; oyuncular ve ileri kullanıcılar için bir optimizasyon aracı.",
+        "description": "Windows varsayılan 15.6 ms sistem timer'ını NtSetTimerResolution ile 0.5 ms'ye kilitleyen ve RAM'de biriken standby listesini eşik tabanlı temizleyerek oyun takılmalarını azaltan WPF/MVVM sistem aracı. Oyun Modu ile CPU önceliği/affinity yönetir; NVIDIA, AMD ve DirectX shader önbelleklerini güvenli biçimde temizler.",
         "features": [
           "0.5 ms timer çözünürlüğü kilidi (NtSetTimerResolution)",
           "Standby bellek temizliği: manuel ve otomatik",
@@ -42,7 +42,7 @@
       "en": {
         "name": "StandbyAndTimer",
         "type": "Open Source · System Tool",
-        "description": "An optimization tool for gamers and power users that cuts input latency with advanced RAM purging and 0.5 ms system timer resolution.",
+        "description": "A WPF/MVVM Windows utility that locks system timer resolution from 15.6 ms to 0.5 ms via NtSetTimerResolution and clears accumulated standby RAM on demand or by threshold to cut frame stutters. Includes Game Mode CPU priority/affinity control and safe NVIDIA, AMD, and DirectX shader cache cleanup.",
         "features": [
           "0.5 ms timer resolution lock (NtSetTimerResolution)",
           "Standby memory purge: manual and automatic",
@@ -67,7 +67,9 @@
         "license": "MIT",
         "stack": [
           "C++20",
-          "Qt 6.8"
+          "Qt 6.8",
+          "QML",
+          "CMake"
         ],
         "visual": {
           "mode": "custom",
@@ -77,7 +79,7 @@
       "tr": {
         "name": "EyeHealth",
         "type": "Açık Kaynak · Göz Sağlığı",
-        "description": "20-20-20 kuralını masaüstüne taşıyan; tam ekran uygulamalarını algılayan, hafif ve yerel bir Windows mola hatırlatıcısı.",
+        "description": "Uzun ekran seanslarında 20-20-20 göz molalarını oyun, video veya sunum akışını bölmeden yöneten yerel C++20/Qt 6.8/QML Windows uygulaması. Üç modlu tam ekran algılama, çoklu monitör mola perdesi, uyku/uyanma farkındalığı, canlı TR/EN arayüz ve otomatik birim testleriyle portable ve kurulum paketi olarak dağıtılır.",
         "features": [
           "Özelleştirilebilir çalışma ve mola süreleri",
           "Üç modlu tam ekran algılama ve akıllı erteleme",
@@ -95,7 +97,7 @@
       "en": {
         "name": "EyeHealth",
         "type": "Open Source · Eye Care",
-        "description": "A lightweight, native Windows break reminder that brings the 20-20-20 rule to your desktop and responds intelligently to fullscreen apps.",
+        "description": "A native C++20 and Qt 6.8/QML Windows app that enforces 20-20-20 eye breaks without interrupting games, videos, or presentations. Features three-mode fullscreen detection, multi-monitor break overlays, sleep/wake awareness, live TR/EN switching, unit tests, and portable/installer builds.",
         "features": [
           "Customizable work and break durations",
           "Three-mode fullscreen detection and smart postponing",
@@ -134,7 +136,7 @@
       "tr": {
         "name": "AIO-Hybrid-Clipboard",
         "type": "Açık Kaynak · Masaüstü",
-        "description": "C# ve C++'ı birleştiren, dahili OCR ve tersine görsel-metin aramasına sahip yıldırım hızında hibrit bir pano yöneticisi.",
+        "description": "Ekran görüntülerinin içindeki metni arayamayan klasik pano araçlarına çözüm olarak C# 12/WPF arayüzünü yerel C++20 WinRT OCR motoruyla P/Invoke üzerinden birleştirir. 320px düşük RAM küçük resim önbelleği, SHA-256 tekrar engelleme, atomik oturum kaydı, yazım hatasına toleranslı tersine OCR araması ve parola yöneticisi gizlilik koruması sunar.",
         "features": [
           "Hibrit mimari: C# WPF arayüz + C++20 yerel motor",
           "Akıllı OCR: WinRT ile görsellerden metin çıkarma",
@@ -152,7 +154,7 @@
       "en": {
         "name": "AIO-Hybrid-Clipboard",
         "type": "Open Source · Desktop",
-        "description": "A blazing-fast hybrid clipboard manager that fuses C# and C++, with built-in OCR and reverse image-text search.",
+        "description": "Built to solve unsearchable screenshot history by bridging a virtualized C# 12/WPF interface with a native C++20 WinRT OCR engine over P/Invoke. Includes a 320px low-RAM thumbnail cache, SHA-256 deduplication, atomic session persistence, fuzzy reverse OCR search, and password-manager privacy filtering.",
         "features": [
           "Hybrid architecture: C# WPF UI + C++20 native engine",
           "Smart OCR: text extraction from images via WinRT",

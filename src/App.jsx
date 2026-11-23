@@ -58,6 +58,7 @@ import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
 import { CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
 import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
+import { FAQ_CONTENT } from "./content/faq.js";
 import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
 import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
 
@@ -100,18 +101,19 @@ function useNearViewport(ref, rootMargin = "600px 0px") {
 function DeferredProjectVisual(props) {
   const { reference, legacyVisuals = {} } = props;
   const ref = useRef(null);
-  const near = useNearViewport(ref, "1200px 0px");
-
-  // Bilinen custom legacy görseller doğrudan App.jsx içinde tanımlı olduğu için
-  // ayrı chunk beklemeksizin hemen render edilir.
-  if (reference?.mode === "custom" && legacyVisuals[reference.componentId]) {
-    const Legacy = legacyVisuals[reference.componentId];
-    return <Legacy />;
-  }
+  const near = useNearViewport(ref, "900px 0px");
 
   const placeholder = (
     <div aria-hidden className="aspect-[4/3] w-full rounded-2xl border border-line bg-elevated/60" />
   );
+
+  // Dekoratif proje mockup'ları bölüm görüş alanına yaklaşırken (900px önce)
+  // yüklenir; metin ve SEO bağlantıları ilk boyamada hazırdır.
+  if (reference?.mode === "custom" && legacyVisuals[reference.componentId]) {
+    const Legacy = legacyVisuals[reference.componentId];
+    return <div ref={ref}>{near ? <Legacy /> : placeholder}</div>;
+  }
+
   return (
     <div ref={ref}>
       {near ? (
@@ -200,22 +202,17 @@ function IconSprite() {
         <circle cx="13" cy="12" r="2" />
         <circle cx="20" cy="19" r="2" />
       </symbol>
+      <symbol id="ic-linkedin" viewBox="0 0 24 24">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
+        <circle cx="4" cy="4" r="2" />
+      </symbol>
     </svg>
   );
 }
 
 function SpriteIcon({ id, className = "h-4 w-4" }) {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={`ic ${className}`}>
       <use href={`#ic-${id}`} />
     </svg>
   );
@@ -1880,7 +1877,6 @@ export function CertificateCard({ cert, labels }) {
             {cert.skill}
           </span>
           <span className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors group-hover:text-ink">
-            <SpriteIcon id="file-text" className="h-4 w-4" />
             <span className="ui-label" data-label={labels.view} />
             <SpriteIcon id="arrow-up-right" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </span>
@@ -2401,7 +2397,7 @@ function ContributionGraph() {
           className="rounded-2xl border border-line bg-surface/40 p-6 md:p-8"
         >
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-faint">
-            <Github className="h-3.5 w-3.5" /> {t.projects.contributions}
+            <SpriteIcon id="github" className="h-3.5 w-3.5" /> {t.projects.contributions}
           </div>
           <div className="mt-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {near ? (
@@ -2777,11 +2773,47 @@ function Contact() {
               rel="noreferrer"
               className="items-center gap-2 rounded-full border border-line px-5 py-3 text-sm transition-colors hover:bg-surface"
             >
-              <Linkedin className="h-4 w-4" /> LinkedIn
+              <SpriteIcon id="linkedin" className="h-4 w-4" /> LinkedIn
             </MagneticButton>
           </div>
         </div>
       </Reveal>
+    </section>
+  );
+}
+
+/* ================================================================== */
+/*  SIK SORULAN SORULAR (CV tabanlı kısa özet)                         */
+/* ================================================================== */
+function FaqSection() {
+  const { lang } = useLang();
+  const faq = FAQ_CONTENT[lang] || FAQ_CONTENT.tr;
+
+  return (
+    <section id="sss" className={`${WRAP} py-20 md:py-24`}>
+      <div className="mb-8 flex items-baseline justify-between gap-4 border-t border-line pt-12">
+        <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+          {faq.heading}
+        </h2>
+        <span className="font-mono text-xs uppercase tracking-wider text-faint">
+          {faq.kicker}
+        </span>
+      </div>
+      <div className="border-t border-line">
+        {faq.items.map((item) => (
+          <details key={item.q} className="faq-item border-b border-line py-4">
+            <summary className="faq-summary flex cursor-pointer items-center justify-between gap-4 text-sm font-medium text-ink transition-colors hover:text-accent md:text-base">
+              {item.q}
+              <span aria-hidden className="faq-plus shrink-0 font-mono text-base text-faint transition-transform">
+                +
+              </span>
+            </summary>
+            <p className="mt-2.5 max-w-3xl text-sm leading-relaxed text-muted">
+              {item.a}
+            </p>
+          </details>
+        ))}
+      </div>
     </section>
   );
 }
@@ -2840,7 +2872,7 @@ function Footer() {
             aria-label="GitHub"
             className="transition-colors hover:text-ink"
           >
-            <Github className="h-4 w-4" />
+            <SpriteIcon id="github" className="h-4 w-4" />
           </a>
           <a
             href={IDENTITY.linkedin}
@@ -2849,7 +2881,7 @@ function Footer() {
             aria-label="LinkedIn"
             className="transition-colors hover:text-ink"
           >
-            <Linkedin className="h-4 w-4" />
+            <SpriteIcon id="linkedin" className="h-4 w-4" />
           </a>
           <a href="#anasayfa" className="transition-colors hover:text-ink">
             {t.footer.backToTop}
@@ -2865,9 +2897,7 @@ function Footer() {
 /* ================================================================== */
 function Meteors({ count: countProp }) {
   // Sayfanın en arkasında süzülen parlak saf beyaz meteorlar
-  const count =
-    countProp ??
-    (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches ? 6 : 12);
+  const count = countProp ?? 6;
   const meteors = useMemo(
     () =>
       Array.from({ length: count }, () => {
@@ -3895,7 +3925,12 @@ export default function App() {
         {mountStage >= 3 && <Projects />}
         {mountStage >= 4 && <Certificates />}
         {mountStage >= 5 && <Terminal />}
-        {mountStage >= 6 && <Contact />}
+        {mountStage >= 6 && (
+          <>
+            <FaqSection />
+            <Contact />
+          </>
+        )}
       </main>
 
       {mountStage >= 6 && <Footer />}

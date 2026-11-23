@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { FAQ_CONTENT } from "../src/content/faq.js";
 
 const CONTENT_KEYS = ["site", "projects", "certificates", "skills", "visuals"];
 
@@ -126,6 +127,10 @@ export function renderLlmsTxt({ identity, tr, en }) {
       (c) => `- ${c.title} — ${c.issuer} (${c.skill}, ${c.date})`,
     ),
     "",
+    "## Frequently Asked Questions",
+    "",
+    ...FAQ_CONTENT.en.items.map((item) => `- **${item.q}** ${item.a}`),
+    "",
     "## Links",
     "",
     `- [Portfolio](${siteUrl}/): Main portfolio website (Turkish & English)`,
@@ -153,12 +158,12 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
   ];
 
   const certsByIssuer = new Map();
-  for (const cert of en.certificates?.items || []) {
+  for (const cert of tr.certificates?.items || []) {
     certsByIssuer.set(cert.issuer, (certsByIssuer.get(cert.issuer) || 0) + 1);
   }
   const credentials = [...certsByIssuer.entries()].map(([issuer, count]) => ({
     "@type": "EducationalOccupationalCredential",
-    name: `${issuer} (${count} verified certificates)`,
+    name: `${issuer} (${count} doğrulanmış sertifika)`,
     credentialCategory: "certificate",
     recognizedBy: { "@type": "Organization", name: issuer },
   }));
@@ -181,7 +186,7 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       url: siteUrl,
       image: `${siteUrl}og.png`,
       jobTitle: tr.hero.role,
-      description: en.hero.tagline,
+      description: tr.hero.tagline,
       homeLocation: {
         "@type": "Place",
         name: "Bursa, Türkiye",
@@ -194,7 +199,6 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       sameAs: [
         identity.github,
         identity.linkedin,
-        ...en.projects.items.map((p) => p.github),
       ].filter(Boolean),
       knowsAbout,
       ...(credentials.length ? { hasCredential: credentials } : {}),
@@ -207,7 +211,7 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       inLanguage: ["tr", "en"],
       author: { "@id": personId },
     },
-    ...en.projects.items.map((p) => ({
+    ...tr.projects.items.map((p) => ({
       "@type": "SoftwareSourceCode",
       name: p.name,
       description: p.description,
@@ -221,6 +225,18 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       ...(p.year ? { datePublished: String(p.year) } : {}),
       author: { "@id": personId },
     })),
+    {
+      "@type": "FAQPage",
+      "@id": `${siteUrl}#faq`,
+      mainEntity: FAQ_CONTENT.tr.items.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.a,
+        },
+      })),
+    },
   ];
 
   return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll(
