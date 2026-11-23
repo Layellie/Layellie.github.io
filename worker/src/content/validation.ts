@@ -16,8 +16,10 @@ export const PUBLICATION_LIMITS = Object.freeze({
 
 const JSON_KEYS = ["site", "projects", "certificates", "skills", "visuals"] as const;
 
+export type MediaKind = "certificate" | "screenshot" | "profile";
+
 export interface MediaManifestEntry {
-  kind: "certificate" | "screenshot";
+  kind: MediaKind;
   recordId: string;
   index: number;
   name: string;
@@ -77,8 +79,9 @@ function jsonByteUsage(files: any): Record<string, number> {
 function validateManifestShape(manifest: MediaManifestEntry): void {
   if (
     !Number.isSafeInteger(manifest.index) || manifest.index < 0 ||
-    !["certificate", "screenshot"].includes(manifest.kind) ||
+    !["certificate", "screenshot", "profile"].includes(manifest.kind) ||
     !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(manifest.recordId) ||
+    (manifest.kind === "profile" && !["avatar", "banner"].includes(manifest.recordId)) ||
     typeof manifest.name !== "string" || !manifest.name || manifest.name.length > 255 || /[\\/]/.test(manifest.name) ||
     !Number.isSafeInteger(manifest.size) || typeof manifest.type !== "string"
   ) {
@@ -93,7 +96,7 @@ export function validateMediaReferences(files: any, manifests: MediaManifestEntr
   if (!Array.isArray(manifests) || manifests.length > PUBLICATION_LIMITS.maxChangedPaths - 4) {
     throw httpError(413, "MEDIA_COUNT_EXCEEDED", "Bir yayında çok fazla medya dosyası var.");
   }
-  const pending = new Map<string, { kind: "certificate" | "screenshot"; recordId: string }>();
+  const pending = new Map<string, { kind: MediaKind; recordId: string }>();
   for (const certificate of files.certificates.items) {
     if (!isPendingMediaPath(certificate.shared.file)) continue;
     pending.set(`certificate:${certificate.id}`, { kind: "certificate", recordId: certificate.id });
@@ -102,6 +105,13 @@ export function validateMediaReferences(files: any, manifests: MediaManifestEntr
     const visual = project.shared.visual;
     if (visual.mode !== "screenshot" || !isPendingMediaPath(visual.path)) continue;
     pending.set(`screenshot:${project.id}`, { kind: "screenshot", recordId: project.id });
+  }
+  const presence = files.site?.shared?.discordPresence;
+  if (isPendingMediaPath(presence?.avatarPath)) {
+    pending.set("profile:avatar", { kind: "profile", recordId: "avatar" });
+  }
+  if (isPendingMediaPath(presence?.bannerPath)) {
+    pending.set("profile:banner", { kind: "profile", recordId: "banner" });
   }
 
   const seen = new Set<string>();
@@ -115,6 +125,7 @@ export function validateMediaReferences(files: any, manifests: MediaManifestEntr
   for (const { kind, recordId } of pending.values()) {
     if (seen.has(`${kind}:${recordId}`)) continue;
     if (kind === "certificate") throw httpError(422, "CERTIFICATE_UPLOAD_REQUIRED", "Yeni veya değiştirilen sertifika için bir PDF seçilmelidir.");
+    if (kind === "profile") throw httpError(422, "PROFILE_MEDIA_UPLOAD_REQUIRED", "Profil fotoğrafı veya banner için PNG, JPG, WebP veya GIF görsel seçilmelidir.");
     throw httpError(422, "SCREENSHOT_UPLOAD_REQUIRED", "Ekran görüntüsü modundaki proje için PNG, JPG veya WebP görsel seçilmelidir.");
   }
 }
@@ -216,7 +227,9 @@ export async function readPublicationRequest(request: Request): Promise<Publicat
 function assertNoPendingMedia(files: any): void {
   const certificate = files.certificates.items.find((item: any) => isPendingMediaPath(item.shared.file));
   const project = files.projects.items.find((item: any) => item.shared.visual.mode === "screenshot" && isPendingMediaPath(item.shared.visual.path));
-  if (certificate || project) throw httpError(422, "PENDING_MEDIA_UNRESOLVED", "Medya yüklemesi çözümlenemedi; yayınlanacak içerikte geçici yol kaldı.");
+  const presence = files.site?.shared?.discordPresence;
+  const profilePending = isPendingMediaPath(presence?.avatarPath) || isPendingMediaPath(presence?.bannerPath);
+  if (certificate || project || profilePending) throw httpError(422, "PENDING_MEDIA_UNRESOLVED", "Medya yüklemesi çözümlenemedi; yayınlanacak içerikte geçici yol kaldı.");
 }
 
 export async function preparePublication(payload: PublishPayload, form: FormData, snapshot: RepositorySnapshot): Promise<{ files: any; changes: GitChange[] }> {
@@ -241,11 +254,18 @@ export async function preparePublication(payload: PublishPayload, form: FormData
     const extension = validateMediaUpload(bytes, file.name, file.type, manifest.kind);
     const path = manifest.kind === "certificate"
       ? `/media/certificates/${manifest.recordId}/${randomToken(12)}.${extension}`
-      : `/media/projects/${manifest.recordId}/${randomToken(12)}.${extension}`;
+      : manifest.kind === "profile"
+        ? `/media/profile/${manifest.recordId}/${randomToken(12)}.${extension}`
+        : `/media/projects/${manifest.recordId}/${randomToken(12)}.${extension}`;
     if (manifest.kind === "certificate") {
       const certificate = files.certificates.items.find((item: any) => item.id === manifest.recordId);
       if (!certificate) throw httpError(422, "CERTIFICATE_MISSING", "PDF için sertifika kaydı bulunamadı.");
       certificate.shared.file = path;
+    } else if (manifest.kind === "profile") {
+      const presence = files.site?.shared?.discordPresence;
+      if (!presence || !["avatar", "banner"].includes(manifest.recordId)) throw httpError(422, "PROFILE_MEDIA_INVALID", "Profil görseli hedefi geçersiz.");
+      if (manifest.recordId === "avatar") presence.avatarPath = path;
+      else presence.bannerPath = path;
     } else {
       const project = files.projects.items.find((item: any) => item.id === manifest.recordId);
       if (!project || project.shared.visual.mode !== "screenshot") throw httpError(422, "SCREENSHOT_PROJECT_INVALID", "Ekran görüntüsü için uygun proje kaydı bulunamadı.");
@@ -268,7 +288,7 @@ export async function preparePublication(payload: PublishPayload, form: FormData
   return { files, changes };
 }
 
-export function validateMediaSignature(bytes: Uint8Array, mime: string, kind: "certificate" | "screenshot"): string {
+export function validateMediaSignature(bytes: Uint8Array, mime: string, kind: MediaKind): string {
   const signature = detectMediaSignature(bytes);
   const normalizedMime = normalizeMediaMime(mime);
   const rule = MEDIA_FILE_TYPES.find((candidate) => candidate.kind === kind && candidate.mime === normalizedMime && candidate.signature === signature);
@@ -277,7 +297,7 @@ export function validateMediaSignature(bytes: Uint8Array, mime: string, kind: "c
   throw httpError(422, "IMAGE_SIGNATURE_INVALID", "Görsel MIME türü veya dosya imzası geçersiz.");
 }
 
-export function validateMediaUpload(bytes: Uint8Array, name: string, mime: string, kind: "certificate" | "screenshot"): string {
+export function validateMediaUpload(bytes: Uint8Array, name: string, mime: string, kind: MediaKind): string {
   const metadata = mediaTypeForMetadata(kind, name, mime);
   if (!metadata) throw httpError(422, "MEDIA_TYPE_INVALID", "Medya dosya adı ve MIME türü desteklenmiyor.");
   const extension = validateMediaSignature(bytes, mime, kind);

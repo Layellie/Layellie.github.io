@@ -4,16 +4,8 @@ export const LANYARD_API_ORIGIN = "https://api.lanyard.rest";
 const ALLOWED_STATUSES = new Set(["online", "idle", "dnd"]);
 
 const STATUS_LABELS = Object.freeze({
-  tr: {
-    online: "Discord · Çevrimiçi",
-    idle: "Discord · Boşta",
-    dnd: "Discord · Meşgul",
-  },
-  en: {
-    online: "Discord · Online",
-    idle: "Discord · Idle",
-    dnd: "Discord · Busy",
-  },
+  tr: "Çevrimiçi",
+  en: "Online",
 });
 
 const PROFESSIONAL_APP_PATTERNS = [
@@ -86,12 +78,14 @@ function formatActivityDetail(activity) {
   return "";
 }
 
-function buildActivityResult(status, activity, kind = "coding") {
+function buildActivityResult(rawStatus, activity, kind = "coding") {
   const app = formatAppName(activity.name);
   const detail = formatActivityDetail(activity);
   const label = detail && detail.toLowerCase() !== app.toLowerCase() ? `${app} · ${detail}` : app;
   return {
-    status,
+    isOnline: true,
+    status: "online",
+    rawStatus,
     kind,
     app,
     detail,
@@ -105,28 +99,30 @@ export function parseLanyardPresence(payload, { professionalFilter = true, lang 
   }
 
   const data = payload.data;
-  const status = typeof data.discord_status === "string" ? data.discord_status.toLowerCase() : "";
-  if (!ALLOWED_STATUSES.has(status)) {
+  const rawStatus = typeof data.discord_status === "string" ? data.discord_status.toLowerCase() : "";
+  if (!ALLOWED_STATUSES.has(rawStatus)) {
     return null;
   }
 
-  const localeLabels = STATUS_LABELS[lang === "en" ? "en" : "tr"];
+  const onlineLabel = STATUS_LABELS[lang === "en" ? "en" : "tr"];
   const activities = Array.isArray(data.activities)
     ? data.activities.filter((act) => act && typeof act === "object" && act.type !== 4 && cleanPresenceText(act.name, 80))
     : [];
 
   const codingActivity = activities.find(isProfessionalActivity);
   if (codingActivity) {
-    return buildActivityResult(status, codingActivity, "coding");
+    return buildActivityResult(rawStatus, codingActivity, "coding");
   }
 
   if (professionalFilter) {
     return {
-      status,
+      isOnline: true,
+      status: "online",
+      rawStatus,
       kind: "status",
       app: "Discord",
       detail: "",
-      label: localeLabels[status],
+      label: onlineLabel,
     };
   }
 
@@ -136,7 +132,9 @@ export function parseLanyardPresence(payload, { professionalFilter = true, lang 
     if (song) {
       const label = artist ? `Spotify · ${song} — ${artist}` : `Spotify · ${song}`;
       return {
-        status,
+        isOnline: true,
+        status: "online",
+        rawStatus,
         kind: "spotify",
         app: "Spotify",
         detail: artist ? `${song} — ${artist}` : song,
@@ -147,15 +145,17 @@ export function parseLanyardPresence(payload, { professionalFilter = true, lang 
 
   const fallbackActivity = activities.find((act) => cleanPresenceText(act.name, 80).toLowerCase() !== "spotify");
   if (fallbackActivity) {
-    return buildActivityResult(status, fallbackActivity, "activity");
+    return buildActivityResult(rawStatus, fallbackActivity, "activity");
   }
 
   return {
-    status,
+    isOnline: true,
+    status: "online",
+    rawStatus,
     kind: "status",
     app: "Discord",
     detail: "",
-    label: localeLabels[status],
+    label: onlineLabel,
   };
 }
 

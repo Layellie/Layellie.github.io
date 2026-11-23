@@ -5,6 +5,10 @@ export const MEDIA_FILE_TYPES = Object.freeze([
   Object.freeze({ kind: "screenshot", extensions: Object.freeze(["png"]), mime: "image/png", signature: "png", outputExtension: "png" }),
   Object.freeze({ kind: "screenshot", extensions: Object.freeze(["jpg", "jpeg"]), mime: "image/jpeg", signature: "jpeg", outputExtension: "jpg" }),
   Object.freeze({ kind: "screenshot", extensions: Object.freeze(["webp"]), mime: "image/webp", signature: "webp", outputExtension: "webp" }),
+  Object.freeze({ kind: "profile", extensions: Object.freeze(["png"]), mime: "image/png", signature: "png", outputExtension: "png" }),
+  Object.freeze({ kind: "profile", extensions: Object.freeze(["jpg", "jpeg"]), mime: "image/jpeg", signature: "jpeg", outputExtension: "jpg" }),
+  Object.freeze({ kind: "profile", extensions: Object.freeze(["webp"]), mime: "image/webp", signature: "webp", outputExtension: "webp" }),
+  Object.freeze({ kind: "profile", extensions: Object.freeze(["gif"]), mime: "image/gif", signature: "gif", outputExtension: "gif" }),
 ]);
 
 export function normalizeMediaMime(value) {
@@ -28,5 +32,7 @@ export function detectMediaSignature(bytes) {
   if ([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value)) return "png";
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "jpeg";
   if (String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP") return "webp";
+  const gifHeader = String.fromCharCode(...bytes.slice(0, 6));
+  if (gifHeader === "GIF87a" || gifHeader === "GIF89a") return "gif";
   return null;
 }

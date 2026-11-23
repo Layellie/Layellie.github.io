@@ -35,6 +35,11 @@ export const projectScreenshotPathSchema = z.string().regex(
   "Project screenshot path must reference a managed PNG, JPG or WebP image",
 );
 
+export const profileMediaPathSchema = z.string().regex(
+  new RegExp(`^/media/profile/(?:avatar|banner)/${mediaSegment}\\.(?:png|jpg|jpeg|webp|gif)$`),
+  "Profile media path must reference a managed PNG, JPG, WebP or GIF image",
+);
+
 const customVisualSchema = z.object({
   mode: z.literal("custom"),
   componentId: z.enum(["legacy-clipboard", "legacy-standby", "legacy-eyehealth"]),
@@ -398,7 +403,17 @@ export const DEFAULT_DISCORD_PRESENCE = Object.freeze({
   enabled: false,
   userId: "",
   professionalFilter: true,
+  avatarPath: "",
+  bannerPath: "",
 });
+
+const optionalProfileMediaPath = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || profileMediaPathSchema.safeParse(value).success, {
+    message: "Profil görseli yönetilen bir PNG, JPG, WebP veya GIF dosyası olmalıdır",
+  })
+  .default("");
 
 export const discordPresenceSchema = z
   .object({
@@ -411,6 +426,8 @@ export const discordPresenceSchema = z
       })
       .default(""),
     professionalFilter: z.boolean().default(true),
+    avatarPath: optionalProfileMediaPath,
+    bannerPath: optionalProfileMediaPath,
   })
   .superRefine((value, context) => {
     if (value.enabled && !DISCORD_USER_ID_REGEX.test(value.userId)) {

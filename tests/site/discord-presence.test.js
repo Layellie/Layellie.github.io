@@ -22,34 +22,39 @@ describe("discord presence (Lanyard) parser & professional filter", () => {
     expect(isValidDiscordUserId("../users/123")).toBe(false);
   });
 
-  it("hides games and Spotify when professionalFilter is ON and falls back to clean online status", () => {
-    const payload = {
-      success: true,
-      data: {
-        discord_status: "online",
-        listening_to_spotify: true,
-        spotify: { song: "Starboy", artist: "The Weeknd" },
-        activities: [
-          { type: 0, name: "Valorant", details: "Competitive" },
-          { type: 4, name: "Custom Status", state: "chilling" },
-        ],
-      },
-    };
+  it("shows online status even when Discord reports dnd or idle, and hides games/Spotify when professionalFilter is ON", () => {
+    for (const rawStatus of ["online", "idle", "dnd"]) {
+      const payload = {
+        success: true,
+        data: {
+          discord_status: rawStatus,
+          listening_to_spotify: true,
+          spotify: { song: "Starboy", artist: "The Weeknd" },
+          activities: [
+            { type: 0, name: "Valorant", details: "Competitive" },
+            { type: 4, name: "Custom Status", state: "chilling" },
+          ],
+        },
+      };
 
-    const trResult = parseLanyardPresence(payload, { professionalFilter: true, lang: "tr" });
-    expect(trResult).toEqual({
-      status: "online",
-      kind: "status",
-      app: "Discord",
-      detail: "",
-      label: "Discord · Çevrimiçi",
-    });
+      const trResult = parseLanyardPresence(payload, { professionalFilter: true, lang: "tr" });
+      expect(trResult).toEqual({
+        isOnline: true,
+        status: "online",
+        rawStatus,
+        kind: "status",
+        app: "Discord",
+        detail: "",
+        label: "Çevrimiçi",
+      });
 
-    const enResult = parseLanyardPresence(payload, { professionalFilter: true, lang: "en" });
-    expect(enResult?.label).toBe("Discord · Online");
+      const enResult = parseLanyardPresence(payload, { professionalFilter: true, lang: "en" });
+      expect(enResult?.label).toBe("Online");
+      expect(enResult?.status).toBe("online");
+    }
   });
 
-  it("shows allowlisted IDE activity even when professionalFilter is ON", () => {
+  it("shows allowlisted IDE activity as online even when Discord is dnd and professionalFilter is ON", () => {
     const payload = {
       success: true,
       data: {
@@ -66,7 +71,9 @@ describe("discord presence (Lanyard) parser & professional filter", () => {
 
     const parsed = parseLanyardPresence(payload, { professionalFilter: true, lang: "tr" });
     expect(parsed).toEqual({
-      status: "dnd",
+      isOnline: true,
+      status: "online",
+      rawStatus: "dnd",
       kind: "coding",
       app: "VS Code",
       detail: "Websitem",
@@ -141,13 +148,21 @@ describe("discord presence (Lanyard) parser & professional filter", () => {
       enabled: true,
       userId: SAMPLE_ID,
       professionalFilter: false,
+      avatarPath: "/media/profile/avatar/sample_123.png",
+      bannerPath: "/media/profile/banner/sample_456.gif",
     };
     const parsed = parsePortfolioFiles(valid);
     expect(parsed.site.shared.discordPresence).toEqual({
       enabled: true,
       userId: SAMPLE_ID,
       professionalFilter: false,
+      avatarPath: "/media/profile/avatar/sample_123.png",
+      bannerPath: "/media/profile/banner/sample_456.gif",
     });
+
+    const unsafePath = structuredClone(valid);
+    unsafePath.site.shared.discordPresence.avatarPath = "https://evil.example/a.png";
+    expect(() => parsePortfolioFiles(unsafePath)).toThrow();
 
     const diff = createDiffSummary(portfolioFiles, parsed);
     expect(diff.site.changed).toContain("shared.discordPresence");

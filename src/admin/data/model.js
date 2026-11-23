@@ -255,6 +255,13 @@ export function synchronizeUploads(files, uploads = []) {
       active.add(`screenshot:${project.id}`);
     }
   }
+  const presence = files.site?.shared?.discordPresence;
+  if (isPendingMediaPath(presence?.avatarPath) && presence.avatarPath.startsWith("/media/profile/avatar/pending.")) {
+    active.add("profile:avatar");
+  }
+  if (isPendingMediaPath(presence?.bannerPath) && presence.bannerPath.startsWith("/media/profile/banner/pending.")) {
+    active.add("profile:banner");
+  }
   const latest = new Map();
   for (const upload of uploads) latest.set(`${upload.kind}:${upload.recordId}`, upload);
   return [...latest.entries()].filter(([key]) => active.has(key)).map(([, upload]) => upload);
@@ -284,6 +291,8 @@ function normalizedDiscordPresence(site) {
     enabled: Boolean(dp?.enabled),
     userId: typeof dp?.userId === "string" ? dp.userId.trim() : "",
     professionalFilter: dp?.professionalFilter !== false,
+    avatarPath: typeof dp?.avatarPath === "string" ? dp.avatarPath.trim() : "",
+    bannerPath: typeof dp?.bannerPath === "string" ? dp.bannerPath.trim() : "",
   };
 }
 

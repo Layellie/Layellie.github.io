@@ -948,13 +948,8 @@ function AnimatedWord({ text, offset = 0 }) {
   ));
 }
 
-const DISCORD_STATUS_DOT_CLASS = {
-  online: "bg-emerald-400",
-  idle: "bg-amber-400",
-  dnd: "bg-rose-400",
-};
-
 const DISCORD_POLL_MS = 60_000;
+const PROFILE_ROLE_TAGS = ["C#", "C++", "React", "Node.js"];
 
 function useDiscordPresence(config, lang) {
   const enabled = Boolean(config?.enabled) && isValidDiscordUserId(config?.userId);
@@ -988,7 +983,7 @@ function useDiscordPresence(config, lang) {
           void load();
         }
       }, DISCORD_POLL_MS);
-    }, 1800);
+    }, 1200);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible" && Date.now() - lastFetchedAt > 45_000) {
@@ -1016,23 +1011,121 @@ function useDiscordPresence(config, lang) {
   );
 }
 
-export function DiscordPresenceBadge({ config = DISCORD_PRESENCE }) {
+const ACTIVITY_HEADING = {
+  tr: { coding: "GELİŞTİRİYOR", spotify: "DİNLİYOR", activity: "AKTİF" },
+  en: { coding: "CODING", spotify: "LISTENING", activity: "ACTIVE" },
+};
+
+export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
   const { lang } = useLang();
+  const enabled = Boolean(config?.enabled) && isValidDiscordUserId(config?.userId);
   const presence = useDiscordPresence(config, lang);
-  if (!presence) return null;
-  const dotClass = DISCORD_STATUS_DOT_CLASS[presence.status] || "bg-emerald-400";
+  if (!enabled) return null;
+
+  const isOnline = Boolean(presence?.isOnline);
+  const hasActivity = Boolean(presence && presence.kind !== "status");
+  const statusText = isOnline
+    ? lang === "en"
+      ? "Online"
+      : "Çevrimiçi"
+    : lang === "en"
+      ? "Offline"
+      : "Çevrimdışı";
+  const activityHeading = hasActivity
+    ? (ACTIVITY_HEADING[lang === "en" ? "en" : "tr"][presence.kind] || "ACTIVE")
+    : "";
+
   return (
-    <>
-      <span className="text-faint">/</span>
-      <span
-        data-discord-presence={presence.status}
-        data-presence-kind={presence.kind}
-        className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-2.5 py-0.5 text-xs text-muted"
+    <aside
+      aria-label={lang === "en" ? "Discord live profile" : "Discord canlı profil kartı"}
+      data-discord-presence={isOnline ? "online" : "offline"}
+      data-presence-kind={presence?.kind || "offline"}
+      className="hero-rise w-full max-w-[330px] overflow-hidden rounded-2xl border border-line bg-[#111114]/95 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-sm lg:w-[308px] lg:shrink-0"
+      style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
+    >
+      <div
+        className="h-24 w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.22),transparent_56%),linear-gradient(135deg,#1a1a22_0%,#0d0d11_100%)]"
       >
-        <span aria-hidden className={`h-2 w-2 rounded-full ${dotClass}`} />
-        {presence.label}
-      </span>
-    </>
+        {config.bannerPath && (
+          <img
+            src={config.bannerPath}
+            alt=""
+            className="h-full w-full object-cover"
+            decoding="async"
+          />
+        )}
+      </div>
+
+      <div className="px-4 pb-4">
+        <div className="-mt-9 flex items-end justify-between gap-3">
+          <div className="relative h-[68px] w-[68px] shrink-0 rounded-full border-4 border-[#111114] bg-elevated">
+            {config.avatarPath ? (
+              <img
+                src={config.avatarPath}
+                alt={IDENTITY.name}
+                className="h-full w-full rounded-full object-cover"
+                decoding="async"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-accent">
+                L
+              </span>
+            )}
+            <span
+              aria-hidden
+              className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-[#111114] ${
+                isOnline
+                  ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.65)]"
+                  : "bg-[#52525b]"
+              }`}
+            />
+          </div>
+
+          <span
+            className={`mb-1 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
+              isOnline
+                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                : "border-line bg-canvas/70 text-faint"
+            }`}
+          >
+            {statusText}
+          </span>
+        </div>
+
+        <div className="mt-2.5">
+          <div className="truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
+            {IDENTITY.name}
+          </div>
+          <div className="mt-0.5 font-mono text-xs text-faint">
+            @{IDENTITY.handle.toLowerCase()}
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-xl border border-line/80 bg-canvas/75 px-3 py-2.5">
+          {hasActivity ? (
+            <>
+              <div className="font-mono text-[10px] tracking-[0.14em] text-accent">
+                {activityHeading}
+              </div>
+              <div className="mt-0.5 truncate text-xs font-medium text-ink">
+                {presence.label}
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {PROFILE_ROLE_TAGS.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-md border border-line bg-surface/70 px-2 py-0.5 font-mono text-[11px] text-muted"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -1065,6 +1158,8 @@ function Hero() {
     };
   }, []);
 
+  const showDiscordCard = Boolean(DISCORD_PRESENCE?.enabled) && isValidDiscordUserId(DISCORD_PRESENCE?.userId);
+
   return (
     <section
       id="anasayfa"
@@ -1085,37 +1180,43 @@ function Hero() {
           <span className="inline-flex items-center gap-1 text-muted">
             <MapPin className="h-3.5 w-3.5" /> {t.hero.location}
           </span>
-          <DiscordPresenceBadge />
         </div>
 
-        <div className="relative">
-          <div
-            aria-hidden
-            className="hero-glow pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full blur-[60px] md:blur-[100px]"
-            style={{
-              background:
-                "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)",
-            }}
-          />
-          <h1
-            aria-label={`${IDENTITY.name}.`}
-            className="relative font-display text-[clamp(3.25rem,14vw,12.5rem)] font-semibold leading-[0.82] tracking-[-0.03em]"
-          >
-            <span aria-hidden className="block overflow-hidden pb-[0.08em]">
-              <span className="block">
-                <AnimatedWord text="Samet" />
-              </span>
-            </span>
-            <span className="sr-only"> </span>
-            <span aria-hidden className="block overflow-hidden pb-[0.08em]">
-              <span className="block">
-                <AnimatedWord text="Kaşmer" offset={5} />
-                <span className="hero-char inline-block text-accent" style={{ "--i": 11 }}>
-                  <span className="hero-dot inline-block">.</span>
+        <div className={showDiscordCard ? "relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between lg:gap-10" : "relative"}>
+          <div className="relative min-w-0">
+            <div
+              aria-hidden
+              className="hero-glow pointer-events-none absolute -left-[6%] top-1/2 -z-10 h-[130%] w-[55%] -translate-y-1/2 rounded-full blur-[60px] md:blur-[100px]"
+              style={{
+                background:
+                  "radial-gradient(circle, var(--color-accent) 0%, transparent 70%)",
+              }}
+            />
+            <h1
+              aria-label={`${IDENTITY.name}.`}
+              className={`relative font-display font-semibold leading-[0.82] tracking-[-0.03em] ${
+                showDiscordCard
+                  ? "text-[clamp(3.25rem,10.5vw,10.5rem)]"
+                  : "text-[clamp(3.25rem,14vw,12.5rem)]"
+              }`}
+            >
+              <span aria-hidden className="block overflow-hidden pb-[0.08em]">
+                <span className="block">
+                  <AnimatedWord text="Samet" />
                 </span>
               </span>
-            </span>
-          </h1>
+              <span className="sr-only"> </span>
+              <span aria-hidden className="block overflow-hidden pb-[0.08em]">
+                <span className="block">
+                  <AnimatedWord text="Kaşmer" offset={5} />
+                  <span className="hero-char inline-block text-accent" style={{ "--i": 11 }}>
+                    <span className="hero-dot inline-block">.</span>
+                  </span>
+                </span>
+              </span>
+            </h1>
+          </div>
+          {showDiscordCard && <DiscordProfileCard />}
         </div>
 
         <div

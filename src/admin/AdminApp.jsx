@@ -14,6 +14,7 @@ import {
   Github,
   HeartPulse,
   History,
+  ImageUp,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -35,8 +36,10 @@ import {
   X,
 } from "lucide-react";
 import { portfolioFiles as bundledFiles } from "../content/loadContent.js";
+import { mediaTypeForMetadata } from "../content/mediaTypes.js";
 import { DEFAULT_DISCORD_PRESENCE, DISCORD_USER_ID_REGEX } from "../content/schemas.js";
 import { adminApi } from "./api/client.js";
+import { validateFileSignature } from "./validation/files.js";
 import { clearDraft, loadDraft, restoreDraftRecord, saveDraft } from "./draft/storage.js";
 import {
   buildContentHealthReport,
@@ -307,7 +310,7 @@ export default function AdminApp({ initialSession, initialContent }) {
         <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {savedDraft && <div className="mb-6"><Notice tone="warning" title="Bu tarayıcıda yayınlanmamış taslak bulundu"><span>{new Date(savedDraft.savedAt).toLocaleString("tr-TR")} tarihinde kaydedildi. </span><button type="button" className="font-medium text-amber-100 underline" onClick={restoreSavedDraft}>Taslağı geri yükle</button><span> · </span><button type="button" className="underline" onClick={() => { clearDraft(); setSavedDraft(null); }}>Sil</button></Notice></div>}
           {flash && <div className="mb-6"><Notice tone={flash.tone} title={flash.title}>{flash.message}</Notice></div>}
-          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onChangeSite={(site) => updateFiles("site", site)} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
+          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onNavigate={switchScreen} onChangeSite={(site) => updateFiles("site", site)} onUpload={addUpload} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
           {screen === "about" && <SectionShell eyebrow="Genel site içeriği" title="Hakkımda bölümünü düzenle" description="Public sitedeki Hakkımda/About bölümünün canonical içeriği. Türkçe ve İngilizce ayrı düzenlenir; değişiklikler Yayın Merkezi üzerinden yayınlanır."><AboutEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "projects" && <ProjectsScreen projects={draft.projects} visuals={draft.visuals} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChange={(projects) => updateFiles("projects", projects)} onUpload={addUpload} />}
           {screen === "certificates" && <CertificatesScreen certificates={draft.certificates} skills={draft.skills} onChange={(certificates) => updateFiles("certificates", certificates)} onUpload={addUpload} />}
@@ -419,7 +422,7 @@ function describeDeployment(deployment) {
   };
 }
 
-function Dashboard({ files, baseFiles, base, onNavigate, onChangeSite, onRestoreBackup }) {
+function Dashboard({ files, baseFiles, base, pendingUploads, publicSiteOrigin, onNavigate, onChangeSite, onUpload, onRestoreBackup }) {
   const [analytics, setAnalytics] = useState({ status: "loading", data: null });
   const [deploy, setDeploy] = useState({ status: "loading", data: null, error: null });
   const [commits, setCommits] = useState({ status: "loading", items: [], error: null });
@@ -479,14 +482,44 @@ function Dashboard({ files, baseFiles, base, onNavigate, onChangeSite, onRestore
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.1fr]"><DiscordPresencePanel site={files.site} onChangeSite={onChangeSite} onNavigate={onNavigate} /><RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} /></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_1fr]"><DiscordPresencePanel site={files.site} pendingUploads={pendingUploads} publicSiteOrigin={publicSiteOrigin} onChangeSite={onChangeSite} onUpload={onUpload} onNavigate={onNavigate} /><RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} /></div></AdminReveal>;
 }
 
-function DiscordPresencePanel({ site, onChangeSite, onNavigate }) {
+function resolveProfilePreviewSrc(path, pendingFileUrl, publicSiteOrigin) {
+  if (pendingFileUrl) return pendingFileUrl;
+  if (!path || /\/pending\.[a-z0-9]+$/i.test(path)) return "";
+  if (publicSiteOrigin && path.startsWith("/")) {
+    return `${publicSiteOrigin.replace(/\/$/, "")}${path}`;
+  }
+  return path;
+}
+
+function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onChangeSite, onUpload, onNavigate }) {
+  const [uploadError, setUploadError] = useState("");
+  const [previewUrls, setPreviewUrls] = useState({ avatar: "", banner: "" });
+  const avatarInputRef = useRef(null);
+  const bannerInputRef = useRef(null);
+
   const current = {
     ...DEFAULT_DISCORD_PRESENCE,
     ...(site?.shared?.discordPresence || {}),
   };
+  const pendingAvatarFile = pendingUploads.find((entry) => entry.kind === "profile" && entry.recordId === "avatar")?.file || null;
+  const pendingBannerFile = pendingUploads.find((entry) => entry.kind === "profile" && entry.recordId === "banner")?.file || null;
+
+  useEffect(() => {
+    const avatarUrl = pendingAvatarFile ? URL.createObjectURL(pendingAvatarFile) : "";
+    const bannerUrl = pendingBannerFile ? URL.createObjectURL(pendingBannerFile) : "";
+    setPreviewUrls({ avatar: avatarUrl, banner: bannerUrl });
+    return () => {
+      if (avatarUrl) URL.revokeObjectURL(avatarUrl);
+      if (bannerUrl) URL.revokeObjectURL(bannerUrl);
+    };
+  }, [pendingAvatarFile, pendingBannerFile]);
+
+  const avatarSrc = resolveProfilePreviewSrc(current.avatarPath, previewUrls.avatar, publicSiteOrigin);
+  const bannerSrc = resolveProfilePreviewSrc(current.bannerPath, previewUrls.banner, publicSiteOrigin);
+
   const trimmedId = String(current.userId || "").trim();
   const idValid = DISCORD_USER_ID_REGEX.test(trimmedId);
   const idError =
@@ -510,12 +543,27 @@ function DiscordPresencePanel({ site, onChangeSite, onNavigate }) {
     });
   };
 
+  async function handleProfileImage(slot, file) {
+    if (!file) return;
+    try {
+      await validateFileSignature(file, "profile");
+      const meta = mediaTypeForMetadata("profile", file.name, file.type);
+      if (!meta) throw new Error("Desteklenmeyen görsel formatı (PNG, JPG, WebP veya GIF seç).");
+      setUploadError("");
+      const pendingPath = `/media/profile/${slot}/pending.${meta.outputExtension}`;
+      updatePresence(slot === "avatar" ? { avatarPath: pendingPath } : { bannerPath: pendingPath });
+      onUpload?.({ kind: "profile", recordId: slot, file });
+    } catch (error) {
+      setUploadError(error?.message || "Görsel doğrulanamadı.");
+    }
+  }
+
   return (
     <Panel className="p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <Radio className="h-4 w-4 text-accent" />
-          <h2 className="font-display text-xl font-semibold">Discord canlı durum (Lanyard)</h2>
+          <h2 className="font-display text-xl font-semibold">Discord profil kartı (Lanyard)</h2>
         </div>
         <span
           className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${
@@ -530,15 +578,110 @@ function DiscordPresencePanel({ site, onChangeSite, onNavigate }) {
       </div>
 
       <p className="mt-2 text-xs leading-relaxed text-muted">
-        Hero üst çubuğunda Lanyard üzerinden Discord çevrimiçi/IDE durumunu gösterir. Kullanmak için Discord hesabınla{" "}
-        <span className="font-mono text-ink">discord.gg/lanyard</span> sunucusuna katılman yeterlidir.
+        Hero’da <strong className="font-medium text-ink">Samet Kaşmer</strong> başlığının sağında kendi PP ve Banner’ınla Discord tarzı canlı kart gösterir. Discord’da çevrimiçi, boşta veya meşgul ol fark etmez; sitede her zaman <strong className="font-medium text-emerald-300">Çevrimiçi</strong> görünür.
       </p>
 
-      <div className="mt-4 space-y-3">
+      {/* Canlı profil kartı önizlemesi */}
+      <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-[#111114]">
+        <div className="h-20 w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.22),transparent_56%),linear-gradient(135deg,#1a1a22_0%,#0d0d11_100%)]">
+          {bannerSrc && <img src={bannerSrc} alt="Banner önizleme" className="h-full w-full object-cover" />}
+        </div>
+        <div className="px-4 pb-3.5">
+          <div className="-mt-8 flex items-end justify-between gap-3">
+            <div className="relative h-14 w-14 shrink-0 rounded-full border-4 border-[#111114] bg-elevated">
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="PP önizleme" className="h-full w-full rounded-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center font-display text-lg font-semibold text-accent">L</span>
+              )}
+              <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#111114] ${current.enabled ? "bg-emerald-400" : "bg-[#52525b]"}`} />
+            </div>
+            <span className={`mb-0.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${current.enabled ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-line bg-canvas/70 text-faint"}`}>
+              {current.enabled ? "Çevrimiçi" : "Kart kapalı"}
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between gap-2">
+            <div>
+              <div className="font-display text-base font-semibold leading-tight text-ink">{site?.shared?.identity?.name || "Samet Kaşmer"}</div>
+              <div className="font-mono text-[11px] text-faint">@{(site?.shared?.identity?.handle || "layellie").toLowerCase()}</div>
+            </div>
+            <span className="rounded-md border border-line bg-canvas/70 px-2 py-0.5 font-mono text-[10px] text-muted">
+              {current.professionalFilter ? "Sadece IDE" : "IDE · Spotify · Oyun"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* PP & Banner yükleme */}
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-line bg-canvas/40 px-3 py-2.5">
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            aria-label="Profil fotoğrafı seç"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              void handleProfileImage("avatar", file);
+            }}
+          />
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-ink">Profil Fotoğrafı (PP)</div>
+            <div className="truncate text-[10px] text-faint">{current.avatarPath ? "Yüklü · PNG/JPG/WebP/GIF" : "Varsayılan L monogram"}</div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button variant="ghost" className="min-h-8 px-2.5 text-xs" onClick={() => avatarInputRef.current?.click()}>
+              <ImageUp className="h-3.5 w-3.5" />
+              Seç
+            </Button>
+            {current.avatarPath && (
+              <Button variant="ghost" aria-label="Profil fotoğrafını kaldır" className="min-h-8 px-2 text-xs text-red-300" onClick={() => updatePresence({ avatarPath: "" })}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-line bg-canvas/40 px-3 py-2.5">
+          <input
+            ref={bannerInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            aria-label="Banner görseli seç"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              void handleProfileImage("banner", file);
+            }}
+          />
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-ink">Banner Görseli</div>
+            <div className="truncate text-[10px] text-faint">{current.bannerPath ? "Yüklü · PNG/JPG/WebP/GIF" : "Varsayılan koyu-lime geçiş"}</div>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button variant="ghost" className="min-h-8 px-2.5 text-xs" onClick={() => bannerInputRef.current?.click()}>
+              <ImageUp className="h-3.5 w-3.5" />
+              Seç
+            </Button>
+            {current.bannerPath && (
+              <Button variant="ghost" aria-label="Banner görselini kaldır" className="min-h-8 px-2 text-xs text-red-300" onClick={() => updatePresence({ bannerPath: "" })}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {uploadError && <div className="mt-2 text-xs text-red-300">{uploadError}</div>}
+
+      <div className="mt-3 space-y-2.5">
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-canvas/40 px-4 py-3">
           <div className="min-w-0">
             <div className="text-sm font-medium text-ink">Canlı durum rozeti</div>
-            <div className="mt-0.5 text-xs text-faint">Kapalıyken dış istek atılmaz ve DOM’a hiç eklenmez.</div>
+            <div className="mt-0.5 text-xs text-faint">Kapalıyken kart gizlenir, dış istek atılmaz ve DOM’a eklenmez.</div>
           </div>
           <button
             type="button"
@@ -562,7 +705,7 @@ function DiscordPresencePanel({ site, onChangeSite, onNavigate }) {
           <div className="min-w-0">
             <div className="text-sm font-medium text-ink">Profesyonellik filtresi</div>
             <div className="mt-0.5 text-xs text-faint">
-              Açıkken oyunlar ve Spotify gizlenir; yalnızca IDE (VS Code, Visual Studio, Rider vb.) veya sade çevrimiçi durumu gösterilir.
+              Açıkken oyunlar ve Spotify gizlenir; yalnızca IDE (VS Code, Visual Studio, Rider vb.) gösterilir.
             </div>
           </div>
           <button
@@ -594,17 +737,7 @@ function DiscordPresencePanel({ site, onChangeSite, onNavigate }) {
           error={idError}
         />
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-faint">
-          <span>
-            Önizleme:{" "}
-            <strong className="font-medium text-muted">
-              {!current.enabled
-                ? "Gizli"
-                : current.professionalFilter
-                  ? "VS Code · Websitem / Discord · Çevrimiçi"
-                  : "IDE · Spotify · Oyun / Çevrimiçi"}
-            </strong>
-          </span>
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-1 text-[11px] text-faint">
           <button
             type="button"
             onClick={() => onNavigate("publish")}

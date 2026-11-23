@@ -220,7 +220,45 @@ describe("Worker security primitives", () => {
   it("validates server-side PDF and image magic bytes", () => {
     expect(validateMediaSignature(new TextEncoder().encode("%PDF-1.7"), "application/pdf", "certificate")).toBe("pdf");
     expect(validateMediaSignature(Uint8Array.from([0xff, 0xd8, 0xff, 0x00]), "image/jpeg", "screenshot")).toBe("jpg");
+    expect(validateMediaSignature(new TextEncoder().encode("GIF89a\x01\x00"), "image/gif", "profile")).toBe("gif");
+    expect(() => validateMediaSignature(new TextEncoder().encode("GIF89a\x01\x00"), "image/gif", "screenshot")).toThrow();
     expect(() => validateMediaSignature(new TextEncoder().encode("fake"), "application/pdf", "certificate")).toThrow();
+  });
+
+  it("publishes managed Discord profile avatar and banner uploads and rejects invalid slots", async () => {
+    const snapshot = repositorySnapshot();
+    const files = structuredClone(portfolioFiles);
+    files.site.shared.discordPresence = {
+      enabled: true,
+      userId: "295537828396269569",
+      professionalFilter: true,
+      avatarPath: "/media/profile/avatar/pending.png",
+      bannerPath: "/media/profile/banner/pending.gif",
+    };
+    const pngBytes = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
+    const gifBytes = new TextEncoder().encode("GIF89a\x01\x00");
+    const avatarFile = new File([pngBytes], "pp.png", { type: "image/png" });
+    const bannerFile = new File([gifBytes], "banner.gif", { type: "image/gif" });
+    const form = new FormData();
+    form.set("file-0", avatarFile);
+    form.set("file-1", bannerFile);
+
+    const payload = {
+      ...publishPayload(files, snapshot),
+      media: [
+        { kind: "profile", recordId: "avatar", index: 0, name: avatarFile.name, size: avatarFile.size, type: avatarFile.type },
+        { kind: "profile", recordId: "banner", index: 1, name: bannerFile.name, size: bannerFile.size, type: bannerFile.type },
+      ],
+    };
+    const prepared = await preparePublication(payload, form, snapshot);
+    expect(prepared.files.site.shared.discordPresence.avatarPath).toMatch(/^\/media\/profile\/avatar\/[a-zA-Z0-9_-]+\.png$/);
+    expect(prepared.files.site.shared.discordPresence.bannerPath).toMatch(/^\/media\/profile\/banner\/[a-zA-Z0-9_-]+\.gif$/);
+    expect(prepared.changes.some((change) => change.path.startsWith("public/media/profile/avatar/"))).toBe(true);
+    expect(prepared.changes.some((change) => change.path.startsWith("public/media/profile/banner/"))).toBe(true);
+
+    expect(() => validateMediaReferences(files, [
+      { kind: "profile", recordId: "other", index: 0, name: "pp.png", size: 12, type: "image/png" },
+    ])).toThrowError(expect.objectContaining({ code: "MEDIA_MANIFEST_INVALID" }));
   });
 
   it.each([
