@@ -936,7 +936,7 @@ function AnimatedWord({ text, offset = 0 }) {
 }
 
 const DISCORD_POLL_MS = 60_000;
-const IDLE_MARQUEE_TEXT = "C 0 D 3   ·   C 0 D 3   ·   C 0 D 3   ·   C 0 D 3   ·   ";
+const IDLE_MARQUEE_TEXT = "C 0 D 3 · C 0 D 3 · C 0 D 3 · C 0 D 3 ·\u00A0";
 
 function formatIstanbulClock(date = new Date()) {
   try {
@@ -1048,7 +1048,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
     : "";
 
   const activityTrack = hasActivity
-    ? `${presence.label}   ·   ${presence.label}   ·   `
+    ? `${presence.label} · ${presence.label} ·\u00A0`
     : IDLE_MARQUEE_TEXT;
 
   return (
@@ -1129,12 +1129,12 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           )}
           <div className="profile-marquee-mask overflow-hidden">
             <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">
-              <span className={hasActivity ? "pr-6 tracking-normal" : "pr-6"}>
+              <span className={hasActivity ? "tracking-normal" : undefined}>
                 {activityTrack}
               </span>
               <span
                 aria-hidden
-                className={hasActivity ? "pr-6 tracking-normal" : "pr-6"}
+                className={hasActivity ? "tracking-normal" : undefined}
               >
                 {activityTrack}
               </span>
