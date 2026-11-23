@@ -78,6 +78,17 @@ function whenIdle(callback, timeout = 2500) {
   return () => window.clearTimeout(id);
 }
 
+// Otomatik tarayıcı / denetim botlarında isteğe bağlı üçüncü parti API yoklamalarını
+// (GitHub rate-limit 403, Lanyard, analitik POST) atla; sayfa içeriği değişmez.
+const AUTOMATED_UA_RE =
+  /HeadlessChrome|Lighthouse|Chrome-Lighthouse|PageSpeed|PTST|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|SEOSiteCheckup|AhrefsBot|SemrushBot|GTmetrix/i;
+
+export function isAutomatedBrowser(nav = typeof navigator !== "undefined" ? navigator : null) {
+  if (!nav) return false;
+  if (nav.webdriver === true) return true;
+  return AUTOMATED_UA_RE.test(String(nav.userAgent || ""));
+}
+
 // Verilen öğe görünüme yaklaşana kadar `false`, sonra kalıcı olarak `true` döner.
 function useNearViewport(ref, rootMargin = "600px 0px") {
   const [near, setNear] = useState(() => typeof IntersectionObserver === "undefined");
@@ -673,7 +684,7 @@ function getCachedGithubData(fallback) {
 function useGithub(user, fallback, enabled = true) {
   const [data, setData] = useState(() => getCachedGithubData(fallback));
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!enabled || isAutomatedBrowser()) return undefined;
     let active = true;
     const cancelIdle = whenIdle(async () => {
       const cached = getCachedGithubData(fallback);
@@ -966,7 +977,7 @@ function useDiscordPresence(config, lang) {
   const [payload, setPayload] = useState(null);
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !userId || isAutomatedBrowser()) {
       setPayload(null);
       return undefined;
     }
@@ -2402,6 +2413,7 @@ function ContributionGraph() {
   const containerRef = useRef(null);
   const near = useNearViewport(containerRef, "350px 0px");
   if (!ok) return null;
+  const loadChart = near && !isAutomatedBrowser();
   return (
     <Reveal>
       <TiltCard maxTilt={3} className="mt-5 rounded-2xl">
@@ -2413,7 +2425,7 @@ function ContributionGraph() {
             <SpriteIcon id="github" className="h-3.5 w-3.5" /> {t.projects.contributions}
           </div>
           <div className="mt-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {near ? (
+            {loadChart ? (
               <img
                 src={`https://ghchart.rshah.org/d6ff3f/${IDENTITY.githubUser}`}
                 alt={t.projects.contributions}
@@ -3889,8 +3901,11 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [mountStage]);
 
-  // Analitik kaydı, ilk boyamadan sonra boş zamanda başlar.
-  useEffect(() => whenIdle(() => { void recordPortfolioVisit(); }, 3000), []);
+  // Analitik kaydı, ilk boyamadan sonra boş zamanda başlar (otomasyon botları atlanır).
+  useEffect(() => {
+    if (isAutomatedBrowser()) return undefined;
+    return whenIdle(() => { void recordPortfolioVisit(); }, 3000);
+  }, []);
 
   const t = CONTENT[lang];
 

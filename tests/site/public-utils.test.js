@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { formatRelativePush, resolveInitialLang } from "../../src/App.jsx";
+import { formatRelativePush, isAutomatedBrowser, resolveInitialLang } from "../../src/App.jsx";
 
 describe("public site language query and relative push helpers", () => {
+  it("detects headless and crawler browsers without flagging regular users", () => {
+    expect(isAutomatedBrowser({ webdriver: true, userAgent: "Mozilla/5.0 Chrome/131.0" })).toBe(true);
+    expect(isAutomatedBrowser({ webdriver: false, userAgent: "Mozilla/5.0 HeadlessChrome/131.0" })).toBe(true);
+    expect(isAutomatedBrowser({ webdriver: false, userAgent: "Mozilla/5.0 Chrome-Lighthouse" })).toBe(true);
+    expect(isAutomatedBrowser({ webdriver: false, userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36" })).toBe(false);
+    expect(isAutomatedBrowser(null)).toBe(false);
+  });
+
   it("prioritizes ?lang query param over stored preference and falls back to tr", () => {
     expect(resolveInitialLang("?lang=en", "tr")).toBe("en");
     expect(resolveInitialLang("?lang=TR", "en")).toBe("tr");
