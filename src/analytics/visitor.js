@@ -71,7 +71,7 @@ export async function recordPortfolioVisit({ storage = globalThis.localStorage, 
     }
     if (record.sent) return false;
 
-    const response = await fetcher(`${origin.replace(/\/$/, "")}/api/analytics/visit`, { method: "POST", mode: "cors", credentials: "omit", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: record.visitorId, schemaVersion: 1 }) });
+    const response = await fetcher(`${origin.replace(/\/$/, "")}/api/analytics/visit`, { method: "POST", mode: "cors", credentials: "omit", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: record.visitorId, schemaVersion: 1 }) });
     // Only remember the day as counted after a confirmed 204/2xx. A blocked,
     // CORS-failed or 5xx request leaves the record unsent so the next load
     // retries with the same daily UUID (staying idempotent for the day).

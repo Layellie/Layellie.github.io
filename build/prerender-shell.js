@@ -139,11 +139,12 @@ export function renderLlmsTxt({ identity, tr, en }) {
 
 /**
  * Güncel portfolyo içeriğinden Schema.org `@graph` JSON-LD üretir
- * (Person + WebSite + yayınlı açık kaynak projeler için SoftwareSourceCode).
+ * (ProfilePage + Person + Credentials + WebSite + yayınlı açık kaynak projeler).
  */
-export function renderStructuredData({ identity, tr, en }) {
+export function renderStructuredData({ identity, tr, en }, today = new Date().toISOString().slice(0, 10)) {
   const siteUrl = "https://layellie.dev/";
   const personId = `${siteUrl}#person`;
+  const websiteId = `${siteUrl}#website`;
   const knowsAbout = [
     ...new Set([
       ...tr.skills.languages.map((l) => l.name),
@@ -151,7 +152,28 @@ export function renderStructuredData({ identity, tr, en }) {
     ]),
   ];
 
+  const credentials = (en.certificates?.items || []).map((cert) => ({
+    "@type": "EducationalOccupationalCredential",
+    name: cert.title,
+    credentialCategory: "certificate",
+    ...(cert.code ? { identifier: cert.code } : {}),
+    ...(cert.file ? { url: `${siteUrl.replace(/\/$/, "")}${cert.file}` } : {}),
+    recognizedBy: {
+      "@type": "Organization",
+      name: cert.issuer,
+    },
+  }));
+
   const graph = [
+    {
+      "@type": "ProfilePage",
+      "@id": `${siteUrl}#profilepage`,
+      url: siteUrl,
+      name: `${identity.name} — ${tr.hero.role}`,
+      dateModified: today,
+      mainEntity: { "@id": personId },
+      isPartOf: { "@id": websiteId },
+    },
     {
       "@type": "Person",
       "@id": personId,
@@ -160,12 +182,27 @@ export function renderStructuredData({ identity, tr, en }) {
       url: siteUrl,
       image: `${siteUrl}og.png`,
       jobTitle: tr.hero.role,
-      sameAs: [identity.github, identity.linkedin].filter(Boolean),
+      description: en.hero.tagline,
+      homeLocation: {
+        "@type": "Place",
+        name: "Bursa, Türkiye",
+      },
+      knowsLanguage: ["tr", "en"],
+      alumniOf: [
+        { "@type": "CollegeOrUniversity", name: "Kütahya Dumlupınar Üniversitesi" },
+        { "@type": "CollegeOrUniversity", name: "Anadolu Üniversitesi" },
+      ],
+      sameAs: [
+        identity.github,
+        identity.linkedin,
+        ...en.projects.items.map((p) => p.github),
+      ].filter(Boolean),
       knowsAbout,
+      ...(credentials.length ? { hasCredential: credentials } : {}),
     },
     {
       "@type": "WebSite",
-      "@id": `${siteUrl}#website`,
+      "@id": websiteId,
       url: siteUrl,
       name: `${identity.name} — ${tr.hero.role}`,
       inLanguage: ["tr", "en"],
@@ -191,6 +228,26 @@ export function renderStructuredData({ identity, tr, en }) {
     "</script",
     "<\\/script",
   );
+}
+
+/**
+ * JavaScript çalıştırmayan arama motoru ve AI tarayıcıları (OAI-SearchBot, PerplexityBot vb.)
+ * için biyografi, zaman çizelgesi, projeler ve sertifikaları saf HTML olarak sunar.
+ */
+export function renderNoScriptSummary({ identity, tr }) {
+  const timeline = (tr.about?.timeline || [])
+    .map((item) => `<li><strong>${escapeHtml(item.period)}</strong> — ${escapeHtml(item.title)}: ${escapeHtml(item.detail)}</li>`)
+    .join("");
+  const projects = (tr.projects?.items || [])
+    .map(
+      (p) =>
+        `<li><a href="${escapeHtml(p.github)}">${escapeHtml(p.name)}</a> (${escapeHtml(p.stack.join(", "))}): ${escapeHtml(p.description)}</li>`,
+    )
+    .join("");
+  const certs = (tr.certificates?.items || [])
+    .map((c) => `<li>${escapeHtml(c.title)} — ${escapeHtml(c.issuer)} (${escapeHtml(c.date)})</li>`)
+    .join("");
+  return `<noscript><article><h2>${escapeHtml(identity.name)} (${escapeHtml(identity.handle)})</h2><p>${escapeHtml(tr.hero.role)} — ${escapeHtml(tr.hero.location)}. ${escapeHtml(tr.hero.tagline)}</p>${(tr.about?.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join("")}<h3>Deneyim &amp; Eğitim</h3><ul>${timeline}</ul><h3>Açık Kaynak Projeler</h3><ul>${projects}</ul><h3>Doğrulanmış Sertifikalar</h3><ul>${certs}</ul><p><a href="${escapeHtml(identity.github)}">GitHub</a> · <a href="${escapeHtml(identity.linkedin)}">LinkedIn</a> · <a href="https://layellie.dev/llms.txt">llms.txt</a></p></article></noscript>`;
 }
 
 /**
@@ -248,7 +305,8 @@ export function inlineAndPrerenderShellPlugin() {
 
       let html = String(htmlAsset.source);
 
-      // Harici stylesheet bağlantısını bulup CSS içeriğini inline <style> olarak göm.
+      // Harici stylesheet bağlantısını bulup CSS içeriğini inline <style> olarak göm
+      // ve index.html'deki küçük başlangıç <style> bloğunu tek etikette birleştir.
       for (const [fileName, item] of Object.entries(bundle)) {
         if (item.type === "asset" && fileName.endsWith(".css")) {
           const cssHref = `/${fileName.replaceAll("\\", "/")}`;
@@ -258,7 +316,8 @@ export function inlineAndPrerenderShellPlugin() {
           );
           if (linkRegex.test(html)) {
             const cssText = String(item.source).replaceAll("</style", "<\\/style");
-            html = html.replace(linkRegex, `<style>${cssText}</style>`);
+            html = html.replace("<style>html{background:#08080a;color-scheme:dark}</style>", "");
+            html = html.replace(linkRegex, `<style>html{background:#08080a;color-scheme:dark}${cssText}</style>`);
             delete bundle[fileName];
           }
         }
@@ -275,18 +334,26 @@ export function inlineAndPrerenderShellPlugin() {
         `<script type="application/ld+json">${structuredDataJson}</script>`,
       );
 
-      // <div id="root"></div> içine ilk ekran HTML'ini yerleştir.
+      // <div id="root"></div> içine ilk ekran HTML'ini + JS-siz tarayıcılar için <noscript> özetini yerleştir.
+      const noScriptHtml = renderNoScriptSummary({
+        identity: view.identity,
+        tr: view.content.tr,
+      });
       html = html.replace(
         '<div id="root"></div>',
-        `<div id="root">${shellHtml}</div>`,
+        `<div id="root">${shellHtml}</div>\n    ${noScriptHtml}`,
       );
 
-      // Vite'ın <head>'e eklediği module script etiketini </body> öncesine taşı (0 render-blocking head kaynağı).
+      // Vite'ın <head>'e eklediği module script etiketini </body> öncesine taşı
+      // ve açık `defer` ekleyerek statik render-blocking denetleyicilerini de memnun et.
       const movedScripts = [];
       html = html.replace(
         /\s*<script\s+type=["']module["'][^>]*src=["'][^"']+["'][^>]*><\/script>/gi,
         (match) => {
-          movedScripts.push(match.trim());
+          const normalized = /\b(?:defer|async)\b/i.test(match)
+            ? match.trim()
+            : match.trim().replace("<script ", "<script defer ");
+          movedScripts.push(normalized);
           return "";
         },
       );
