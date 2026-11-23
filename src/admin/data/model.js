@@ -278,8 +278,20 @@ function collectionDiff(before, after) {
   };
 }
 
+function normalizedDiscordPresence(site) {
+  const dp = site?.shared?.discordPresence;
+  return {
+    enabled: Boolean(dp?.enabled),
+    userId: typeof dp?.userId === "string" ? dp.userId.trim() : "",
+    professionalFilter: dp?.professionalFilter !== false,
+  };
+}
+
 function siteTextDiff(before, after) {
   const changed = [];
+  if (JSON.stringify(normalizedDiscordPresence(before)) !== JSON.stringify(normalizedDiscordPresence(after))) {
+    changed.push("shared.discordPresence");
+  }
   for (const locale of ["tr", "en"]) {
     if (JSON.stringify(before?.[locale]?.about) !== JSON.stringify(after?.[locale]?.about)) {
       changed.push(`${locale}.about`);

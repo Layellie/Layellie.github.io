@@ -13,6 +13,11 @@
         "stars": 10,
         "followers": 58
       }
+    },
+    "discordPresence": {
+      "enabled": false,
+      "userId": "",
+      "professionalFilter": true
     }
   },
   "tr": {

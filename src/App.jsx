@@ -56,7 +56,9 @@ import {
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // Public site: içerik build sırasında doğrulanıp hazır JSON olarak gömülür (bkz. build/precomputed-content.js),
 // bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
-import { CONTENT, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
+import { CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
+import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
+import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
 import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
 
 // Proje görselleri (Zod şemalarıyla doğrulanan MockupRenderer) ekran dışında olduğundan ayrı chunk'ta yüklenir.
@@ -946,6 +948,94 @@ function AnimatedWord({ text, offset = 0 }) {
   ));
 }
 
+const DISCORD_STATUS_DOT_CLASS = {
+  online: "bg-emerald-400",
+  idle: "bg-amber-400",
+  dnd: "bg-rose-400",
+};
+
+const DISCORD_POLL_MS = 60_000;
+
+function useDiscordPresence(config, lang) {
+  const enabled = Boolean(config?.enabled) && isValidDiscordUserId(config?.userId);
+  const userId = enabled ? config.userId.trim() : "";
+  const professionalFilter = config?.professionalFilter !== false;
+  const [payload, setPayload] = useState(null);
+
+  useEffect(() => {
+    if (!enabled || !userId) {
+      setPayload(null);
+      return undefined;
+    }
+    let active = true;
+    let controller = null;
+    let intervalId = 0;
+    let lastFetchedAt = 0;
+
+    const load = async () => {
+      if (!active) return;
+      controller?.abort();
+      controller = new AbortController();
+      lastFetchedAt = Date.now();
+      const next = await fetchDiscordPresence(userId, { signal: controller.signal });
+      if (active) setPayload(next);
+    };
+
+    const cancelIdle = whenIdle(() => {
+      void load();
+      intervalId = window.setInterval(() => {
+        if (typeof document === "undefined" || document.visibilityState === "visible") {
+          void load();
+        }
+      }, DISCORD_POLL_MS);
+    }, 1800);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastFetchedAt > 45_000) {
+        void load();
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+    }
+
+    return () => {
+      active = false;
+      cancelIdle();
+      controller?.abort();
+      if (intervalId) window.clearInterval(intervalId);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+      }
+    };
+  }, [enabled, userId]);
+
+  return useMemo(
+    () => (enabled ? parseLanyardPresence(payload, { professionalFilter, lang }) : null),
+    [enabled, payload, professionalFilter, lang]
+  );
+}
+
+export function DiscordPresenceBadge({ config = DISCORD_PRESENCE }) {
+  const { lang } = useLang();
+  const presence = useDiscordPresence(config, lang);
+  if (!presence) return null;
+  const dotClass = DISCORD_STATUS_DOT_CLASS[presence.status] || "bg-emerald-400";
+  return (
+    <>
+      <span className="text-faint">/</span>
+      <span
+        data-discord-presence={presence.status}
+        data-presence-kind={presence.kind}
+        className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-2.5 py-0.5 text-xs text-muted"
+      >
+        <span aria-hidden className={`h-2 w-2 rounded-full ${dotClass}`} />
+        {presence.label}
+      </span>
+    </>
+  );
+}
+
 function Hero() {
   const { t } = useLang();
   const ref = useRef(null);
@@ -995,6 +1085,7 @@ function Hero() {
           <span className="inline-flex items-center gap-1 text-muted">
             <MapPin className="h-3.5 w-3.5" /> {t.hero.location}
           </span>
+          <DiscordPresenceBadge />
         </div>
 
         <div className="relative">
@@ -1239,17 +1330,32 @@ const SKILL_CROSSLINK_TEXT = {
   },
 };
 
-function jumpToDataTarget(attr, value) {
-  if (typeof document === "undefined") return;
-  const el = Array.from(document.querySelectorAll(`[${attr}]`)).find(
-    (node) => node.getAttribute(attr) === value
-  );
-  if (!el) return;
+function highlightElement(el) {
   el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
   el.classList.remove("crosslink-pulse");
   void el.offsetWidth;
   el.classList.add("crosslink-pulse");
   window.setTimeout(() => el.classList.remove("crosslink-pulse"), 2300);
+}
+
+function jumpToDataTarget(attr, value) {
+  if (typeof document === "undefined") return;
+  const findTarget = () =>
+    Array.from(document.querySelectorAll(`[${attr}]`)).find(
+      (node) => node.getAttribute(attr) === value
+    );
+  const el = findTarget();
+  if (el) {
+    highlightElement(el);
+    return;
+  }
+  if (attr === "data-cert-code" && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("reset-cert-filter"));
+    window.requestAnimationFrame(() => {
+      const revealed = findTarget();
+      if (revealed) highlightElement(revealed);
+    });
+  }
 }
 
 function FeatureCard({ item, interactive, active, onSelect }) {
@@ -1591,7 +1697,16 @@ function Skills() {
 /* ================================================================== */
 /*  SERTİFİKALAR                                                       */
 /* ================================================================== */
+const CERT_SPRITE_ICONS = {
+  Award: "award",
+  Hash: "hash",
+  BadgeCheck: "badge-check",
+  Calendar: "calendar",
+  FileText: "file-text",
+};
+
 export function CertificateCard({ cert, labels }) {
+  const spriteId = CERT_SPRITE_ICONS[cert.icon];
   return (
     <a
       href={cert.file}
@@ -1602,7 +1717,11 @@ export function CertificateCard({ cert, labels }) {
     >
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-elevated text-accent">
-          <SafeIcon name={cert.icon} fallback="Award" className="h-6 w-6" />
+          {spriteId ? (
+            <SpriteIcon id={spriteId} className="h-6 w-6" />
+          ) : (
+            <SafeIcon name={cert.icon} fallback="Award" className="h-6 w-6" />
+          )}
         </div>
         <span
           className="ui-label inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-1 text-[11px] font-medium text-accent"
@@ -1646,20 +1765,36 @@ export function CertificateCard({ cert, labels }) {
   );
 }
 
-function Certificates() {
-  const { t } = useLang();
+export function Certificates() {
+  const { t, lang } = useLang();
   const c = t.certificates;
   const scrollerRef = useRef(null);
+  const [category, setCategory] = useState("all");
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const labels = { verified: c.verified, validates: c.validates, view: c.view };
+  const categories = useMemo(() => summarizeCertificateCategories(c.items), [c.items]);
+  const visibleItems = useMemo(() => filterCertificates(c.items, category), [c.items, category]);
 
-  const updateArrows = () => {
+  const updateArrows = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     setAtStart(el.scrollLeft <= 4);
     setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
-  };
+  }, []);
+
+  useEffect(() => {
+    const onReset = () => setCategory("all");
+    window.addEventListener("reset-cert-filter", onReset);
+    return () => window.removeEventListener("reset-cert-filter", onReset);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (el) el.scrollLeft = 0;
+    const frame = window.requestAnimationFrame(updateArrows);
+    return () => window.cancelAnimationFrame(frame);
+  }, [category, visibleItems.length, updateArrows]);
 
   useEffect(() => {
     let frame = 0;
@@ -1676,7 +1811,7 @@ function Certificates() {
       window.removeEventListener("resize", onResize);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [updateArrows]);
 
   const scrollByCard = (dir) => {
     const el = scrollerRef.current;
@@ -1710,8 +1845,37 @@ function Certificates() {
         <SectionHeader index={c.index} title={c.title} kicker={c.kicker} />
       </Reveal>
 
+      {categories.length > 2 && (
+        <div
+          role="group"
+          aria-label={lang === "tr" ? "Sertifika kategorileri" : "Certificate categories"}
+          data-cert-filters=""
+          className="mt-8 flex flex-wrap gap-2"
+        >
+          {categories.map((cat) => {
+            const active = category === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                aria-pressed={active}
+                data-cert-filter={cat.id}
+                onClick={() => setCategory(cat.id)}
+                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                  active
+                    ? "border-accent bg-accent text-canvas"
+                    : "border-line bg-surface/50 text-muted hover:border-accent/40 hover:text-ink"
+                }`}
+              >
+                {`${cat.label[lang]} (${cat.count})`}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <Reveal delay={0.05}>
-        <div className="relative mt-14 md:mt-16">
+        <div className="relative mt-10 md:mt-12">
           <Arrow dir={-1} disabled={atStart} side="left" />
           <Arrow dir={1} disabled={atEnd} side="right" />
 
@@ -1720,7 +1884,7 @@ function Certificates() {
             onScroll={updateArrows}
             className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth py-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {c.items.map((cert) => (
+            {visibleItems.map((cert) => (
               <TiltCard
                 key={cert.code}
                 data-card=""

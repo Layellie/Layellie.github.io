@@ -202,4 +202,26 @@ describe("AdminApp", () => {
     expect(screen.getAllByText("AIO-Hybrid-Clipboard").length).toBeGreaterThan(0);
     expect(screen.getByText("Gerçek kart önizlemesi · TR")).toBeTruthy();
   });
+
+  it("lets admin toggle Discord live presence and professional filter with ID validation", () => {
+    render(<AdminApp initialSession={session} initialContent={content} />);
+
+    const presenceSwitch = screen.getByRole("switch", { name: "Discord canlı durum rozeti" });
+    const filterSwitch = screen.getByRole("switch", { name: "Profesyonellik filtresi" });
+    const idInput = screen.getByLabelText(/Discord User ID/i);
+
+    expect(presenceSwitch.getAttribute("aria-checked")).toBe("false");
+    expect(filterSwitch.getAttribute("aria-checked")).toBe("true");
+
+    fireEvent.click(presenceSwitch);
+    expect(presenceSwitch.getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByText(/17-20 haneli geçerli bir Discord User ID girilmelidir/i)).toBeTruthy();
+
+    fireEvent.change(idInput, { target: { value: "123456789012345678" } });
+    expect(screen.queryByText(/17-20 haneli geçerli bir Discord User ID girilmelidir/i)).toBeNull();
+
+    fireEvent.click(filterSwitch);
+    expect(filterSwitch.getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByText(/1 değişiklik/i)).toBeTruthy();
+  });
 });

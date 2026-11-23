@@ -21,5 +21,6 @@ export const portfolioFiles = parsePortfolioFiles({
 const hydrated = buildContentView(portfolioFiles);
 
 export const IDENTITY = hydrated.identity;
+export const DISCORD_PRESENCE = hydrated.discordPresence;
 export const CONTENT = hydrated.content;
 export const SKILL_RELATIONS = buildSkillRelationIndex(portfolioFiles);

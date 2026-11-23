@@ -61,6 +61,7 @@ export function buildContentView(files, { includeVisual = true } = {}) {
 
   return {
     identity: parsed.site.shared.identity,
+    discordPresence: parsed.site.shared.discordPresence,
     content,
   };
 }

@@ -392,9 +392,42 @@ const siteLocaleSchema = z
   })
   .strict();
 
+export const DISCORD_USER_ID_REGEX = /^\d{17,20}$/;
+
+export const DEFAULT_DISCORD_PRESENCE = Object.freeze({
+  enabled: false,
+  userId: "",
+  professionalFilter: true,
+});
+
+export const discordPresenceSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    userId: z
+      .string()
+      .trim()
+      .refine((value) => value === "" || DISCORD_USER_ID_REGEX.test(value), {
+        message: "Discord User ID 17-20 haneli rakamlardan oluşmalıdır",
+      })
+      .default(""),
+    professionalFilter: z.boolean().default(true),
+  })
+  .superRefine((value, context) => {
+    if (value.enabled && !DISCORD_USER_ID_REGEX.test(value.userId)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["userId"],
+        message: "Canlı durum açıkken geçerli bir Discord User ID (17-20 rakam) gereklidir",
+      });
+    }
+  });
+
 export const siteFileSchema = z.object({
   schemaVersion: z.literal(1),
-  shared: z.object({ identity: identitySchema }),
+  shared: z.object({
+    identity: identitySchema,
+    discordPresence: discordPresenceSchema.optional().default({ ...DEFAULT_DISCORD_PRESENCE }),
+  }),
   tr: siteLocaleSchema,
   en: siteLocaleSchema,
 });

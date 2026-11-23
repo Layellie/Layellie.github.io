@@ -19,6 +19,7 @@ import {
   Menu,
   Monitor,
   Plus,
+  Radio,
   Redo2,
   RefreshCw,
   Rocket,
@@ -34,6 +35,7 @@ import {
   X,
 } from "lucide-react";
 import { portfolioFiles as bundledFiles } from "../content/loadContent.js";
+import { DEFAULT_DISCORD_PRESENCE, DISCORD_USER_ID_REGEX } from "../content/schemas.js";
 import { adminApi } from "./api/client.js";
 import { clearDraft, loadDraft, restoreDraftRecord, saveDraft } from "./draft/storage.js";
 import {
@@ -68,6 +70,7 @@ import {
   Notice,
   Panel,
   SortableList,
+  TextField,
 } from "./components/AdminUi.jsx";
 
 const NAVIGATION = [
@@ -304,7 +307,7 @@ export default function AdminApp({ initialSession, initialContent }) {
         <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {savedDraft && <div className="mb-6"><Notice tone="warning" title="Bu tarayıcıda yayınlanmamış taslak bulundu"><span>{new Date(savedDraft.savedAt).toLocaleString("tr-TR")} tarihinde kaydedildi. </span><button type="button" className="font-medium text-amber-100 underline" onClick={restoreSavedDraft}>Taslağı geri yükle</button><span> · </span><button type="button" className="underline" onClick={() => { clearDraft(); setSavedDraft(null); }}>Sil</button></Notice></div>}
           {flash && <div className="mb-6"><Notice tone={flash.tone} title={flash.title}>{flash.message}</Notice></div>}
-          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
+          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onChangeSite={(site) => updateFiles("site", site)} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
           {screen === "about" && <SectionShell eyebrow="Genel site içeriği" title="Hakkımda bölümünü düzenle" description="Public sitedeki Hakkımda/About bölümünün canonical içeriği. Türkçe ve İngilizce ayrı düzenlenir; değişiklikler Yayın Merkezi üzerinden yayınlanır."><AboutEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "projects" && <ProjectsScreen projects={draft.projects} visuals={draft.visuals} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChange={(projects) => updateFiles("projects", projects)} onUpload={addUpload} />}
           {screen === "certificates" && <CertificatesScreen certificates={draft.certificates} skills={draft.skills} onChange={(certificates) => updateFiles("certificates", certificates)} onUpload={addUpload} />}
@@ -416,7 +419,7 @@ function describeDeployment(deployment) {
   };
 }
 
-function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
+function Dashboard({ files, baseFiles, base, onNavigate, onChangeSite, onRestoreBackup }) {
   const [analytics, setAnalytics] = useState({ status: "loading", data: null });
   const [deploy, setDeploy] = useState({ status: "loading", data: null, error: null });
   const [commits, setCommits] = useState({ status: "loading", items: [], error: null });
@@ -476,7 +479,143 @@ function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div><div className="mt-5"><RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} /></div></AdminReveal>;
+  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.1fr]"><DiscordPresencePanel site={files.site} onChangeSite={onChangeSite} onNavigate={onNavigate} /><RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} /></div></AdminReveal>;
+}
+
+function DiscordPresencePanel({ site, onChangeSite, onNavigate }) {
+  const current = {
+    ...DEFAULT_DISCORD_PRESENCE,
+    ...(site?.shared?.discordPresence || {}),
+  };
+  const trimmedId = String(current.userId || "").trim();
+  const idValid = DISCORD_USER_ID_REGEX.test(trimmedId);
+  const idError =
+    current.enabled && !idValid
+      ? "Canlı durum açıkken 17-20 haneli geçerli bir Discord User ID girilmelidir."
+      : trimmedId && !idValid
+        ? "Discord User ID yalnızca 17-20 haneli rakamlardan oluşmalıdır."
+        : undefined;
+
+  const updatePresence = (patch) => {
+    if (typeof onChangeSite !== "function" || !site) return;
+    onChangeSite({
+      ...site,
+      shared: {
+        ...site.shared,
+        discordPresence: {
+          ...current,
+          ...patch,
+        },
+      },
+    });
+  };
+
+  return (
+    <Panel className="p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Radio className="h-4 w-4 text-accent" />
+          <h2 className="font-display text-xl font-semibold">Discord canlı durum (Lanyard)</h2>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${
+            current.enabled && idValid
+              ? "border-accent/30 bg-accent/10 text-accent"
+              : "border-line bg-canvas/60 text-faint"
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${current.enabled && idValid ? "bg-accent" : "bg-faint"}`} />
+          {current.enabled ? "Aktif" : "Kapalı"}
+        </span>
+      </div>
+
+      <p className="mt-2 text-xs leading-relaxed text-muted">
+        Hero üst çubuğunda Lanyard üzerinden Discord çevrimiçi/IDE durumunu gösterir. Kullanmak için Discord hesabınla{" "}
+        <span className="font-mono text-ink">discord.gg/lanyard</span> sunucusuna katılman yeterlidir.
+      </p>
+
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-canvas/40 px-4 py-3">
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-ink">Canlı durum rozeti</div>
+            <div className="mt-0.5 text-xs text-faint">Kapalıyken dış istek atılmaz ve DOM’a hiç eklenmez.</div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={current.enabled}
+            aria-label="Discord canlı durum rozeti"
+            onClick={() => updatePresence({ enabled: !current.enabled })}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
+              current.enabled ? "border-accent bg-accent" : "border-line bg-elevated"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full transition-transform ${
+                current.enabled ? "translate-x-5.5 bg-canvas" : "translate-x-1 bg-muted"
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-canvas/40 px-4 py-3">
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-ink">Profesyonellik filtresi</div>
+            <div className="mt-0.5 text-xs text-faint">
+              Açıkken oyunlar ve Spotify gizlenir; yalnızca IDE (VS Code, Visual Studio, Rider vb.) veya sade çevrimiçi durumu gösterilir.
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={current.professionalFilter}
+            aria-label="Profesyonellik filtresi"
+            onClick={() => updatePresence({ professionalFilter: !current.professionalFilter })}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${
+              current.professionalFilter ? "border-accent bg-accent" : "border-line bg-elevated"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full transition-transform ${
+                current.professionalFilter ? "translate-x-5.5 bg-canvas" : "translate-x-1 bg-muted"
+              }`}
+            />
+          </button>
+        </div>
+
+        <TextField
+          label="Discord User ID"
+          hint="17-20 haneli sayı · Geliştirici Modu > ID Kopyala"
+          value={current.userId}
+          onChange={(event) => updatePresence({ userId: event.target.value })}
+          placeholder="Örn. 123456789012345678"
+          inputMode="numeric"
+          maxLength={20}
+          error={idError}
+        />
+
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-faint">
+          <span>
+            Önizleme:{" "}
+            <strong className="font-medium text-muted">
+              {!current.enabled
+                ? "Gizli"
+                : current.professionalFilter
+                  ? "VS Code · Websitem / Discord · Çevrimiçi"
+                  : "IDE · Spotify · Oyun / Çevrimiçi"}
+            </strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => onNavigate("publish")}
+            className="text-accent underline-offset-4 hover:underline"
+          >
+            Değişikliği yayınla →
+          </button>
+        </div>
+      </div>
+    </Panel>
+  );
 }
 
 function RecentCommitsPanel({ commits, onRefresh }) {
