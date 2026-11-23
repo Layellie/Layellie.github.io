@@ -29,12 +29,36 @@ function analyticsHeaders(config: ReturnType<typeof getConfig>): HeadersInit {
   return { "Access-Control-Allow-Origin": config.publicSiteOrigin, Vary: "Origin", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type", "Cache-Control": "no-store" };
 }
 
+function allowedHealthOrigin(request: Request, config: ReturnType<typeof getConfig>): string | null {
+  const origin = request.headers.get("Origin");
+  if (!origin) return config.publicSiteOrigin;
+  const allowed = [config.publicSiteOrigin, config.adminOrigin, config.devOrigin].filter(Boolean);
+  return allowed.includes(origin) ? origin : null;
+}
+
+function healthHeaders(corsOrigin: string, includeCacheControl = false): HeadersInit {
+  return {
+    "Access-Control-Allow-Origin": corsOrigin,
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    ...(includeCacheControl ? { "Cache-Control": "no-store" } : {}),
+  };
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/") && !url.pathname.startsWith("/auth/")) return env.ASSETS.fetch(request);
     try {
       const config = getConfig(env);
+      if (url.pathname === "/api/health" && (request.method === "GET" || request.method === "OPTIONS")) {
+        const corsOrigin = allowedHealthOrigin(request, config);
+        if (!corsOrigin) throw httpError(403, "ORIGIN_REJECTED", "İstek origin doğrulamasından geçemedi.");
+        if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: healthHeaders(corsOrigin, true) });
+        const cf = (request as Request & { cf?: { colo?: unknown } }).cf;
+        const edge = typeof cf?.colo === "string" && /^[A-Z]{3}$/.test(cf.colo) ? cf.colo : "GLOBAL";
+        return json({ ok: true, service: "layellie-edge", edge, timestamp: new Date().toISOString() }, 200, healthHeaders(corsOrigin));
+      }
       if (url.pathname === "/api/analytics/visit" && request.method === "OPTIONS") {
         if (request.headers.get("Origin") !== config.publicSiteOrigin) throw httpError(403, "ORIGIN_REJECTED", "İstek origin doğrulamasından geçemedi.");
         return new Response(null, { status: 204, headers: analyticsHeaders(config) });

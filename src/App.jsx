@@ -60,7 +60,10 @@ import { CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, s
 import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
 import { FAQ_CONTENT } from "./content/faq.js";
 import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
+import { fetchWorkerHealth, sumReleaseDownloads } from "./presence/systemStatus.js";
 import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
+
+const SITE_BUILD = typeof __SITE_BUILD__ !== "undefined" ? __SITE_BUILD__ : { commit: "local", builtAt: "" };
 
 // Proje görselleri (Zod şemalarıyla doğrulanan MockupRenderer) ekran dışında olduğundan ayrı chunk'ta yüklenir.
 const ProjectVisual = lazy(() => import("./components/project-visuals/ProjectVisual.jsx"));
@@ -216,6 +219,9 @@ function IconSprite() {
       <symbol id="ic-linkedin" viewBox="0 0 24 24">
         <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
         <circle cx="4" cy="4" r="2" />
+      </symbol>
+      <symbol id="ic-download" viewBox="0 0 24 24">
+        <path d="M12 15V3M7 10l5 5 5-5M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       </symbol>
     </svg>
   );
@@ -654,15 +660,15 @@ function useScrollSpy(ids) {
   return active;
 }
 
-// GitHub canlı verisi: istatistikler + repo listesi (localStorage önbellek + canlı fetch)
-const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v1";
+// GitHub canlı verisi: istatistikler + repo listesi + release indirmeleri (localStorage önbellek + canlı fetch)
+const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v2";
 const GITHUB_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 
 function getCachedGithubData(fallback) {
-  if (typeof window === "undefined") return { stats: fallback, repos: [] };
+  if (typeof window === "undefined") return { stats: fallback, repos: [], downloadsByRepo: {} };
   try {
     const raw = window.localStorage.getItem(GITHUB_CACHE_KEY);
-    if (!raw) return { stats: fallback, repos: [] };
+    if (!raw) return { stats: fallback, repos: [], downloadsByRepo: {} };
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object" && parsed.stats) {
       return {
@@ -672,17 +678,22 @@ function getCachedGithubData(fallback) {
           followers: typeof parsed.stats.followers === "number" ? parsed.stats.followers : fallback.followers,
         },
         repos: Array.isArray(parsed.repos) ? parsed.repos : [],
+        downloadsByRepo:
+          parsed.downloadsByRepo && typeof parsed.downloadsByRepo === "object"
+            ? parsed.downloadsByRepo
+            : {},
         timestamp: typeof parsed.timestamp === "number" ? parsed.timestamp : 0,
       };
     }
   } catch {
     /* localStorage erişim/ayrıştırma hatası → yok say */
   }
-  return { stats: fallback, repos: [] };
+  return { stats: fallback, repos: [], downloadsByRepo: {} };
 }
 
-function useGithub(user, fallback, enabled = true) {
+function useGithub(user, fallback, enabled = true, releaseRepos = []) {
   const [data, setData] = useState(() => getCachedGithubData(fallback));
+  const releaseKey = releaseRepos.join(",");
   useEffect(() => {
     if (!enabled || isAutomatedBrowser()) return undefined;
     let active = true;
@@ -693,15 +704,25 @@ function useGithub(user, fallback, enabled = true) {
         return;
       }
       try {
-        const [reposRes, userRes] = await Promise.all([
+        const repoList = releaseKey ? releaseKey.split(",").filter(Boolean) : [];
+        const [reposRes, userRes, ...releaseResults] = await Promise.all([
           fetch(`https://api.github.com/users/${user}/repos?per_page=100&sort=updated`),
           fetch(`https://api.github.com/users/${user}`),
+          ...repoList.map((name) =>
+            fetch(`https://api.github.com/repos/${user}/${encodeURIComponent(name)}/releases?per_page=30`)
+              .then((res) => (res.ok ? res.json() : null))
+              .then((rels) => [name.toLowerCase(), sumReleaseDownloads(rels)])
+              .catch(() => [name.toLowerCase(), 0]),
+          ),
         ]);
         if (!reposRes.ok || !userRes.ok) return;
         const repos = await reposRes.json();
         const u = await userRes.json();
         const list = Array.isArray(repos) ? repos : [];
         const stars = list.reduce((s, r) => s + (r.stargazers_count || 0), 0);
+        const downloadsByRepo = Object.fromEntries(
+          releaseResults.filter((entry) => Array.isArray(entry) && entry[1] > 0),
+        );
         if (active) {
           const freshData = {
             stats: {
@@ -710,6 +731,7 @@ function useGithub(user, fallback, enabled = true) {
               followers: u.followers ?? fallback.followers,
             },
             repos: list,
+            downloadsByRepo,
           };
           setData(freshData);
           try {
@@ -729,7 +751,7 @@ function useGithub(user, fallback, enabled = true) {
       active = false;
       cancelIdle();
     };
-  }, [user, fallback, enabled]);
+  }, [user, fallback, enabled, releaseKey]);
   return data;
 }
 
@@ -2572,7 +2594,7 @@ export function formatRelativePush(isoDate, lang = "tr", now = Date.now()) {
 /* ================================================================== */
 /*  PROJELER                                                           */
 /* ================================================================== */
-function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo }) {
+function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, releaseDownloads = 0 }) {
   const { lang } = useLang();
   const updatedLabel = liveRepo?.pushed_at ? formatRelativePush(liveRepo.pushed_at, lang) : "";
   return (
@@ -2599,6 +2621,13 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo }
               <span className="inline-flex items-center gap-1.5 font-mono text-muted">
                 <SpriteIcon id="star" className="h-3.5 w-3.5 text-accent" />
                 {liveRepo.stargazers_count ?? 0}
+                {releaseDownloads > 0 && (
+                  <>
+                    {" · "}
+                    <SpriteIcon id="download" className="h-3.5 w-3.5 text-accent" />
+                    {releaseDownloads.toLocaleString(lang === "tr" ? "tr-TR" : "en-US")}
+                  </>
+                )}
                 {updatedLabel ? ` · ${updatedLabel}` : ""}
               </span>
             )}
@@ -2673,7 +2702,16 @@ function Projects() {
   const p = t.projects;
   const sectionRef = useRef(null);
   const near = useNearViewport(sectionRef, "400px 0px");
-  const { stats, repos } = useGithub(IDENTITY.githubUser, IDENTITY.statsFallback, near);
+  const flagshipRepos = useMemo(
+    () => p.items.map((proj) => githubRepositoryName(proj.github)).filter(Boolean),
+    [p.items],
+  );
+  const { stats, repos, downloadsByRepo } = useGithub(
+    IDENTITY.githubUser,
+    IDENTITY.statsFallback,
+    near,
+    flagshipRepos,
+  );
 
   // Flagship projeler elde küratörlü; geri kalan repolar otomatik listelenir.
   const moreRepos = useMemo(() => selectMoreGithubRepositories(repos, p.items), [repos, p.items]);
@@ -2704,6 +2742,7 @@ function Projects() {
               viewLabel={p.view}
               statusLabel={p.statusLabel}
               liveRepo={repoName ? repoByName.get(repoName) || null : null}
+              releaseDownloads={repoName ? downloadsByRepo?.[repoName] || 0 : 0}
             />
           );
         })}
@@ -2875,6 +2914,55 @@ function AnalyticsToggle() {
   );
 }
 
+function SystemStatusPill() {
+  const { lang } = useLang();
+  const ref = useRef(null);
+  const near = useNearViewport(ref, "250px 0px");
+  const [health, setHealth] = useState(null);
+
+  const probe = useCallback(async (signal) => {
+    const res = await fetchWorkerHealth({ signal });
+    if (!signal?.aborted) setHealth(res);
+  }, []);
+
+  useEffect(() => {
+    if (!near || isAutomatedBrowser() || !import.meta.env.VITE_ADMIN_ORIGIN) return undefined;
+    const controller = new AbortController();
+    void probe(controller.signal);
+    return () => controller.abort();
+  }, [near, probe]);
+
+  const isDegraded = health?.configured && health.ok === false;
+  const label = health?.ok
+    ? lang === "en"
+      ? `Edge · ${health.latencyMs} ms`
+      : `Edge · ${health.latencyMs} ms`
+    : isDegraded
+      ? lang === "en"
+        ? "Edge offline"
+        : "Edge yanıt yok"
+      : lang === "en"
+        ? "Systems operational"
+        : "Sistemler aktif";
+
+  const title = health?.ok
+    ? `Cloudflare Edge (${health.edge}) · #${SITE_BUILD.commit}`
+    : `Build #${SITE_BUILD.commit}`;
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={() => void probe()}
+      title={title}
+      className={`inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 font-mono text-xs transition-colors ${NAV_ACTION_INDICATOR}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${isDegraded ? "bg-muted" : "bg-emerald-400"}`} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
 function Footer() {
   const { t } = useLang();
   return (
@@ -2886,7 +2974,8 @@ function Footer() {
           © 2026 Samet Kaşmer —{" "}
           <span className="text-faint">@{IDENTITY.handle}</span>
         </span>
-        <div className="flex flex-wrap items-center justify-center gap-5">
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <SystemStatusPill />
           <AnalyticsToggle />
           <a
             href={IDENTITY.github}
@@ -3179,6 +3268,7 @@ const TERMINAL_CMDS = [
   "open",
   "contact",
   "social",
+  "status",
   "snake",
   "typing",
   "date",
@@ -3192,6 +3282,7 @@ const TERMINAL_EXTRA_TEXT = {
       timeline: "eğitim & sertifika zaman çizelgesi",
       cat: "proje detayı (ör: cat standby)",
       open: "link aç (github, linkedin, standby...)",
+      status: "canlı altyapı, Worker gecikmesi & sürüm",
       snake: "mini yılan oyunu (easter egg)",
       typing: "kod yazma hız testi — WPM (easter egg)",
     },
@@ -3211,6 +3302,7 @@ const TERMINAL_EXTRA_TEXT = {
       timeline: "education & certification timeline",
       cat: "project details (e.g. cat standby)",
       open: "open link (github, linkedin, standby...)",
+      status: "live infrastructure, Worker latency & build",
       snake: "mini snake game (easter egg)",
       typing: "code typing speed test — WPM (easter egg)",
     },
@@ -3396,6 +3488,36 @@ function Terminal() {
           out(`github    ${IDENTITY.github}`, "link"),
           out(`linkedin  ${IDENTITY.linkedin}`, "link"),
         ];
+      case "status": {
+        const originLabel = typeof window !== "undefined" ? window.location.origin : "https://layellie.dev";
+        const buildLabel = SITE_BUILD.builtAt
+          ? `#${SITE_BUILD.commit} (${SITE_BUILD.builtAt})`
+          : `#${SITE_BUILD.commit}`;
+        void fetchWorkerHealth().then((res) => {
+          const line = res.ok
+            ? out(`  edge      OK · ${res.latencyMs} ms · POP ${res.edge}`, "accent")
+            : res.configured
+              ? out(
+                  lang === "tr"
+                    ? "  edge      yanıt alınamadı (çevrimdışı veya engellendi)"
+                    : "  edge      unreachable (offline or blocked)",
+                  "error",
+                )
+              : out(
+                  lang === "tr"
+                    ? "  edge      yerel geliştirme modu (Worker yapılandırılmadı)"
+                    : "  edge      local dev mode (Worker origin not configured)",
+                  "muted",
+                );
+          setLines((prev) => [...prev, line]);
+        });
+        return [
+          out(lang === "tr" ? "Sistem & Altyapı Durumu:" : "System & Infrastructure Status:", "accent"),
+          out(`  site      ${originLabel} · OK`),
+          out(`  build     ${buildLabel}`),
+          out(lang === "tr" ? "  edge      Cloudflare Worker kontrol ediliyor…" : "  edge      probing Cloudflare Worker…", "muted"),
+        ];
+      }
       case "date":
         return [
           out(

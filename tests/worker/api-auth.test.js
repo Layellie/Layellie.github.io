@@ -408,4 +408,32 @@ describe("Worker authentication boundary", () => {
       ],
     });
   });
+
+  it("serves /api/health to allowed public origins and rejects untrusted origins", async () => {
+    const allowed = await exports.default.fetch(new Request("https://admin.test/api/health", {
+      headers: { Origin: env.PUBLIC_SITE_ORIGIN },
+    }));
+    expect(allowed.status).toBe(200);
+    expect(allowed.headers.get("Access-Control-Allow-Origin")).toBe(env.PUBLIC_SITE_ORIGIN);
+    expect(allowed.headers.get("Cache-Control")).toBe("no-store");
+    expect(await allowed.json()).toMatchObject({
+      ok: true,
+      service: "layellie-edge",
+      edge: expect.stringMatching(/^[A-Z]{3}|GLOBAL$/),
+      timestamp: expect.any(String),
+    });
+
+    const preflight = await exports.default.fetch(new Request("https://admin.test/api/health", {
+      method: "OPTIONS",
+      headers: { Origin: env.PUBLIC_SITE_ORIGIN },
+    }));
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("Access-Control-Allow-Origin")).toBe(env.PUBLIC_SITE_ORIGIN);
+
+    const rejected = await exports.default.fetch(new Request("https://admin.test/api/health", {
+      headers: { Origin: "https://evil.example" },
+    }));
+    expect(rejected.status).toBe(403);
+    expect((await rejected.json()).code).toBe("ORIGIN_REJECTED");
+  });
 });

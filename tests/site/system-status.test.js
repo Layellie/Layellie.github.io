@@ -1,0 +1,58 @@
+import { describe, expect, it, vi } from "vitest";
+import { fetchWorkerHealth, sumReleaseDownloads } from "../../src/presence/systemStatus.js";
+
+describe("system status and release download helpers", () => {
+  it("sums GitHub release asset download counts safely", () => {
+    expect(sumReleaseDownloads(null)).toBe(0);
+    expect(sumReleaseDownloads([])).toBe(0);
+    expect(
+      sumReleaseDownloads([
+        { assets: [{ download_count: 120 }, { download_count: 38 }] },
+        { assets: [{ download_count: 300 }, { download_count: -5 }, { download_count: "bad" }] },
+        { assets: null },
+      ]),
+    ).toBe(458);
+  });
+
+  it("measures Worker /api/health latency and parses edge POP metadata", async () => {
+    let tick = 100;
+    const fetcher = vi.fn(async (url, init) => {
+      tick = 142;
+      expect(url).toBe("https://admin.layellie.dev/api/health");
+      expect(init.method).toBe("GET");
+      expect(init.credentials).toBe("omit");
+      return Response.json({
+        ok: true,
+        service: "layellie-edge",
+        edge: "IST",
+        timestamp: "2026-11-23T19:45:00.000Z",
+      });
+    });
+
+    const result = await fetchWorkerHealth({
+      origin: "https://admin.layellie.dev/",
+      fetcher,
+      now: () => tick,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      configured: true,
+      service: "layellie-edge",
+      edge: "IST",
+      timestamp: "2026-11-23T19:45:00.000Z",
+      latencyMs: 42,
+    });
+  });
+
+  it("fails closed without throwing when origin is missing or request errors", async () => {
+    expect(await fetchWorkerHealth({ origin: "" })).toEqual({ ok: false, configured: false });
+    const failing = vi.fn(async () => {
+      throw new Error("network down");
+    });
+    expect(await fetchWorkerHealth({ origin: "https://admin.layellie.dev", fetcher: failing })).toEqual({
+      ok: false,
+      configured: true,
+    });
+  });
+});
