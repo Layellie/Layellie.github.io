@@ -5,7 +5,7 @@ export const FAQ_CONTENT = {
     items: [
       {
         q: "Hangi roller ve projeler için açığım?",
-        a: "Bursa merkezli olarak Junior Full-Stack ve C#/C++ masaüstü veya sistem geliştirici rollerine açığım. Data Destek Yazılım A.Ş. stajımda ön uç ve OOP pratiği edindim; ofis, hibrit veya uzaktan çalışmaya uygunum.",
+        a: "Full-Stack Developer olarak modern web uygulamaları, teknik SEO ve performans optimizasyonu ile C#/C++ masaüstü ve sistem yazılımları geliştiriyorum. Bursa merkezli olarak tam zamanlı, hibrit veya uzaktan yeni projelere ve ekiplere katılmaya hazırım.",
       },
       {
         q: "Hangi teknolojilerle geliştirme yapıyorum?",
@@ -27,7 +27,7 @@ export const FAQ_CONTENT = {
     items: [
       {
         q: "What roles and projects am I open to?",
-        a: "Based in Bursa, Türkiye, I am open to Junior Full-Stack and C#/C++ desktop or systems developer roles. After my front-end and OOP internship at Data Destek Yazılım A.Ş., I am available for on-site, hybrid, or remote work.",
+        a: "As a Full-Stack Developer, I build modern web applications, handle technical SEO and performance optimization, and develop C#/C++ desktop and system tools. Based in Bursa, Türkiye, I am ready for full-time, hybrid, or remote roles and collaborations.",
       },
       {
         q: "Which technologies do I build with?",
