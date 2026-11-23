@@ -152,16 +152,15 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
     ]),
   ];
 
-  const credentials = (en.certificates?.items || []).map((cert) => ({
+  const certsByIssuer = new Map();
+  for (const cert of en.certificates?.items || []) {
+    certsByIssuer.set(cert.issuer, (certsByIssuer.get(cert.issuer) || 0) + 1);
+  }
+  const credentials = [...certsByIssuer.entries()].map(([issuer, count]) => ({
     "@type": "EducationalOccupationalCredential",
-    name: cert.title,
+    name: `${issuer} (${count} verified certificates)`,
     credentialCategory: "certificate",
-    ...(cert.code ? { identifier: cert.code } : {}),
-    ...(cert.file ? { url: `${siteUrl.replace(/\/$/, "")}${cert.file}` } : {}),
-    recognizedBy: {
-      "@type": "Organization",
-      name: cert.issuer,
-    },
+    recognizedBy: { "@type": "Organization", name: issuer },
   }));
 
   const graph = [
@@ -235,19 +234,11 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
  * için biyografi, zaman çizelgesi, projeler ve sertifikaları saf HTML olarak sunar.
  */
 export function renderNoScriptSummary({ identity, tr }) {
-  const timeline = (tr.about?.timeline || [])
-    .map((item) => `<li><strong>${escapeHtml(item.period)}</strong> — ${escapeHtml(item.title)}: ${escapeHtml(item.detail)}</li>`)
-    .join("");
   const projects = (tr.projects?.items || [])
-    .map(
-      (p) =>
-        `<li><a href="${escapeHtml(p.github)}">${escapeHtml(p.name)}</a> (${escapeHtml(p.stack.join(", "))}): ${escapeHtml(p.description)}</li>`,
-    )
-    .join("");
-  const certs = (tr.certificates?.items || [])
-    .map((c) => `<li>${escapeHtml(c.title)} — ${escapeHtml(c.issuer)} (${escapeHtml(c.date)})</li>`)
-    .join("");
-  return `<noscript><article><h2>${escapeHtml(identity.name)} (${escapeHtml(identity.handle)})</h2><p>${escapeHtml(tr.hero.role)} — ${escapeHtml(tr.hero.location)}. ${escapeHtml(tr.hero.tagline)}</p>${(tr.about?.paragraphs || []).map((p) => `<p>${escapeHtml(p)}</p>`).join("")}<h3>Deneyim &amp; Eğitim</h3><ul>${timeline}</ul><h3>Açık Kaynak Projeler</h3><ul>${projects}</ul><h3>Doğrulanmış Sertifikalar</h3><ul>${certs}</ul><p><a href="${escapeHtml(identity.github)}">GitHub</a> · <a href="${escapeHtml(identity.linkedin)}">LinkedIn</a> · <a href="https://layellie.dev/llms.txt">llms.txt</a></p></article></noscript>`;
+    .map((p) => `<a href="${escapeHtml(p.github)}">${escapeHtml(p.name)}</a>`)
+    .join(" · ");
+  const certCount = (tr.certificates?.items || []).length;
+  return `<noscript><article><h2>${escapeHtml(identity.name)} (${escapeHtml(identity.handle)})</h2><p>${escapeHtml(tr.hero.role)} — ${escapeHtml(tr.hero.location)}. DPÜ Bilgisayar Programcılığı (3.09 GPA), Anadolu Üni. YBS, Data Destek Yazılım Stajyeri. ${certCount} doğrulanmış sertifika.</p><p>Projeler: ${projects}</p><p><a href="${escapeHtml(identity.github)}">GitHub</a> · <a href="${escapeHtml(identity.linkedin)}">LinkedIn</a> · <a href="https://layellie.dev/llms.txt">llms.txt</a></p></article></noscript>`;
 }
 
 /**
