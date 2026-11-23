@@ -14,8 +14,8 @@ describe("admin production security headers", () => {
     const output = renderAdminSecurityHeaders(template, publicOrigin);
     const csp = output.match(/Content-Security-Policy: (.+)/)?.[1];
 
-    expect(publicOrigin).toBe("https://layellie.github.io");
-    expect(directive(csp, "img-src")).toBe("img-src 'self' data: blob: https://layellie.github.io");
+    expect(publicOrigin).toBe("https://layellie.dev");
+    expect(directive(csp, "img-src")).toBe("img-src 'self' data: blob: https://layellie.dev");
     expect(directive(csp, "connect-src")).toBe("connect-src 'self'");
     expect(directive(csp, "frame-ancestors")).toBe("frame-ancestors 'none'");
     expect(output).not.toContain("{{PUBLIC_SITE_ORIGIN}}");

@@ -89,7 +89,7 @@ export function renderInitialShellHtml({ identity, tr }) {
  * güncellemelerinde otomatik olarak taze kalır.
  */
 export function renderLlmsTxt({ identity, tr, en }) {
-  const siteUrl = "https://layellie.github.io";
+  const siteUrl = "https://layellie.dev";
   const lines = [
     `# ${identity.name} (${identity.handle})`,
     "",
@@ -142,7 +142,7 @@ export function renderLlmsTxt({ identity, tr, en }) {
  * (Person + WebSite + yayınlı açık kaynak projeler için SoftwareSourceCode).
  */
 export function renderStructuredData({ identity, tr, en }) {
-  const siteUrl = "https://layellie.github.io/";
+  const siteUrl = "https://layellie.dev/";
   const personId = `${siteUrl}#person`;
   const knowsAbout = [
     ...new Set([
@@ -201,7 +201,7 @@ export function renderSitemapXml(today = new Date().toISOString().slice(0, 10)) 
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     "  <url>",
-    "    <loc>https://layellie.github.io/</loc>",
+    "    <loc>https://layellie.dev/</loc>",
     `    <lastmod>${today}</lastmod>`,
     "    <changefreq>monthly</changefreq>",
     "    <priority>1.0</priority>",

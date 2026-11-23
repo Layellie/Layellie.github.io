@@ -23,6 +23,9 @@
       "new_sqlite_classes": ["AdminSessionStore"]
     }
   ],
+  "routes": [
+    { "pattern": "admin.layellie.dev", "custom_domain": true }
+  ],
   "vars": {
     "GITHUB_CLIENT_ID": "Iv23li29QsF89jcQHcom",
     "GITHUB_OWNER": "Layellie",
@@ -30,8 +33,8 @@
     "GITHUB_DEFAULT_BRANCH": "main",
     "GITHUB_ALLOWED_USER": "Layellie",
     "GITHUB_ALLOWED_USER_ID": "185601433",
-    "ADMIN_ORIGIN": "https://layellie-portfolio-admin.sametkasmer16.workers.dev",
-    "PUBLIC_SITE_ORIGIN": "https://layellie.github.io"
+    "ADMIN_ORIGIN": "https://admin.layellie.dev",
+    "PUBLIC_SITE_ORIGIN": "https://layellie.dev"
   },
   "observability": {
     "enabled": false
