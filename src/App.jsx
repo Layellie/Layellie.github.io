@@ -1065,9 +1065,14 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
         {config.bannerPath && (
           <img
             src={config.bannerPath}
+            srcSet={
+              config.bannerPath === "/media/profile/banner/layellie-banner.webp"
+                ? "/media/profile/banner/layellie-banner-1x.webp 1x, /media/profile/banner/layellie-banner.webp 2x"
+                : undefined
+            }
             alt={lang === "en" ? "Layellie profile banner" : "Layellie profil banner"}
-            width={648}
-            height={216}
+            width={324}
+            height={108}
             className="absolute inset-0 h-full w-full object-cover"
             decoding="async"
           />
@@ -1080,9 +1085,14 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             {config.avatarPath ? (
               <img
                 src={config.avatarPath}
+                srcSet={
+                  config.avatarPath === "/media/profile/avatar/layellie-pp.webp"
+                    ? "/media/profile/avatar/layellie-pp-1x.webp 1x, /media/profile/avatar/layellie-pp.webp 2x"
+                    : undefined
+                }
                 alt={IDENTITY.name}
-                width={128}
-                height={128}
+                width={64}
+                height={64}
                 className="h-full w-full rounded-full object-cover"
                 decoding="async"
               />
