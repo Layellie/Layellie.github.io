@@ -1060,7 +1060,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
     >
       <div
-        className="h-24 w-full shrink-0 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)] lg:h-[96px]"
+        className="min-h-[96px] w-full flex-1 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]"
       >
         {config.bannerPath && (
           <img
@@ -1072,7 +1072,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-4 pb-3.5">
+      <div className="shrink-0 px-4 pb-3.5">
         <div className="-mt-8 flex items-end justify-between gap-3">
           <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#050507] bg-[#0d0d11] font-display text-xl font-semibold text-accent">
             {config.avatarPath ? (
@@ -1121,7 +1121,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           {t.hero.role}
         </p>
 
-        <div className="mt-auto overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2">
+        <div className="mt-3 overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2">
           {hasActivity && (
             <div className="mb-0.5 font-mono text-[10px] tracking-[0.14em] text-accent">
               {activityHeading}
