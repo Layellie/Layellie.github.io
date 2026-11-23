@@ -15,7 +15,7 @@
       }
     },
     "discordPresence": {
-      "enabled": false,
+      "enabled": true,
       "userId": "295537828396269569",
       "professionalFilter": false
     }
