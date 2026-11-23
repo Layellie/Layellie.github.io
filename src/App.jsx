@@ -661,7 +661,7 @@ function useScrollSpy(ids) {
 }
 
 // GitHub canlı verisi: istatistikler + repo listesi + release indirmeleri (localStorage önbellek + canlı fetch)
-const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v2";
+const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v3";
 const GITHUB_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 
 function getCachedGithubData(fallback) {
@@ -709,7 +709,7 @@ function useGithub(user, fallback, enabled = true, releaseRepos = []) {
           fetch(`https://api.github.com/users/${user}/repos?per_page=100&sort=updated`),
           fetch(`https://api.github.com/users/${user}`),
           ...repoList.map((name) =>
-            fetch(`https://api.github.com/repos/${user}/${encodeURIComponent(name)}/releases?per_page=30`)
+            fetch(`https://api.github.com/repos/${user}/${encodeURIComponent(name)}/releases?per_page=100`)
               .then((res) => (res.ok ? res.json() : null))
               .then((rels) => [name.toLowerCase(), sumReleaseDownloads(rels)])
               .catch(() => [name.toLowerCase(), 0]),

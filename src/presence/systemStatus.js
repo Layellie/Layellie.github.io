@@ -1,9 +1,13 @@
+const METADATA_ASSET_RE = /\.(sha256|sha512|sha1|md5|sig|asc|txt|json|ya?ml|blockmap)$/i;
+
 export function sumReleaseDownloads(releases) {
   if (!Array.isArray(releases)) return 0;
   let total = 0;
   for (const release of releases) {
     if (!release || !Array.isArray(release.assets)) continue;
     for (const asset of release.assets) {
+      const name = typeof asset?.name === "string" ? asset.name.trim() : "";
+      if (name && METADATA_ASSET_RE.test(name)) continue;
       const count = Number(asset?.download_count);
       if (Number.isFinite(count) && count > 0) total += Math.floor(count);
     }

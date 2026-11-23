@@ -2,16 +2,28 @@ import { describe, expect, it, vi } from "vitest";
 import { fetchWorkerHealth, sumReleaseDownloads } from "../../src/presence/systemStatus.js";
 
 describe("system status and release download helpers", () => {
-  it("sums GitHub release asset download counts safely", () => {
+  it("sums GitHub release installer downloads while ignoring checksum/metadata files", () => {
     expect(sumReleaseDownloads(null)).toBe(0);
     expect(sumReleaseDownloads([])).toBe(0);
     expect(
       sumReleaseDownloads([
-        { assets: [{ download_count: 120 }, { download_count: 38 }] },
-        { assets: [{ download_count: 300 }, { download_count: -5 }, { download_count: "bad" }] },
+        {
+          assets: [
+            { name: "StandbyAndTimer_Setup_3.0.9.exe", download_count: 5 },
+            { name: "StandbyAndTimer_Setup_3.0.9.exe.sha256", download_count: 33 },
+          ],
+        },
+        {
+          assets: [
+            { name: "EyeHealth-portable.zip", download_count: 4 },
+            { name: "checksums.txt", download_count: 90 },
+            { name: "bad.exe", download_count: -5 },
+            { name: "nan.exe", download_count: "bad" },
+          ],
+        },
         { assets: null },
       ]),
-    ).toBe(458);
+    ).toBe(9);
   });
 
   it("measures Worker /api/health latency and parses edge POP metadata", async () => {
