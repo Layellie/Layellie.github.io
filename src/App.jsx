@@ -938,6 +938,30 @@ function AnimatedWord({ text, offset = 0 }) {
 const DISCORD_POLL_MS = 60_000;
 const IDLE_MARQUEE_TEXT = "C 0 D 3   ·   C 0 D 3   ·   C 0 D 3   ·   C 0 D 3   ·   ";
 
+function formatIstanbulClock(date = new Date()) {
+  try {
+    return new Intl.DateTimeFormat("tr-TR", {
+      timeZone: "Europe/Istanbul",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(date);
+  } catch {
+    return "";
+  }
+}
+
+function useIstanbulClock(active) {
+  const [clock, setClock] = useState(() => (active ? formatIstanbulClock() : ""));
+  useEffect(() => {
+    if (!active) return undefined;
+    setClock(formatIstanbulClock());
+    const id = window.setInterval(() => setClock(formatIstanbulClock()), 30_000);
+    return () => window.clearInterval(id);
+  }, [active]);
+  return clock;
+}
+
 function useDiscordPresence(config, lang) {
   const enabled = Boolean(config?.enabled) && isValidDiscordUserId(config?.userId);
   const userId = enabled ? config.userId.trim() : "";
@@ -1004,9 +1028,10 @@ const ACTIVITY_HEADING = {
 };
 
 export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
   const enabled = Boolean(config?.enabled) && isValidDiscordUserId(config?.userId);
   const presence = useDiscordPresence(config, lang);
+  const localTime = useIstanbulClock(enabled);
   if (!enabled) return null;
 
   const isOnline = Boolean(presence?.isOnline);
@@ -1031,11 +1056,11 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       aria-label={lang === "en" ? "Discord live profile" : "Discord canlı profil kartı"}
       data-discord-presence={isOnline ? "online" : "offline"}
       data-presence-kind={presence?.kind || "offline"}
-      className="hero-rise flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-line bg-[#111114]/95 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-sm lg:w-[324px] lg:shrink-0"
+      className="hero-rise flex w-full max-w-[340px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:w-[324px] lg:shrink-0"
       style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
     >
       <div
-        className="h-24 w-full shrink-0 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.22),transparent_56%),linear-gradient(135deg,#1a1a22_0%,#0d0d11_100%)] lg:h-[104px]"
+        className="h-24 w-full shrink-0 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)] lg:h-[96px]"
       >
         {config.bannerPath && (
           <img
@@ -1048,8 +1073,8 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       </div>
 
       <div className="flex flex-1 flex-col px-4 pb-3.5">
-        <div className="-mt-9 flex items-end justify-between gap-3">
-          <div className="relative flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-full border-4 border-[#111114] bg-elevated font-display text-2xl font-semibold text-accent">
+        <div className="-mt-8 flex items-end justify-between gap-3">
+          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#050507] bg-[#0d0d11] font-display text-xl font-semibold text-accent">
             {config.avatarPath ? (
               <img
                 src={config.avatarPath}
@@ -1062,7 +1087,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             )}
             <span
               aria-hidden
-              className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-[#111114] ${
+              className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-[#050507] ${
                 isOnline
                   ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.65)]"
                   : "bg-[#52525b]"
@@ -1074,39 +1099,45 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             className={`mb-1 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
               isOnline
                 ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                : "border-line bg-canvas/70 text-faint"
+                : "border-[#1f1f24] bg-[#0a0a0d] text-faint"
             }`}
           >
             {statusText}
           </span>
         </div>
 
-        <div className="mt-2.5 truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
+        <div className="mt-2 truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
           {IDENTITY.name}
         </div>
-        <div className="mt-0.5 font-mono text-xs text-faint">
+        <div className="mt-0.5 flex items-center justify-between gap-2 font-mono text-[11px] text-faint">
           @{IDENTITY.handle.toLowerCase()}
+          {localTime && (
+            <span className="tabular-nums text-muted">
+              Bursa · {localTime} UTC+3
+            </span>
+          )}
         </div>
+        <p className="mt-1.5 truncate text-xs text-muted">
+          {t.hero.role}
+        </p>
 
-        <div className="mt-auto pt-3">
-          <div className="overflow-hidden rounded-xl border border-line/80 bg-canvas/75 px-3 py-2">
-            {hasActivity && (
-              <div className="mb-0.5 font-mono text-[10px] tracking-[0.14em] text-accent">
-                {activityHeading}
-              </div>
-            )}
-            <div className="profile-marquee-mask overflow-hidden">
-              <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs tracking-[0.14em]">
-                <span className={hasActivity ? "pr-6 font-medium tracking-normal text-ink" : "pr-6 text-accent/90"}>
-                  {activityTrack}
-                </span>
-                <span
-                  aria-hidden
-                  className={hasActivity ? "pr-6 font-medium tracking-normal text-ink" : "pr-6 text-accent/90"}
-                >
-                  {activityTrack}
-                </span>
-              </div>
+        <div className="mt-auto overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2">
+          {hasActivity && (
+            <div className="mb-0.5 font-mono text-[10px] tracking-[0.14em] text-accent">
+              {activityHeading}
+            </div>
+          )}
+          <div className="profile-marquee-mask overflow-hidden">
+            <div className="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">
+              <span className={hasActivity ? "pr-6 tracking-normal" : "pr-6"}>
+                {activityTrack}
+              </span>
+              <span
+                aria-hidden
+                className={hasActivity ? "pr-6 tracking-normal" : "pr-6"}
+              >
+                {activityTrack}
+              </span>
             </div>
           </div>
         </div>

@@ -582,21 +582,21 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
       </p>
 
       {/* Canlı profil kartı önizlemesi */}
-      <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-[#111114]">
-        <div className="h-20 w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.22),transparent_56%),linear-gradient(135deg,#1a1a22_0%,#0d0d11_100%)]">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507]">
+        <div className="h-20 w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]">
           {bannerSrc && <img src={bannerSrc} alt="Banner önizleme" className="h-full w-full object-cover" />}
         </div>
         <div className="px-4 pb-3.5">
           <div className="-mt-8 flex items-end justify-between gap-3">
-            <div className="relative h-14 w-14 shrink-0 rounded-full border-4 border-[#111114] bg-elevated">
+            <div className="relative h-14 w-14 shrink-0 rounded-full border-4 border-[#050507] bg-[#0d0d11]">
               {avatarSrc ? (
                 <img src={avatarSrc} alt="PP önizleme" className="h-full w-full rounded-full object-cover" />
               ) : (
                 <span className="flex h-full w-full items-center justify-center font-display text-lg font-semibold text-accent">L</span>
               )}
-              <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#111114] ${current.enabled ? "bg-emerald-400" : "bg-[#52525b]"}`} />
+              <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#050507] ${current.enabled ? "bg-emerald-400" : "bg-[#52525b]"}`} />
             </div>
-            <span className={`mb-0.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${current.enabled ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-line bg-canvas/70 text-faint"}`}>
+            <span className={`mb-0.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${current.enabled ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-[#1f1f24] bg-[#0a0a0d] text-faint"}`}>
               {current.enabled ? "Çevrimiçi" : "Kart kapalı"}
             </span>
           </div>
@@ -605,7 +605,7 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
               <div className="font-display text-base font-semibold leading-tight text-ink">{site?.shared?.identity?.name || "Samet Kaşmer"}</div>
               <div className="font-mono text-[11px] text-faint">@{(site?.shared?.identity?.handle || "layellie").toLowerCase()}</div>
             </div>
-            <span className="rounded-md border border-line bg-canvas/70 px-2 py-0.5 font-mono text-[10px] text-muted">
+            <span className="rounded-md border border-[#1f1f24] bg-[#0a0a0d] px-2 py-0.5 font-mono text-[10px] text-ink">
               {current.professionalFilter ? "Sadece IDE" : "IDE · Spotify · Oyun"}
             </span>
           </div>
