@@ -1088,7 +1088,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       </div>
 
       <div className="px-4 pb-3.5">
-        <div className="-mt-8 flex items-end justify-between gap-3">
+        <div className="-mt-8">
           <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#050507] bg-[#0d0d11] font-display text-xl font-semibold text-accent">
             {config.avatarPath ? (
               <img
@@ -1116,9 +1116,14 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
               }`}
             />
           </div>
+        </div>
 
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
+            {IDENTITY.name}
+          </div>
           <span
-            className={`mb-1 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
               isOnline
                 ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                 : "border-[#1f1f24] bg-[#0a0a0d] text-faint"
@@ -1126,10 +1131,6 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           >
             {statusText}
           </span>
-        </div>
-
-        <div className="mt-2 truncate font-display text-lg font-semibold leading-tight tracking-tight text-ink">
-          {IDENTITY.name}
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2 font-mono text-[11px] text-faint">
           @{IDENTITY.handle.toLowerCase()}
