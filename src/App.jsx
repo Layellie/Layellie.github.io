@@ -2368,32 +2368,46 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, 
         </div>
 
         <div className={`lg:col-span-6 ${reverse ? "lg:order-1" : ""}`}>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-faint">
-            <span className="font-mono text-accent">({num})</span>
-            <span className="h-px w-8 bg-line" />
-            <span className="text-muted">{project.type}</span>
-            <span>·</span>
-            <span>{project.year}</span>
-            {liveRepo && (
-              <span className="inline-flex flex-wrap items-center gap-1.5 font-mono text-muted">
-                <SpriteIcon id="star" className="h-3.5 w-3.5 text-accent" />
-                {liveRepo.stargazers_count ?? 0}
-                {releaseDownloads > 0 && (
-                  <>
-                    {" · "}
-                    <SpriteIcon id="download" className="h-3.5 w-3.5 text-accent" />
-                    {releaseDownloads.toLocaleString(lang === "tr" ? "tr-TR" : "en-US")}
-                  </>
-                )}
-                {updatedLabel ? ` · ${updatedPrefix} ${updatedLabel}` : ""}
-              </span>
-            )}
-            <span className="ml-auto rounded-full border border-line px-2 py-0.5">
+          <div className="flex items-start justify-between gap-3 text-xs text-faint">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="font-mono text-accent">({num})</span>
+              <span className="h-px w-8 bg-line" />
+              <span className="text-muted">{project.type}</span>
+              <span>·</span>
+              <span>{project.year}</span>
+            </div>
+            <span className="shrink-0 rounded-full border border-line px-2 py-0.5">
               {project.license}
             </span>
           </div>
 
-          <h3 className="mt-5 font-display text-[clamp(2rem,4.5vw,3.25rem)] font-semibold leading-[0.95] tracking-tight">
+          {liveRepo && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted">
+              <span className="inline-flex items-center gap-1">
+                <SpriteIcon id="star" className="h-3.5 w-3.5 text-accent" />
+                {liveRepo.stargazers_count ?? 0}
+              </span>
+              {releaseDownloads > 0 && (
+                <>
+                  <span className="text-faint">·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <SpriteIcon id="download" className="h-3.5 w-3.5 text-accent" />
+                    {releaseDownloads.toLocaleString(lang === "tr" ? "tr-TR" : "en-US")}
+                  </span>
+                </>
+              )}
+              {updatedLabel && (
+                <>
+                  <span className="text-faint">·</span>
+                  <span>
+                    {updatedPrefix} {updatedLabel}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
+          <h3 className="mt-4 font-display text-[clamp(2rem,4.5vw,3.25rem)] font-semibold leading-[0.95] tracking-tight">
             <ScrambleText text={project.name} />
           </h3>
 
