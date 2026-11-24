@@ -1080,8 +1080,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
       aria-label={lang === "en" ? "Discord live profile" : "Discord canlı profil kartı"}
       data-discord-presence={isOnline ? "online" : "offline"}
       data-presence-kind={presence?.kind || "offline"}
-      className="hero-rise mx-auto flex w-full max-w-[342px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:mx-0 lg:w-[326px] lg:shrink-0"
-      style={{ "--hero-delay": "0.12s", "--hero-dur": "0.7s" }}
+      className="mx-auto flex w-full max-w-[342px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:mx-0 lg:w-[326px] lg:shrink-0"
     >
       <div
         className="relative aspect-[3/1] w-full shrink-0 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]"

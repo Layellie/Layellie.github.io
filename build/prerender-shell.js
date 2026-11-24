@@ -45,7 +45,7 @@ function renderDiscordCardShell({ identity, hero, discordPresence }) {
       : "";
 
   return [
-    '<aside aria-label="Discord canlı profil kartı" data-discord-presence="offline" data-presence-kind="offline" class="hero-rise mx-auto flex w-full max-w-[342px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:mx-0 lg:w-[326px] lg:shrink-0" style="--hero-delay:0.12s;--hero-dur:0.7s">',
+    '<aside aria-label="Discord canlı profil kartı" data-discord-presence="offline" data-presence-kind="offline" class="mx-auto flex w-full max-w-[342px] flex-col overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507] shadow-[0_24px_60px_rgba(0,0,0,0.75)] lg:mx-0 lg:w-[326px] lg:shrink-0">',
     '<div class="relative aspect-[3/1] w-full shrink-0 overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]">',
     bannerPath
       ? `<img src="${escapeHtml(bannerPath)}"${bannerSrcSet} alt="Layellie profil banner" width="324" height="108" fetchpriority="high" class="absolute inset-0 h-full w-full object-cover" />`
@@ -382,7 +382,7 @@ export function inlineAndPrerenderShellPlugin() {
         }
       }
 
-      // Hero Discord kartı aktifse LCP banner görselini ilk HTML'de yüksek öncelikle ön-yükle.
+      // Hero Discord kartı aktifse LCP banner görselini <head> başında (inline CSS ve fontlardan önce) ön-yükle.
       const bannerPath = view.discordPresence?.enabled ? view.discordPresence.bannerPath : "";
       if (bannerPath) {
         const imageSrcSet =
@@ -390,7 +390,10 @@ export function inlineAndPrerenderShellPlugin() {
             ? ' imagesrcset="/media/profile/banner/layellie-banner-1x.webp 1x, /media/profile/banner/layellie-banner.webp 1.25x"'
             : "";
         const preloadTag = `<link rel="preload" as="image" href="${escapeHtml(bannerPath)}"${imageSrcSet} fetchpriority="high" />`;
-        html = html.replace("</head>", `    ${preloadTag}\n  </head>`);
+        const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1.0" />';
+        html = html.includes(viewportTag)
+          ? html.replace(viewportTag, `${viewportTag}\n    ${preloadTag}`)
+          : html.replace("</head>", `    ${preloadTag}\n  </head>`);
       }
 
       // Yapısal veriyi (JSON-LD) güncel portfolyo içeriğiyle (@graph) değiştir.
