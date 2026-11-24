@@ -38,7 +38,12 @@ import { CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, s
 import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
 import { FAQ_CONTENT } from "./content/faq.js";
 import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
-import { fetchWorkerHealth, sumReleaseDownloads } from "./presence/systemStatus.js";
+import {
+  fetchWorkerHealth,
+  latestReleaseTag,
+  sumReleaseDownloads,
+  syncStatusVersion,
+} from "./presence/systemStatus.js";
 import { analyticsOptedOut, recordPortfolioVisit, setAnalyticsOptOut } from "./analytics/visitor.js";
 
 const SITE_BUILD = typeof __SITE_BUILD__ !== "undefined" ? __SITE_BUILD__ : { commit: "local", builtAt: "" };
@@ -654,15 +659,17 @@ function useScrollSpy(ids) {
   return active;
 }
 
-// GitHub canlı verisi: istatistikler + repo listesi + release indirmeleri (localStorage önbellek + canlı fetch)
-const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v3";
+// GitHub canlı verisi: istatistikler + repo listesi + release indirmeleri ve son sürüm (localStorage önbellek + canlı fetch)
+const GITHUB_CACHE_KEY = "layellie_github_stats_cache_v4";
 const GITHUB_CACHE_TTL = 30 * 60 * 1000; // 30 dakika
 
 function getCachedGithubData(fallback) {
-  if (typeof window === "undefined") return { stats: fallback, repos: [], downloadsByRepo: {} };
+  if (typeof window === "undefined") {
+    return { stats: fallback, repos: [], downloadsByRepo: {}, latestTagByRepo: {} };
+  }
   try {
     const raw = window.localStorage.getItem(GITHUB_CACHE_KEY);
-    if (!raw) return { stats: fallback, repos: [], downloadsByRepo: {} };
+    if (!raw) return { stats: fallback, repos: [], downloadsByRepo: {}, latestTagByRepo: {} };
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object" && parsed.stats) {
       return {
@@ -676,13 +683,17 @@ function getCachedGithubData(fallback) {
           parsed.downloadsByRepo && typeof parsed.downloadsByRepo === "object"
             ? parsed.downloadsByRepo
             : {},
+        latestTagByRepo:
+          parsed.latestTagByRepo && typeof parsed.latestTagByRepo === "object"
+            ? parsed.latestTagByRepo
+            : {},
         timestamp: typeof parsed.timestamp === "number" ? parsed.timestamp : 0,
       };
     }
   } catch {
     /* localStorage erişim/ayrıştırma hatası → yok say */
   }
-  return { stats: fallback, repos: [], downloadsByRepo: {} };
+  return { stats: fallback, repos: [], downloadsByRepo: {}, latestTagByRepo: {} };
 }
 
 function useGithub(user, fallback, enabled = true, releaseRepos = []) {
@@ -705,8 +716,8 @@ function useGithub(user, fallback, enabled = true, releaseRepos = []) {
           ...repoList.map((name) =>
             fetch(`https://api.github.com/repos/${user}/${encodeURIComponent(name)}/releases?per_page=100`)
               .then((res) => (res.ok ? res.json() : null))
-              .then((rels) => [name.toLowerCase(), sumReleaseDownloads(rels)])
-              .catch(() => [name.toLowerCase(), 0]),
+              .then((rels) => [name.toLowerCase(), sumReleaseDownloads(rels), latestReleaseTag(rels)])
+              .catch(() => [name.toLowerCase(), 0, ""]),
           ),
         ]);
         if (!reposRes.ok || !userRes.ok) return;
@@ -715,7 +726,10 @@ function useGithub(user, fallback, enabled = true, releaseRepos = []) {
         const list = Array.isArray(repos) ? repos : [];
         const stars = list.reduce((s, r) => s + (r.stargazers_count || 0), 0);
         const downloadsByRepo = Object.fromEntries(
-          releaseResults.filter((entry) => Array.isArray(entry) && entry[1] > 0),
+          releaseResults.filter((entry) => Array.isArray(entry) && entry[1] > 0).map(([k, dl]) => [k, dl]),
+        );
+        const latestTagByRepo = Object.fromEntries(
+          releaseResults.filter((entry) => Array.isArray(entry) && entry[2]).map(([k, , tag]) => [k, tag]),
         );
         if (active) {
           const freshData = {
@@ -726,6 +740,7 @@ function useGithub(user, fallback, enabled = true, releaseRepos = []) {
             },
             repos: list,
             downloadsByRepo,
+            latestTagByRepo,
           };
           setData(freshData);
           try {
@@ -2350,10 +2365,23 @@ export function formatRelativePush(isoDate, lang = "tr", now = Date.now()) {
 /* ================================================================== */
 /*  PROJELER                                                           */
 /* ================================================================== */
-function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, releaseDownloads = 0 }) {
+function ProjectCard({
+  project,
+  num,
+  reverse,
+  viewLabel,
+  statusLabel,
+  liveRepo,
+  releaseDownloads = 0,
+  latestTag = "",
+}) {
   const { t, lang } = useLang();
   const updatedLabel = liveRepo?.pushed_at ? formatRelativePush(liveRepo.pushed_at, lang) : "";
   const updatedPrefix = lang === "tr" ? "Son güncelleme:" : "Last updated:";
+  const statusItems = useMemo(
+    () => syncStatusVersion(project.status, latestTag),
+    [project.status, latestTag],
+  );
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
       <TiltCard maxTilt={3} className="rounded-3xl">
@@ -2412,7 +2440,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, 
           </h3>
 
           <div role="group" className="mt-4 flex flex-wrap gap-2" aria-label={statusLabel}>
-            {project.status.map((status, i) => (
+            {statusItems.map((status, i) => (
               <span
                 key={status}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium before:inline-block before:h-1.5 before:w-1.5 before:rounded-full before:content-[''] ${
@@ -2477,7 +2505,7 @@ function Projects() {
     () => p.items.map((proj) => githubRepositoryName(proj.github)).filter(Boolean),
     [p.items],
   );
-  const { stats, repos, downloadsByRepo } = useGithub(
+  const { stats, repos, downloadsByRepo, latestTagByRepo } = useGithub(
     IDENTITY.githubUser,
     IDENTITY.statsFallback,
     near,
@@ -2514,6 +2542,7 @@ function Projects() {
               statusLabel={p.statusLabel}
               liveRepo={repoName ? repoByName.get(repoName) || null : null}
               releaseDownloads={repoName ? downloadsByRepo?.[repoName] || 0 : 0}
+              latestTag={repoName ? latestTagByRepo?.[repoName] || "" : ""}
             />
           );
         })}

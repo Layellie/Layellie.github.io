@@ -1,4 +1,30 @@
 const METADATA_ASSET_RE = /\.(sha256|sha512|sha1|md5|sig|asc|txt|json|ya?ml|blockmap)$/i;
+const LEADING_VERSION_RE = /^v?\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?(?=\s|$)/i;
+
+export function latestReleaseTag(releases) {
+  if (!Array.isArray(releases)) return "";
+  let fallbackTag = "";
+  for (const release of releases) {
+    if (!release || release.draft) continue;
+    const raw = typeof release.tag_name === "string" ? release.tag_name.trim() : "";
+    if (!raw) continue;
+    const normalized = /^\d/.test(raw) ? `v${raw}` : raw;
+    if (!release.prerelease) return normalized;
+    if (!fallbackTag) fallbackTag = normalized;
+  }
+  return fallbackTag;
+}
+
+export function syncStatusVersion(statusList, latestTag) {
+  if (!Array.isArray(statusList)) return [];
+  const tag = typeof latestTag === "string" ? latestTag.trim() : "";
+  if (!tag) return statusList;
+  return statusList.map((item) =>
+    typeof item === "string" && LEADING_VERSION_RE.test(item)
+      ? item.replace(LEADING_VERSION_RE, tag)
+      : item,
+  );
+}
 
 export function sumReleaseDownloads(releases) {
   if (!Array.isArray(releases)) return 0;

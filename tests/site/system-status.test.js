@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchWorkerHealth, sumReleaseDownloads } from "../../src/presence/systemStatus.js";
+import {
+  fetchWorkerHealth,
+  latestReleaseTag,
+  sumReleaseDownloads,
+  syncStatusVersion,
+} from "../../src/presence/systemStatus.js";
 
 describe("system status and release download helpers", () => {
   it("sums GitHub release installer downloads while ignoring checksum/metadata files", () => {
@@ -66,5 +71,28 @@ describe("system status and release download helpers", () => {
       ok: false,
       configured: true,
     });
+  });
+
+  it("extracts latest stable release tag and syncs versioned status pills", () => {
+    expect(latestReleaseTag(null)).toBe("");
+    expect(
+      latestReleaseTag([
+        { tag_name: "v1.2.0-rc1", draft: false, prerelease: true },
+        { tag_name: "v1.1.0", draft: true, prerelease: false },
+        { tag_name: "1.1.0", draft: false, prerelease: false },
+        { tag_name: "v1.0.0", draft: false, prerelease: false },
+      ]),
+    ).toBe("v1.1.0");
+
+    expect(syncStatusVersion(["v1.0.0 Yayında", "Testler Mevcut", "Portable"], "v1.1.0")).toEqual([
+      "v1.1.0 Yayında",
+      "Testler Mevcut",
+      "Portable",
+    ]);
+    expect(syncStatusVersion(["v1.0.0 Released", "Portable"], "v1.1.0")).toEqual([
+      "v1.1.0 Released",
+      "Portable",
+    ]);
+    expect(syncStatusVersion(["v1.0.0 Yayında"], "")).toEqual(["v1.0.0 Yayında"]);
   });
 });
