@@ -138,7 +138,7 @@ body {
     rgba(255, 255, 255, 0.45) 24%,
     rgba(255, 255, 255, 0) 100%
   );
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
   opacity: 0;
   transform: translate3d(0, 0, 0) rotate(20deg);
   animation-name: meteor-fall;
@@ -182,13 +182,11 @@ body {
   from {
     opacity: 0;
     transform: translate3d(0, 120%, 0);
-    filter: blur(14px);
   }
 
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
-    filter: blur(0px);
   }
 }
 

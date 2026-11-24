@@ -1099,7 +1099,6 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
             height={108}
             fetchpriority="high"
             className="absolute inset-0 h-full w-full object-cover"
-            decoding="async"
           />
         )}
       </div>

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { FAQ_CONTENT } from "../../src/content/faq.js";
 import { buildContentView } from "../../src/content/contentView.js";
-import { renderLlmsTxt, renderStructuredData } from "../../build/prerender-shell.js";
+import {
+  renderInitialShellHtml,
+  renderLlmsTxt,
+  renderStructuredData,
+} from "../../build/prerender-shell.js";
 import site from "../../src/content/site.json";
 import projects from "../../src/content/projects.json";
 import certificates from "../../src/content/certificates.json";
@@ -58,5 +62,19 @@ describe("FAQ content and structured data", () => {
     expect(llms).toContain(FAQ_CONTENT.en.items[0].q);
     expect(llms).toContain("NtSetTimerResolution");
     expect(llms).toContain("SHA-256");
+  });
+
+  it("prerenders the Hero LCP banner card and synced mobile Hero spacing to prevent CLS", () => {
+    const shell = renderInitialShellHtml({
+      identity: view.identity,
+      tr: view.content.tr,
+      discordPresence: view.discordPresence,
+    });
+
+    expect(shell).toContain('aria-label="Discord canlı profil kartı"');
+    expect(shell).toContain('src="/media/profile/banner/layellie-banner.webp"');
+    expect(shell).toContain('fetchpriority="high"');
+    expect(shell).toContain('width="324" height="108"');
+    expect(shell).toContain('mt-2.5 text-sm leading-relaxed text-muted sm:text-base md:mt-3 md:text-lg');
   });
 });
