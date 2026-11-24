@@ -24,6 +24,9 @@ describe("public site language query and relative push helpers", () => {
     expect(formatRelativePush("2026-11-23T10:00:00Z", "en", now)).toBe("today");
     expect(formatRelativePush("2026-11-22T10:00:00Z", "tr", now)).toBe("dün");
     expect(formatRelativePush("2026-11-22T10:00:00Z", "en", now)).toBe("yesterday");
+    // Cross-midnight push under 24h ago should still read as yesterday in Istanbul time
+    expect(formatRelativePush("2026-11-23T14:14:51Z", "tr", new Date("2026-11-24T13:40:41Z").getTime())).toBe("dün");
+    expect(formatRelativePush("2026-11-23T14:14:51Z", "en", new Date("2026-11-24T13:40:41Z").getTime())).toBe("yesterday");
     expect(formatRelativePush("2026-11-18T10:00:00Z", "tr", now)).toBe("5 gün önce");
     expect(formatRelativePush("2026-11-18T10:00:00Z", "en", now)).toBe("5d ago");
     expect(formatRelativePush("2026-09-01T10:00:00Z", "tr", now)).toBe("2 ay önce");

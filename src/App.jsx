@@ -2328,11 +2328,16 @@ export function resolveInitialLang(search = "", stored = null) {
   return stored === "en" || stored === "tr" ? stored : "tr";
 }
 
+function istanbulDayNumber(ms) {
+  // Türkiye (UTC+3, sabit) takvim gününe göre gün farkı hesapla (23 saat önce = dün).
+  return Math.floor((ms + 3 * 3_600_000) / 86_400_000);
+}
+
 export function formatRelativePush(isoDate, lang = "tr", now = Date.now()) {
   if (!isoDate) return "";
   const time = new Date(isoDate).getTime();
   if (Number.isNaN(time)) return "";
-  const days = Math.max(0, Math.floor((now - time) / 86_400_000));
+  const days = Math.max(0, istanbulDayNumber(now) - istanbulDayNumber(time));
   if (days === 0) return lang === "tr" ? "bugün" : "today";
   if (days === 1) return lang === "tr" ? "dün" : "yesterday";
   if (days < 30) return lang === "tr" ? `${days} gün önce` : `${days}d ago`;
@@ -2350,6 +2355,7 @@ export function formatRelativePush(isoDate, lang = "tr", now = Date.now()) {
 function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, releaseDownloads = 0 }) {
   const { t, lang } = useLang();
   const updatedLabel = liveRepo?.pushed_at ? formatRelativePush(liveRepo.pushed_at, lang) : "";
+  const updatedPrefix = lang === "tr" ? "Son güncelleme:" : "Last updated:";
   return (
     <Reveal y={0} x={reverse ? 90 : -90}>
       <TiltCard maxTilt={3} className="rounded-3xl">
@@ -2364,14 +2370,14 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, 
         </div>
 
         <div className={`lg:col-span-6 ${reverse ? "lg:order-1" : ""}`}>
-          <div className="flex flex-wrap items-center gap-3 text-xs text-faint">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-faint">
             <span className="font-mono text-accent">({num})</span>
             <span className="h-px w-8 bg-line" />
             <span className="text-muted">{project.type}</span>
             <span>·</span>
             <span>{project.year}</span>
             {liveRepo && (
-              <span className="inline-flex items-center gap-1.5 font-mono text-muted">
+              <span className="inline-flex flex-wrap items-center gap-1.5 font-mono text-muted">
                 <SpriteIcon id="star" className="h-3.5 w-3.5 text-accent" />
                 {liveRepo.stargazers_count ?? 0}
                 {releaseDownloads > 0 && (
@@ -2381,7 +2387,7 @@ function ProjectCard({ project, num, reverse, viewLabel, statusLabel, liveRepo, 
                     {releaseDownloads.toLocaleString(lang === "tr" ? "tr-TR" : "en-US")}
                   </>
                 )}
-                {updatedLabel ? ` · ${updatedLabel}` : ""}
+                {updatedLabel ? ` · ${updatedPrefix} ${updatedLabel}` : ""}
               </span>
             )}
             <span className="ml-auto rounded-full border border-line px-2 py-0.5">
