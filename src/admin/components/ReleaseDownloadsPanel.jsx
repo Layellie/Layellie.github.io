@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, ExternalLink, RefreshCw } from "lucide-react";
 import { githubRepositoryName } from "../../content/githubUrls.js";
-import { latestReleaseTag, sumReleaseDownloads } from "../../presence/systemStatus.js";
+import { adminApi } from "../api/client.js";
 import { Button, Panel } from "./AdminUi.jsx";
 
-export default function ReleaseDownloadsPanel({ projects, githubUser = "Layellie" }) {
+export default function ReleaseDownloadsPanel({ projects }) {
   const [state, setState] = useState({ status: "idle", rows: [], error: "" });
 
   const publishedRepos = useMemo(
@@ -26,24 +26,28 @@ export default function ReleaseDownloadsPanel({ projects, githubUser = "Layellie
       setState({ status: "ready", rows: [], error: "" });
       return;
     }
+    if (typeof adminApi.releases !== "function") {
+      setState({ status: "error", rows: [], error: "GitHub Release indirme verileri şu anda alınamadı." });
+      return;
+    }
     setState((current) => ({ ...current, status: "loading", error: "" }));
     try {
-      const rows = await Promise.all(
-        publishedRepos.map(async (entry) => {
-          const url = `https://api.github.com/repos/${encodeURIComponent(githubUser)}/${encodeURIComponent(entry.repo)}/releases?per_page=100`;
-          const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
-          if (!response.ok) {
-            return { ...entry, downloads: 0, latestTag: "", failed: true };
-          }
-          const releases = await response.json();
-          return {
-            ...entry,
-            downloads: sumReleaseDownloads(releases),
-            latestTag: latestReleaseTag(releases),
-            failed: false,
-          };
-        }),
+      const payload = await adminApi.releases(publishedRepos.map((entry) => entry.repo));
+      const byRepo = new Map(
+        (Array.isArray(payload?.releases) ? payload.releases : []).map((item) => [
+          String(item.repo || "").toLowerCase(),
+          item,
+        ]),
       );
+      const rows = publishedRepos.map((entry) => {
+        const match = byRepo.get(entry.repo.toLowerCase());
+        return {
+          ...entry,
+          downloads: Number(match?.downloads || 0),
+          latestTag: typeof match?.latestTag === "string" ? match.latestTag : "",
+          failed: !match || match.ok === false,
+        };
+      });
       const anyFailed = rows.some((row) => row.failed);
       setState({
         status: "ready",
@@ -51,14 +55,16 @@ export default function ReleaseDownloadsPanel({ projects, githubUser = "Layellie
         error: anyFailed ? "Bazı repoların GitHub API yanıtı alınamadı (kota sınırı olabilir)." : "",
         updatedAt: new Date(),
       });
-    } catch {
+    } catch (error) {
       setState((current) => ({
         ...current,
         status: "error",
-        error: "GitHub Release indirme verileri şu anda alınamadı.",
+        error: error?.status === 429
+          ? "Çok sık yenilendi; biraz sonra tekrar dene."
+          : "GitHub Release indirme verileri şu anda alınamadı.",
       }));
     }
-  }, [githubUser, publishedRepos]);
+  }, [publishedRepos]);
 
   useEffect(() => {
     void loadDownloads();
@@ -127,7 +133,7 @@ export default function ReleaseDownloadsPanel({ projects, githubUser = "Layellie
         </div>
       ) : isLoading ? (
         <div className="mt-4 text-xs text-muted">GitHub Release indirmeleri alınıyor…</div>
-      ) : (
+      ) : state.status === "error" ? null : (
         <div className="mt-4 text-xs text-faint">Yayınlı GitHub projesi bulunamadı.</div>
       )}
 

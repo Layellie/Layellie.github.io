@@ -4,7 +4,7 @@ import { authenticate, sessionToken } from "./auth/session";
 import { parseContent, preparePublication, readPublicationRequest } from "./content/validation";
 import { storeCall } from "./durable/client";
 import { AdminSessionStore } from "./durable/AdminSessionStore";
-import { commitChanges, deploymentForCommit, latestDeployment, loadRepositorySnapshot, recentCommits, revokeToken } from "./github/client";
+import { commitChanges, deploymentForCommit, latestDeployment, loadRepositorySnapshot, recentCommits, releaseStatsForRepos, revokeToken } from "./github/client";
 import { cookies, readCookie } from "./security/cookies";
 import { analyticsVisitorHash, randomToken } from "./security/crypto";
 import { ConfigurationError, getConfig } from "./security/config";
@@ -160,6 +160,14 @@ export default {
         await storeCall(env, "rate.check", { key: `commits:${session.id}`, limit: 6, periodMs: 60_000 });
         const token = await sessionToken(session, config);
         return json({ commits: await recentCommits(config, token, 5) });
+      }
+      if (url.pathname === "/api/releases" && request.method === "GET") {
+        const session = await authenticate(request, env, config);
+        await storeCall(env, "rate.check", { key: `releases:${session.id}`, limit: 12, periodMs: 60_000 });
+        const rawRepos = url.searchParams.get("repos") || "";
+        const repos = rawRepos.split(",").map((name) => name.trim()).filter(Boolean);
+        const token = await sessionToken(session, config);
+        return json({ releases: await releaseStatsForRepos(config, token, repos) });
       }
       throw httpError(404, "NOT_FOUND", "API yolu bulunamadı.");
     } catch (error) {

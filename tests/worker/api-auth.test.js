@@ -192,6 +192,41 @@ describe("Worker authentication boundary", () => {
     expect(summary.languages.tr).toBeGreaterThanOrEqual(1);
   });
 
+  it("serves owner-only /api/releases download stats and rejects invalid repo names", async () => {
+    expect((await exports.default.fetch(new Request("https://admin.test/api/releases?repos=StandbyAndTimer"))).status).toBe(401);
+    const session = await createSession("releases-owner");
+    const bad = await exports.default.fetch(sessionRequest("/api/releases?repos=../etc", session));
+    expect(bad.status).toBe(400);
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn(async (input) => {
+      const url = typeof input === "string" ? input : input.url;
+      if (url.includes("/repos/Layellie/StandbyAndTimer/releases")) {
+        return Response.json([
+          {
+            tag_name: "v3.0.9",
+            draft: false,
+            prerelease: false,
+            assets: [
+              { name: "Setup.exe", download_count: 120 },
+              { name: "Setup.exe.sha256", download_count: 400 },
+            ],
+          },
+        ]);
+      }
+      return originalFetch(input);
+    });
+    try {
+      const res = await exports.default.fetch(sessionRequest("/api/releases?repos=StandbyAndTimer", session));
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({
+        releases: [{ repo: "StandbyAndTimer", downloads: 120, latestTag: "v3.0.9", ok: true }],
+      });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("protects admin analytics behind the existing owner session", async () => {
     expect((await exports.default.fetch(new Request("https://admin.test/api/admin/analytics?range=7d"))).status).toBe(401);
     const session = await createSession("analytics-owner");

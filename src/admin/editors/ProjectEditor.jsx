@@ -4,6 +4,7 @@ import { validateFileSignature } from "../validation/files.js";
 import { optimizeImageUpload } from "../validation/imageOptimize.js";
 import { mediaTypeForMetadata } from "../../content/mediaTypes.js";
 import { parseGithubRepositoryUrl } from "../../content/githubUrls.js";
+import { adminApi } from "../api/client.js";
 import { Button, LocaleTabs, Notice, SelectField, TagsField, TextArea, TextField } from "../components/AdminUi.jsx";
 import ProjectPreview from "../components/ProjectPreview.jsx";
 
@@ -44,6 +45,21 @@ export function applyReleaseVersionToProject(project, rawTag) {
 async function fetchLatestReleaseTag(githubUrl, fetcher = globalThis.fetch) {
   const parsed = parseGithubRepositoryUrl(githubUrl);
   if (!parsed) throw new Error("Geçerli bir https://github.com/kullanıcı/repo adresi gerekli.");
+  // Production Admin Panel enforces connect-src 'self', so query the same-origin Worker BFF first.
+  if (fetcher === globalThis.fetch && typeof adminApi.releases === "function") {
+    try {
+      const bff = await adminApi.releases([parsed.repository]);
+      const match = Array.isArray(bff?.releases) ? bff.releases[0] : null;
+      if (match?.latestTag) return String(match.latestTag);
+      if (match && match.ok === true && !match.latestTag) {
+        throw new Error("Bu depoda yayınlanmış bir GitHub Release veya tag bulunamadı.");
+      }
+    } catch (error) {
+      if (error?.status === 429) throw new Error("Çok sık yenilendi; biraz sonra tekrar dene.");
+      if (error?.message?.includes("yayınlanmış bir GitHub Release")) throw error;
+      /* Fall through to direct GitHub fetch in standalone tests / non-BFF mode */
+    }
+  }
   const headers = { Accept: "application/vnd.github+json" };
   const base = `https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repository)}`;
   const releaseRes = await fetcher(`${base}/releases/latest`, { headers });

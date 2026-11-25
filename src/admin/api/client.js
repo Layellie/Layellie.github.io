@@ -55,6 +55,7 @@ export const adminApi = {
   },
   deployment: (commit) => request(commit ? `/api/deployments?commit=${encodeURIComponent(commit)}` : "/api/deployments"),
   commits: () => request("/api/commits"),
+  releases: (repos = []) => request(`/api/releases?repos=${encodeURIComponent(repos.join(","))}`),
   analytics: (range = "7d") => request(`/api/admin/analytics?range=${encodeURIComponent(range)}`),
   logout: (csrf) => request("/auth/logout", { method: "POST", headers: { "X-CSRF-Token": csrf } }),
 };

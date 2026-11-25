@@ -1,5 +1,6 @@
 import type { AppConfig } from "../types";
 import { httpError } from "../security/responses";
+import { latestReleaseTag, sumReleaseDownloads } from "../../../src/presence/systemStatus.js";
 
 export const CONTENT_PATHS = {
   site: "src/content/site.json",
@@ -200,6 +201,62 @@ export async function recentCommits(config: AppConfig, token: string, limit = 5)
       url: item.html_url,
     };
   });
+}
+
+export interface RepoReleaseSummary {
+  repo: string;
+  downloads: number;
+  latestTag: string;
+  ok: boolean;
+}
+
+const VALID_REPO_NAME = /^[A-Za-z0-9._-]{1,100}$/;
+
+async function fetchPublicOrAuthedReleases(owner: string, repo: string, token: string): Promise<unknown[] | null> {
+  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases?per_page=100`;
+  const baseHeaders: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "Layellie-Portfolio-Admin",
+  };
+  let response = await fetch(url, {
+    headers: { ...baseHeaders, Authorization: `Bearer ${token}` },
+  });
+  // If the GitHub App token is scoped only to Layellie.github.io, public sibling
+  // repositories can return 403/404 with the scoped token — fall back cleanly.
+  if (response.status === 403 || response.status === 404) {
+    response = await fetch(url, { headers: baseHeaders });
+  }
+  if (!response.ok) return null;
+  const body = await response.json().catch(() => null);
+  return Array.isArray(body) ? body : null;
+}
+
+export async function releaseStatsForRepos(
+  config: AppConfig,
+  token: string,
+  repos: string[],
+): Promise<RepoReleaseSummary[]> {
+  const unique = [...new Set(repos.map((name) => name.trim()).filter(Boolean))].slice(0, 12);
+  if (!unique.length || unique.some((name) => !VALID_REPO_NAME.test(name))) {
+    throw httpError(400, "REPOS_INVALID", "Geçerli en az bir GitHub depo adı gerekli.");
+  }
+  return Promise.all(
+    unique.map(async (repo) => {
+      try {
+        const releases = await fetchPublicOrAuthedReleases(config.owner, repo, token);
+        if (!releases) return { repo, downloads: 0, latestTag: "", ok: false };
+        return {
+          repo,
+          downloads: sumReleaseDownloads(releases),
+          latestTag: latestReleaseTag(releases),
+          ok: true,
+        };
+      } catch {
+        return { repo, downloads: 0, latestTag: "", ok: false };
+      }
+    }),
+  );
 }
 
 export async function revokeToken(config: AppConfig, token: string): Promise<void> {
