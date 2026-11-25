@@ -86,7 +86,7 @@ export function renderInitialShellHtml({ identity, tr, discordPresence = null })
     '<div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0" style="background:radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)"></div>',
     '<header class="fixed inset-x-0 top-0 z-50 border-b border-transparent transition-all duration-500">',
     '<nav class="mx-auto w-full max-w-[1380px] px-6 md:px-10 flex h-16 items-center justify-between md:h-20">',
-    '<a href="#anasayfa" class="inline-flex items-center gap-2.5"><span class="h-2.5 w-2.5 rounded-full bg-accent"></span><span class="font-display text-base font-medium tracking-tight">Laye77ie</span></a>',
+    '<a href="#anasayfa" class="inline-flex items-center gap-2.5"><span class="h-2.5 w-2.5 rounded-full bg-accent"></span><span class="font-brand text-xl leading-none tracking-[0.04em]">Laye77ie</span></a>',
     '<div data-header-controls class="hidden min-w-0 items-center gap-3 xl:flex 2xl:gap-6">',
     `<a href="#hakkimda" class="relative whitespace-nowrap text-xs transition-colors 2xl:text-sm text-ink">${escapeHtml(nav.about)}<span class="absolute -bottom-1.5 left-0 right-0 mx-auto h-1 w-1 rounded-full bg-accent"></span></a>`,
     `<a href="#yetenekler" class="relative whitespace-nowrap text-xs transition-colors 2xl:text-sm text-muted hover:text-ink">${escapeHtml(nav.skills)}</a>`,

@@ -813,7 +813,7 @@ function Navbar() {
       <nav className={`${WRAP} flex h-16 items-center justify-between md:h-20`}>
         <a href="#anasayfa" className="inline-flex items-center gap-2.5">
           <span className="h-2.5 w-2.5 rounded-full bg-accent" />
-          <span className="font-display text-base font-medium tracking-tight">
+          <span className="font-brand text-xl leading-none tracking-[0.04em]">
             Laye77ie
           </span>
         </a>
@@ -910,7 +910,7 @@ function Navbar() {
           className="overlay-fade fixed inset-0 z-[70] flex flex-col bg-canvas xl:hidden"
         >
           <div className={`${WRAP} flex h-16 items-center justify-between`}>
-            <span className="font-display font-medium">Laye77ie</span>
+            <span className="font-brand text-xl leading-none tracking-[0.04em]">Laye77ie</span>
             <button
               onClick={() => setOpen(false)}
               aria-label="Kapat"
@@ -1342,7 +1342,7 @@ function Marquee() {
           {items.map((item) => (
             <span
               key={item.id}
-              className="inline-flex items-center gap-10 font-display text-lg uppercase tracking-wide text-muted after:text-accent after:content-['✦']"
+              className="inline-flex items-center gap-10 font-brand text-xl uppercase tracking-[0.06em] text-muted after:font-sans after:text-sm after:text-accent after:content-['✦']"
             >
               {item.label}
             </span>
@@ -1352,7 +1352,7 @@ function Marquee() {
           {items.map((item) => (
             <span
               key={`copy-${item.id}`}
-              className="inline-flex items-center gap-10 font-display text-lg uppercase tracking-wide text-muted after:text-accent after:content-['✦']"
+              className="inline-flex items-center gap-10 font-brand text-xl uppercase tracking-[0.06em] text-muted after:font-sans after:text-sm after:text-accent after:content-['✦']"
             >
               {item.label}
             </span>
@@ -2772,7 +2772,7 @@ function Footer() {
       >
         <span>
           © 2026 Samet Kaşmer —{" "}
-          <span className="text-faint">@{IDENTITY.handle}</span>
+          <span className="font-brand text-base tracking-[0.04em] text-ink/80">@{IDENTITY.handle}</span>
         </span>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <SystemStatusPill />
