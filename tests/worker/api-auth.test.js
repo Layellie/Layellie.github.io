@@ -164,8 +164,32 @@ describe("Worker authentication boundary", () => {
   it("rejects malformed analytics requests and does not accept foreign origins", async () => {
     const badBody = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "not-a-uuid", schemaVersion: 1 }) }));
     expect(badBody.status).toBe(400);
+    const badSource = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "11111111-1111-4111-8111-111111111111", schemaVersion: 1, source: "https://evil.example/leak" }) }));
+    expect(badSource.status).toBe(400);
+    const badLang = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "11111111-1111-4111-8111-111111111111", schemaVersion: 1, lang: "de" }) }));
+    expect(badLang.status).toBe(400);
+    const extraKey = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "11111111-1111-4111-8111-111111111111", schemaVersion: 1, referrer: "raw" }) }));
+    expect(extraKey.status).toBe(400);
     const foreign = await exports.default.fetch(new Request("https://admin.test/api/analytics/visit", { method: "POST", headers: { Origin: "https://evil.example", "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: "11111111-1111-4111-8111-111111111111", schemaVersion: 1 }) }));
     expect(foreign.status).toBe(403);
+  });
+
+  it("aggregates privacy-safe traffic sources and language counts in analytics summary", async () => {
+    const session = await createSession("analytics-sources-owner");
+    const post = (source, lang) => exports.default.fetch(new Request("https://admin.test/api/analytics/visit", {
+      method: "POST",
+      headers: { Origin: "https://layellie.github.io", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0" },
+      body: JSON.stringify({ visitorId: crypto.randomUUID(), schemaVersion: 1, source, lang }),
+    }));
+    expect((await post("linkedin", "en")).status).toBe(204);
+    expect((await post("google", "tr")).status).toBe(204);
+    const response = await exports.default.fetch(sessionRequest("/api/admin/analytics?range=7d", session));
+    expect(response.status).toBe(200);
+    const summary = await response.json();
+    expect(summary.sources.linkedin).toBeGreaterThanOrEqual(1);
+    expect(summary.sources.google).toBeGreaterThanOrEqual(1);
+    expect(summary.languages.en).toBeGreaterThanOrEqual(1);
+    expect(summary.languages.tr).toBeGreaterThanOrEqual(1);
   });
 
   it("protects admin analytics behind the existing owner session", async () => {

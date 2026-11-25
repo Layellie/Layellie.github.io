@@ -65,7 +65,7 @@ describe("legacy admin draft safety", () => {
 
     render(<AdminApp initialSession={{ user: { login: "Layellie" }, csrfToken: "csrf" }} />);
     fireEvent.click(await screen.findByRole("button", { name: "Taslağı geri yükle" }));
-    await screen.findByText("Yeni Proje");
+    await screen.findByRole("button", { name: /2 değişiklik/i });
     fireEvent.click(screen.getAllByRole("button", { name: "Doğrula & yayınla" })[0]);
     await screen.findByRole("heading", { name: "Doğrula, karşılaştır, yayınla" });
     const validateButton = screen.getByRole("button", { name: "Değişiklikleri doğrula" });

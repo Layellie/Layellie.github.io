@@ -19,15 +19,20 @@ afterEach(() => {
 });
 
 describe("AdminApp", () => {
-  it("renders a Layellie-styled dashboard after a real session is supplied", () => {
+  it("renders a Layellie-styled dashboard with grouped sidebar tabs after a real session is supplied", () => {
     render(<AdminApp initialSession={session} initialContent={content} />);
     expect(screen.getByText("Portfolio Control")).toBeTruthy();
     expect(screen.getByRole("heading", { name: /İçerik.*Görsel.*Yayın/ })).toBeTruthy();
     expect(screen.getByText("Yayındaki projeler")).toBeTruthy();
     expect(screen.getByText("Canlı deploy durumu")).toBeTruthy();
     expect(screen.getByText("İçerik sağlığı & yedek")).toBeTruthy();
+    expect(screen.getByText("Proje indirmeleri")).toBeTruthy();
     expect(screen.getByText("Sağlıklı")).toBeTruthy();
-    expect(screen.getByText("Ziyaret analitiği")).toBeTruthy();
+    // Grouped navigation tabs are clearly separated from Dashboard.
+    expect(screen.getByRole("button", { name: "Analitik" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Hero & İletişim" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "SSS (FAQ)" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Discord Kartı" })).toBeTruthy();
     // Publish-safety checklist moved to the Publish Center, not the dashboard.
     expect(screen.queryByText("Durable Object publish kilidi")).toBeNull();
   });
@@ -114,9 +119,10 @@ describe("AdminApp", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Taslağa yükle" }));
     expect(await screen.findByText("Yedek çalışma kopyasına yüklendi")).toBeTruthy();
-    expect(screen.getByText("Yedekten Gelen Proje")).toBeTruthy();
     // Unsaved changes badge appears in the sticky header and Ctrl+S triggers local draft save.
     expect(screen.getByRole("button", { name: /1 değişiklik/i })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Projeler" }));
+    expect(screen.getAllByText("Yedekten Gelen Proje").length).toBeGreaterThan(0);
 
     const saveSpy = vi.spyOn(draftStorage, "saveDraft").mockResolvedValue(undefined);
     fireEvent.keyDown(window, { key: "s", ctrlKey: true });
@@ -126,14 +132,14 @@ describe("AdminApp", () => {
     // Undo / Redo buttons restore and re-apply draft changes cleanly.
     const originalFirstName = portfolioFiles.projects.items[0].tr.name;
     fireEvent.click(screen.getByRole("button", { name: "Geri al" }));
-    expect(screen.getByText(originalFirstName)).toBeTruthy();
+    expect(screen.getAllByText(originalFirstName).length).toBeGreaterThan(0);
     expect(screen.queryByText("Yedekten Gelen Proje")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "İleri al" }));
-    expect(screen.getByText("Yedekten Gelen Proje")).toBeTruthy();
+    expect(screen.getAllByText("Yedekten Gelen Proje").length).toBeGreaterThan(0);
   });
 
-  it("shows 7-day trend percentage and exports analytics as CSV", async () => {
+  it("shows 7-day trend percentage, traffic sources, language split, and exports analytics as CSV", async () => {
     const createObjectURL = vi.fn(() => "blob:analytics-csv");
     const revokeObjectURL = vi.fn();
     vi.stubGlobal("URL", Object.assign(URL, { createObjectURL, revokeObjectURL }));
@@ -144,11 +150,17 @@ describe("AdminApp", () => {
       previousTotal: 10,
       changePercent: 50,
       today: { uniqueVisitors: 4, desktop: 3, mobileTablet: 1 },
+      sources: { direct: 5, google: 4, linkedin: 3, github: 2, social: 1, other: 0 },
+      languages: { tr: 12, en: 3 },
       days: [{ day: "2026-11-22", uniqueVisitors: 4, desktop: 3, mobileTablet: 1 }],
     });
 
     render(<AdminApp initialSession={session} initialContent={content} />);
+    fireEvent.click(screen.getByRole("button", { name: "Analitik" }));
     expect(await screen.findByText("+%50")).toBeTruthy();
+    expect(screen.getByText("LinkedIn")).toBeTruthy();
+    expect(screen.getByText("Türkçe (TR)")).toBeTruthy();
+    expect(screen.getByText("12 (80%)")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Analitiği CSV olarak indir" }));
     expect(createObjectURL).toHaveBeenCalledOnce();
     expect(clickSpy).toHaveBeenCalledOnce();
@@ -211,6 +223,7 @@ describe("AdminApp", () => {
       professionalFilter: true,
     };
     render(<AdminApp initialSession={session} initialContent={cleanContent} />);
+    fireEvent.click(screen.getByRole("button", { name: "Discord Kartı" }));
 
     const presenceSwitch = screen.getByRole("switch", { name: "Discord canlı durum rozeti" });
     const filterSwitch = screen.getByRole("switch", { name: "Profesyonellik filtresi" });
@@ -229,5 +242,19 @@ describe("AdminApp", () => {
     fireEvent.click(filterSwitch);
     expect(filterSwitch.getAttribute("aria-checked")).toBe("false");
     expect(screen.getByText(/1 değişiklik/i)).toBeTruthy();
+  });
+
+  it("lets admin edit Hero availability/identity and FAQ items from dedicated tabs", () => {
+    render(<AdminApp initialSession={session} initialContent={content} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Hero & İletişim" }));
+    const availabilityInput = screen.getByLabelText(/Müsaitlik durumu/i);
+    fireEvent.change(availabilityInput, { target: { value: "Aktif olarak çalışıyorum" } });
+    expect(screen.getByRole("button", { name: /1 değişiklik/i })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "SSS (FAQ)" }));
+    expect(screen.getByText(/SEO & AI otomatik senkron/i)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Soru ekle/i }));
+    expect(screen.getByDisplayValue("Yeni soru?")).toBeTruthy();
   });
 });

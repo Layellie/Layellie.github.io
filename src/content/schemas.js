@@ -380,6 +380,17 @@ const mockSchema = z.object({
   eyeNative: text(200),
 });
 
+const faqItemSchema = z.object({
+  q: text(240),
+  a: text(1200),
+});
+
+const faqSectionSchema = z.object({
+  heading: text(160),
+  kicker: text(120),
+  items: z.array(faqItemSchema).max(12),
+});
+
 const siteLocaleSchema = z
   .object({
     nav: navigationSchema,
@@ -394,6 +405,7 @@ const siteLocaleSchema = z
     footer: z.object({ backToTop: text(120) }),
     cmd: commandPaletteSchema,
     mock: mockSchema,
+    faq: faqSectionSchema.optional(),
   })
   .strict();
 

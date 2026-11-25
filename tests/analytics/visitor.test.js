@@ -4,6 +4,7 @@ import {
   DAILY_KEY,
   OPTOUT_KEY,
   analyticsOptedOut,
+  classifyReferrer,
   istanbulDay,
   recordPortfolioVisit,
   setAnalyticsOptOut,
@@ -39,9 +40,9 @@ describe("unlinkable daily visitor client", () => {
     await expect(recordPortfolioVisit({ storage, fetcher, now: DAY_ONE, origin: ADMIN, navigatorRef })).resolves.toBe(true);
     expect(fetcher).toHaveBeenCalledOnce();
     const body = JSON.parse(fetcher.mock.calls[0][1].body);
-    expect(body).toMatchObject({ schemaVersion: 1, visitorId: expect.stringMatching(/^[0-9a-f-]{36}$/i) });
-    // GPC/DNT signals are never transmitted.
-    expect(Object.keys(body)).toEqual(["visitorId", "schemaVersion"]);
+    expect(body).toMatchObject({ schemaVersion: 1, visitorId: expect.stringMatching(/^[0-9a-f-]{36}$/i), source: "direct", lang: "tr" });
+    // GPC/DNT signals and raw referrer URLs are never transmitted.
+    expect(Object.keys(body)).toEqual(["visitorId", "schemaVersion", "source", "lang"]);
   });
 
   it("measures anonymously even when Do Not Track is '1'", async () => {
@@ -144,5 +145,31 @@ describe("unlinkable daily visitor client", () => {
   it("keeps the Istanbul calendar-day helper stable", () => {
     expect(istanbulDay(DAY_ONE)).toBe("2026-07-23");
     expect(istanbulDay(DAY_TWO)).toBe("2026-07-24");
+  });
+
+  it("classifies referrers into privacy-safe buckets without sending raw URLs", async () => {
+    expect(classifyReferrer("")).toBe("direct");
+    expect(classifyReferrer("https://layellie.dev/projeler", "layellie.dev")).toBe("direct");
+    expect(classifyReferrer("https://www.google.com/search?q=samet+kasmer")).toBe("google");
+    expect(classifyReferrer("https://www.linkedin.com/in/sametkasmer/")).toBe("linkedin");
+    expect(classifyReferrer("https://github.com/Layellie/StandbyAndTimer")).toBe("github");
+    expect(classifyReferrer("https://x.com/someone")).toBe("social");
+    expect(classifyReferrer("https://news.ycombinator.com/item?id=1")).toBe("other");
+
+    const storage = memoryStorage();
+    const fetcher = ok204();
+    await recordPortfolioVisit({
+      storage,
+      fetcher,
+      now: DAY_ONE,
+      origin: ADMIN,
+      referrer: "https://www.linkedin.com/feed/update/secret-token",
+      currentHost: "layellie.dev",
+      lang: "en",
+    });
+    const body = JSON.parse(fetcher.mock.calls[0][1].body);
+    expect(body.source).toBe("linkedin");
+    expect(body.lang).toBe("en");
+    expect(JSON.stringify(body)).not.toContain("secret-token");
   });
 });

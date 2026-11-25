@@ -12,7 +12,9 @@ import {
   FileCheck2,
   GitCommitHorizontal,
   Github,
+  Globe,
   HeartPulse,
+  HelpCircle,
   History,
   ImageUp,
   LayoutDashboard,
@@ -27,6 +29,7 @@ import {
   Save,
   Send,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Smartphone,
   Trash2,
@@ -40,6 +43,7 @@ import { mediaTypeForMetadata } from "../content/mediaTypes.js";
 import { DEFAULT_DISCORD_PRESENCE, DISCORD_USER_ID_REGEX } from "../content/schemas.js";
 import { adminApi } from "./api/client.js";
 import { validateFileSignature } from "./validation/files.js";
+import { optimizeImageUpload } from "./validation/imageOptimize.js";
 import { clearDraft, loadDraft, restoreDraftRecord, saveDraft } from "./draft/storage.js";
 import {
   buildContentHealthReport,
@@ -62,9 +66,12 @@ import {
 import { mergePortfolioFiles } from "./data/merge.js";
 import AboutEditor from "./editors/AboutEditor.jsx";
 import CertificateEditor from "./editors/CertificateEditor.jsx";
+import FaqEditor from "./editors/FaqEditor.jsx";
 import ProjectEditor from "./editors/ProjectEditor.jsx";
+import SiteSettingsEditor from "./editors/SiteSettingsEditor.jsx";
 import SkillsEditor from "./editors/SkillsEditor.jsx";
 import VisualBuilder from "./editors/VisualBuilder.jsx";
+import ReleaseDownloadsPanel from "./components/ReleaseDownloadsPanel.jsx";
 import {
   AdminReveal,
   Button,
@@ -76,15 +83,36 @@ import {
   TextField,
 } from "./components/AdminUi.jsx";
 
-const NAVIGATION = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "about", label: "Hakkımda", icon: UserRound },
-  { id: "projects", label: "Projeler", icon: ClipboardList },
-  { id: "certificates", label: "Sertifikalar", icon: Award },
-  { id: "skills", label: "Yetenekler", icon: Boxes },
-  { id: "visuals", label: "Görsel oluşturucu", icon: Sparkles },
-  { id: "publish", label: "Doğrula & yayınla", icon: Send },
+const NAVIGATION_GROUPS = [
+  {
+    label: "Genel bakış",
+    items: [
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { id: "analytics", label: "Analitik", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Site içeriği",
+    items: [
+      { id: "site", label: "Hero & İletişim", icon: SlidersHorizontal },
+      { id: "faq", label: "SSS (FAQ)", icon: HelpCircle },
+      { id: "discord", label: "Discord Kartı", icon: Radio },
+      { id: "about", label: "Hakkımda", icon: UserRound },
+      { id: "projects", label: "Projeler", icon: ClipboardList },
+      { id: "certificates", label: "Sertifikalar", icon: Award },
+      { id: "skills", label: "Yetenekler", icon: Boxes },
+      { id: "visuals", label: "Görsel oluşturucu", icon: Sparkles },
+    ],
+  },
+  {
+    label: "Yayın",
+    items: [
+      { id: "publish", label: "Doğrula & yayınla", icon: Send },
+    ],
+  },
 ];
+
+const NAVIGATION = NAVIGATION_GROUPS.flatMap((group) => group.items);
 
 const MAX_UNDO_HISTORY = 30;
 
@@ -299,10 +327,33 @@ export default function AdminApp({ initialSession, initialContent }) {
   return (
     <div className="min-h-screen bg-canvas text-ink">
       <div aria-hidden className="pointer-events-none fixed inset-0 opacity-50 [background:radial-gradient(circle_at_78%_4%,rgba(214,255,63,0.06),transparent_28%),radial-gradient(circle_at_8%_82%,rgba(214,255,63,0.035),transparent_24%)]" />
-      <aside className={`fixed inset-y-0 left-0 z-50 w-[286px] border-r border-line bg-canvas/95 p-5 backdrop-blur-xl transition-transform lg:translate-x-0 ${mobileNav ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between"><button type="button" onClick={() => switchScreen("dashboard")} className="text-left"><div className="font-display text-2xl font-semibold tracking-tight">Layellie<span className="text-accent">.</span></div><div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Portfolio Control</div></button><button type="button" onClick={() => setMobileNav(false)} className="rounded-lg p-2 text-faint hover:bg-surface lg:hidden" aria-label="Menüyü kapat"><X className="h-5 w-5" /></button></div>
-        <nav className="mt-10 space-y-1" aria-label="Yönetim bölümleri">{NAVIGATION.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => switchScreen(id)} aria-current={screen === id ? "page" : undefined} className={`group flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-sm transition ${screen === id ? "border-accent/20 bg-accent/8 text-ink" : "border-transparent text-muted hover:border-line hover:bg-surface/60 hover:text-ink"}`}><Icon className={`h-4 w-4 ${screen === id ? "text-accent" : "text-faint group-hover:text-accent"}`} />{label}{screen === id && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_12px_rgba(214,255,63,0.8)]" />}</button>)}</nav>
-        <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-line bg-surface/60 p-4"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-sm font-semibold text-canvas">L</span><div className="min-w-0"><div className="truncate text-sm font-medium">@{session.user?.login || "Layellie"}</div><div className="text-[10px] text-faint">GitHub App session</div></div></div><button type="button" onClick={logout} disabled={logoutBusy} className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-faint transition hover:bg-elevated hover:text-red-300 disabled:cursor-wait disabled:opacity-50"><LogOut className="h-3.5 w-3.5" />{logoutBusy ? "Çıkış yapılıyor…" : "Güvenli çıkış"}</button></div>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[286px] flex-col border-r border-line bg-canvas/95 p-5 backdrop-blur-xl transition-transform lg:translate-x-0 ${mobileNav ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex shrink-0 items-center justify-between"><button type="button" onClick={() => switchScreen("dashboard")} className="text-left"><div className="font-display text-2xl font-semibold tracking-tight">Layellie<span className="text-accent">.</span></div><div className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Portfolio Control</div></button><button type="button" onClick={() => setMobileNav(false)} className="rounded-lg p-2 text-faint hover:bg-surface lg:hidden" aria-label="Menüyü kapat"><X className="h-5 w-5" /></button></div>
+        <nav className="mt-7 flex-1 space-y-5 overflow-y-auto pr-1" aria-label="Yönetim bölümleri">
+          {NAVIGATION_GROUPS.map((group) => (
+            <div key={group.label}>
+              <div className="mb-1.5 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-faint">
+                {group.label}
+              </div>
+              <div className="space-y-1">
+                {group.items.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => switchScreen(id)}
+                    aria-current={screen === id ? "page" : undefined}
+                    className={`group flex w-full items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm transition ${screen === id ? "border-accent/20 bg-accent/8 text-ink" : "border-transparent text-muted hover:border-line hover:bg-surface/60 hover:text-ink"}`}
+                  >
+                    <Icon className={`h-4 w-4 ${screen === id ? "text-accent" : "text-faint group-hover:text-accent"}`} />
+                    {label}
+                    {screen === id && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_12px_rgba(214,255,63,0.8)]" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
+        <div className="mt-4 shrink-0 rounded-2xl border border-line bg-surface/60 p-4"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-sm font-semibold text-canvas">L</span><div className="min-w-0"><div className="truncate text-sm font-medium">@{session.user?.login || "Layellie"}</div><div className="text-[10px] text-faint">GitHub App session</div></div></div><button type="button" onClick={logout} disabled={logoutBusy} className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs text-faint transition hover:bg-elevated hover:text-red-300 disabled:cursor-wait disabled:opacity-50"><LogOut className="h-3.5 w-3.5" />{logoutBusy ? "Çıkış yapılıyor…" : "Güvenli çıkış"}</button></div>
       </aside>
 
       <div className="relative lg:pl-[286px]">
@@ -310,7 +361,11 @@ export default function AdminApp({ initialSession, initialContent }) {
         <main className="mx-auto max-w-[1500px] px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
           {savedDraft && <div className="mb-6"><Notice tone="warning" title="Bu tarayıcıda yayınlanmamış taslak bulundu"><span>{new Date(savedDraft.savedAt).toLocaleString("tr-TR")} tarihinde kaydedildi. </span><button type="button" className="font-medium text-amber-100 underline" onClick={restoreSavedDraft}>Taslağı geri yükle</button><span> · </span><button type="button" className="underline" onClick={() => { clearDraft(); setSavedDraft(null); }}>Sil</button></Notice></div>}
           {flash && <div className="mb-6"><Notice tone={flash.tone} title={flash.title}>{flash.message}</Notice></div>}
-          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onNavigate={switchScreen} onChangeSite={(site) => updateFiles("site", site)} onUpload={addUpload} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
+          {screen === "dashboard" && <Dashboard files={draft} baseFiles={baseFiles} base={base} onNavigate={switchScreen} onRestoreBackup={(backup, filename) => { commitDraftChange(clonePortfolio(backup.files)); setUploads([]); setFlash({ tone: "success", title: "Yedek çalışma kopyasına yüklendi", message: `${filename} şema doğrulamasından geçip yerel taslağa uygulandı. Yayınlamak için Yayın Merkezi'nde farkları incele.` }); }} />}
+          {screen === "analytics" && <AnalyticsScreen files={draft} onNavigate={switchScreen} />}
+          {screen === "site" && <SectionShell eyebrow="Genel site ayarları" title="Hero, kimlik ve iletişim" description="Müsaitlik durumu, rol/unvan, iletişim metinleri ve sosyal bağlantılar buradan TR/EN düzenlenir; değişiklikler JSON-LD ve llms.txt çıktısına otomatik yansır."><SiteSettingsEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
+          {screen === "faq" && <SectionShell eyebrow="Sık sorulan sorular" title="SSS (FAQ) yönetimi" description="Sitedeki #sss bölümü, Google FAQPage yapısal verisi ve llms.txt için soru-cevap maddelerini TR/EN yönet."><FaqEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
+          {screen === "discord" && <SectionShell eyebrow="Hero profil kartı" title="Discord canlı durum kartı" description="PP ve Banner görselleri yüklenirken tarayıcı içinde otomatik WebP ve doğru orana (1:1 / 3:1) optimize edilir."><DiscordPresencePanel site={draft.site} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChangeSite={(site) => updateFiles("site", site)} onUpload={addUpload} onNavigate={switchScreen} /></SectionShell>}
           {screen === "about" && <SectionShell eyebrow="Genel site içeriği" title="Hakkımda bölümünü düzenle" description="Public sitedeki Hakkımda/About bölümünün canonical içeriği. Türkçe ve İngilizce ayrı düzenlenir; değişiklikler Yayın Merkezi üzerinden yayınlanır."><AboutEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "projects" && <ProjectsScreen projects={draft.projects} visuals={draft.visuals} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChange={(projects) => updateFiles("projects", projects)} onUpload={addUpload} />}
           {screen === "certificates" && <CertificatesScreen certificates={draft.certificates} skills={draft.skills} onChange={(certificates) => updateFiles("certificates", certificates)} onUpload={addUpload} />}
@@ -422,15 +477,9 @@ function describeDeployment(deployment) {
   };
 }
 
-function Dashboard({ files, baseFiles, base, pendingUploads, publicSiteOrigin, onNavigate, onChangeSite, onUpload, onRestoreBackup }) {
-  const [analytics, setAnalytics] = useState({ status: "loading", data: null });
+function Dashboard({ files, baseFiles, base, onNavigate, onRestoreBackup }) {
   const [deploy, setDeploy] = useState({ status: "loading", data: null, error: null });
   const [commits, setCommits] = useState({ status: "loading", items: [], error: null });
-  const [range, setRange] = useState("7d");
-  const loadAnalytics = async (nextRange = range) => {
-    setAnalytics((current) => ({ ...current, status: "loading" }));
-    try { setAnalytics({ status: "ready", data: await adminApi.analytics(nextRange), updatedAt: new Date() }); } catch { setAnalytics({ status: "error", data: null }); }
-  };
   const loadDeployment = async () => {
     setDeploy((current) => ({ ...current, status: "loading", error: null }));
     try {
@@ -472,7 +521,6 @@ function Dashboard({ files, baseFiles, base, pendingUploads, publicSiteOrigin, o
     }
   };
   useEffect(() => {
-    void loadAnalytics();
     void loadDeployment();
     void loadCommits();
   }, []);
@@ -482,7 +530,87 @@ function Dashboard({ files, baseFiles, base, pendingUploads, publicSiteOrigin, o
     { label: "Yetenek kartları", value: files.skills.skillCards.length, icon: Boxes, to: "skills" },
     { label: "Görsel presetleri", value: files.visuals.presets.length, icon: Sparkles, to: "visuals" },
   ];
-  return <AdminReveal><div className="flex flex-wrap items-end justify-between gap-4"><div><div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div><h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1></div><div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint"><span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />main · {base?.commitSha?.slice(0, 7) || "yerel"}</div></div><div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{stats.map(({ label, value, icon: Icon, to }, index) => <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface"><div className="flex items-start justify-between"><span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span><span className="font-mono text-[10px] text-faint">0{index + 1}</span></div><div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></button>)}</div><div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]"><DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} /><ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.2fr]"><Panel className="p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl font-semibold">Proje görünümü</h2><Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button></div><div className="mt-4 space-y-2">{files.projects.items.map((project, index) => <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25"><span className="font-mono text-[10px] text-accent">0{index + 1}</span><div className="min-w-0 flex-1"><div className="truncate font-medium">{project.tr.name}</div><div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div></div><span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span></button>)}</div></Panel><AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} /></div><div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_1fr]"><DiscordPresencePanel site={files.site} pendingUploads={pendingUploads} publicSiteOrigin={publicSiteOrigin} onChangeSite={onChangeSite} onUpload={onUpload} onNavigate={onNavigate} /><RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} /></div></AdminReveal>;
+  return (
+    <AdminReveal>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-accent">Layellie yönetim alanı</div>
+          <h1 className="mt-2 font-display text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.88] tracking-tight">İçerik.<br />Görsel. Yayın.</h1>
+        </div>
+        <div className="rounded-2xl border border-line bg-surface/60 px-4 py-2 font-mono text-[10px] text-faint">
+          <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-accent" />
+          main · {base?.commitSha?.slice(0, 7) || "yerel"}
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map(({ label, value, icon: Icon, to }, index) => (
+          <button key={label} type="button" onClick={() => onNavigate(to)} className="group rounded-3xl border border-line bg-surface/55 p-4 text-left transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:bg-surface">
+            <div className="flex items-start justify-between">
+              <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-line bg-canvas/70 text-accent"><Icon className="h-4 w-4" /></span>
+              <span className="font-mono text-[10px] text-faint">0{index + 1}</span>
+            </div>
+            <div className="mt-4 font-display text-4xl font-semibold tracking-tight">{value}</div>
+            <div className="mt-1 text-xs text-muted">{label}</div>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_1fr]">
+        <DeployStatusPanel deploy={deploy} baseCommit={base?.commitSha} onRefresh={() => void loadDeployment()} />
+        <ContentHealthPanel files={files} baseFiles={baseFiles} base={base} onNavigate={onNavigate} onRestoreBackup={onRestoreBackup} />
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_1.15fr]">
+        <ReleaseDownloadsPanel projects={files.projects} githubUser={files.site?.shared?.identity?.githubUser || "Layellie"} />
+        <RecentCommitsPanel commits={commits} onRefresh={() => void loadCommits()} />
+      </div>
+    </AdminReveal>
+  );
+}
+
+function AnalyticsScreen({ files, onNavigate }) {
+  const [analytics, setAnalytics] = useState({ status: "loading", data: null });
+  const [range, setRange] = useState("7d");
+  const loadAnalytics = async (nextRange = range) => {
+    setAnalytics((current) => ({ ...current, status: "loading" }));
+    try { setAnalytics({ status: "ready", data: await adminApi.analytics(nextRange), updatedAt: new Date() }); } catch { setAnalytics({ status: "error", data: null }); }
+  };
+  useEffect(() => {
+    void loadAnalytics();
+  }, []);
+  return (
+    <SectionShell
+      eyebrow="Gizlilik dostu ölçüm"
+      title="Ziyaret analitiği & trafik"
+      description="Çerezsiz, günlük yenilenen anonim sayaçlar. Kişisel veri, IP veya ham yönlendirici URL'si kaydedilmez."
+    >
+      <div className="grid gap-5 xl:grid-cols-[1.35fr_1fr]">
+        <AnalyticsPanel analytics={analytics} range={range} onRange={(value) => { setRange(value); void loadAnalytics(value); }} onRefresh={() => void loadAnalytics()} />
+        <div className="space-y-5">
+          <ReleaseDownloadsPanel projects={files.projects} githubUser={files.site?.shared?.identity?.githubUser || "Layellie"} />
+          <Panel className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-semibold">Proje görünümü</h2>
+              <Button variant="ghost" onClick={() => onNavigate("projects")}>Tümünü düzenle <ExternalLink className="h-3.5 w-3.5" /></Button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {files.projects.items.map((project, index) => (
+                <button key={project.id} type="button" onClick={() => onNavigate("projects")} className="group flex w-full items-center gap-3 rounded-2xl border border-line bg-canvas/40 p-3 text-left transition hover:border-accent/25">
+                  <span className="font-mono text-[10px] text-accent">0{index + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium">{project.tr.name}</div>
+                    <div className="mt-1 truncate text-xs text-faint">{project.tr.type}</div>
+                  </div>
+                  <span className={`rounded-full border px-2.5 py-1 text-[10px] ${project.publicationStatus === "published" ? "border-accent/20 text-accent" : "border-line text-faint"}`}>{project.publicationStatus}</span>
+                </button>
+              ))}
+            </div>
+          </Panel>
+        </div>
+      </div>
+    </SectionShell>
+  );
 }
 
 function resolveProfilePreviewSrc(path, pendingFileUrl, publicSiteOrigin) {
@@ -496,6 +624,7 @@ function resolveProfilePreviewSrc(path, pendingFileUrl, publicSiteOrigin) {
 
 function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onChangeSite, onUpload, onNavigate }) {
   const [uploadError, setUploadError] = useState("");
+  const [uploadNote, setUploadNote] = useState("");
   const [previewUrls, setPreviewUrls] = useState({ avatar: "", banner: "" });
   const avatarInputRef = useRef(null);
   const bannerInputRef = useRef(null);
@@ -547,13 +676,24 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
     if (!file) return;
     try {
       await validateFileSignature(file, "profile");
-      const meta = mediaTypeForMetadata("profile", file.name, file.type);
+      const optimized = await optimizeImageUpload(file, slot === "avatar" ? "profile-avatar" : "profile-banner");
+      const finalFile = optimized.file;
+      if (optimized.optimized) {
+        await validateFileSignature(finalFile, "profile");
+        setUploadNote(
+          `${slot === "avatar" ? "PP" : "Banner"} WebP'ye optimize edildi (${optimized.width}×${optimized.height} · ${(optimized.originalBytes / 1024).toFixed(1)} KiB → ${(optimized.finalBytes / 1024).toFixed(1)} KiB)`,
+        );
+      } else {
+        setUploadNote("");
+      }
+      const meta = mediaTypeForMetadata("profile", finalFile.name, finalFile.type);
       if (!meta) throw new Error("Desteklenmeyen görsel formatı (PNG, JPG, WebP veya GIF seç).");
       setUploadError("");
       const pendingPath = `/media/profile/${slot}/pending.${meta.outputExtension}`;
       updatePresence(slot === "avatar" ? { avatarPath: pendingPath } : { bannerPath: pendingPath });
-      onUpload?.({ kind: "profile", recordId: slot, file });
+      onUpload?.({ kind: "profile", recordId: slot, file: finalFile });
     } catch (error) {
+      setUploadNote("");
       setUploadError(error?.message || "Görsel doğrulanamadı.");
     }
   }
@@ -682,6 +822,7 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
         </div>
       </div>
 
+      {uploadNote && <div className="mt-2 font-mono text-[11px] text-accent">✓ {uploadNote}</div>}
       {uploadError && <div className="mt-2 text-xs text-red-300">{uploadError}</div>}
 
       <div className="mt-3 space-y-2.5">
@@ -1061,6 +1202,15 @@ function DeployStatusPanel({ deploy, baseCommit, onRefresh }) {
   );
 }
 
+const SOURCE_LABELS = [
+  { key: "direct", label: "Direkt" },
+  { key: "google", label: "Google" },
+  { key: "linkedin", label: "LinkedIn" },
+  { key: "github", label: "GitHub" },
+  { key: "social", label: "Sosyal" },
+  { key: "other", label: "Diğer" },
+];
+
 function AnalyticsPanel({ analytics, range, onRange, onRefresh }) {
   const data = analytics.data;
   const maximum = Math.max(1, ...(data?.days || []).map((day) => day.uniqueVisitors));
@@ -1079,6 +1229,13 @@ function AnalyticsPanel({ analytics, range, onRange, onRefresh }) {
       trendBadge = { label: "Yeni", tone: "border-accent/30 bg-accent/10 text-accent", title: "Önceki 7 gün: 0" };
     }
   }
+  const sourceEntries = data?.sources
+    ? SOURCE_LABELS.map((item) => ({ ...item, count: Number(data.sources[item.key] || 0) }))
+    : [];
+  const sourceMax = Math.max(1, ...sourceEntries.map((item) => item.count));
+  const langTr = Number(data?.languages?.tr || 0);
+  const langEn = Number(data?.languages?.en || 0);
+  const langTotal = Math.max(1, langTr + langEn);
   function exportCsv() {
     if (!data) return;
     const exported = createAnalyticsCsv(data);
@@ -1092,7 +1249,97 @@ function AnalyticsPanel({ analytics, range, onRange, onRefresh }) {
     link.remove();
     URL.revokeObjectURL(url);
   }
-  return <Panel className="p-5"><div className="flex items-start justify-between gap-2"><div><div className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-accent" /><h2 className="font-display text-2xl font-semibold">Ziyaret analitiği</h2></div><p className="mt-1 text-[11px] leading-relaxed text-muted">Ziyaretler günlük ve anonim olarak ölçülür. Aynı tarayıcı aynı gün yalnız bir kez sayılır; farklı günlerdeki kayıtlar birbirine bağlanmaz.</p></div><div className="flex shrink-0 items-center gap-1.5"><Button variant="ghost" aria-label="Analitiği CSV olarak indir" title="CSV indir" disabled={analytics.status !== "ready"} onClick={exportCsv}><Download className="h-4 w-4" /></Button><Button variant="ghost" aria-label="Analitiği yenile" onClick={onRefresh}><RefreshCw className="h-4 w-4" /></Button></div></div><div className="mt-3 flex gap-2"><Button variant={range === "7d" ? "primary" : "ghost"} onClick={() => onRange("7d")}>7 gün</Button><Button variant={range === "30d" ? "primary" : "ghost"} onClick={() => onRange("30d")}>30 gün</Button></div>{analytics.status === "loading" && <div className="mt-4 text-sm text-muted">Analitik yükleniyor…</div>}{analytics.status === "error" && <div className="mt-4 text-sm text-amber-100">Analitik şu anda alınamadı.</div>}{analytics.status === "ready" && <><div className="mt-4 grid grid-cols-2 gap-2"><AnalyticsStat label="Bugünkü tekil" value={data.today.uniqueVisitors} icon={BarChart3} /><AnalyticsStat label="Masaüstü" value={data.today.desktop} icon={Monitor} /><AnalyticsStat label="Mobil / tablet" value={data.today.mobileTablet} icon={Smartphone} /><AnalyticsStat label={periodLabel} value={data.total} icon={CheckCircle2} badge={trendBadge} /></div><div className="mt-4 flex h-16 items-end gap-1" role="img" aria-label={`${data.range} için ziyaretçi trendi, toplam ${data.total}`} >{data.days.map((day) => <div key={day.day} className="min-w-1 flex-1 rounded-t bg-accent/70 transition motion-reduce:transition-none" style={{ height: `${Math.max(6, (day.uniqueVisitors / maximum) * 100)}%` }} title={`${day.day}: ${day.uniqueVisitors}`} />)}</div><div className="mt-2 text-[10px] text-faint">Son güncelleme: {analytics.updatedAt?.toLocaleTimeString("tr-TR")}</div></>}</Panel>;
+  return (
+    <Panel className="p-5">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-accent" />
+            <h2 className="font-display text-2xl font-semibold">Ziyaret analitiği</h2>
+          </div>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted">
+            Ziyaretler günlük ve anonim olarak ölçülür. Aynı tarayıcı aynı gün yalnız bir kez sayılır; farklı günlerdeki kayıtlar birbirine bağlanmaz.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Button variant="ghost" aria-label="Analitiği CSV olarak indir" title="CSV indir" disabled={analytics.status !== "ready"} onClick={exportCsv}><Download className="h-4 w-4" /></Button>
+          <Button variant="ghost" aria-label="Analitiği yenile" onClick={onRefresh}><RefreshCw className="h-4 w-4" /></Button>
+        </div>
+      </div>
+      <div className="mt-3 flex gap-2">
+        <Button variant={range === "7d" ? "primary" : "ghost"} onClick={() => onRange("7d")}>7 gün</Button>
+        <Button variant={range === "30d" ? "primary" : "ghost"} onClick={() => onRange("30d")}>30 gün</Button>
+      </div>
+      {analytics.status === "loading" && <div className="mt-4 text-sm text-muted">Analitik yükleniyor…</div>}
+      {analytics.status === "error" && <div className="mt-4 text-sm text-amber-100">Analitik şu anda alınamadı.</div>}
+      {analytics.status === "ready" && (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <AnalyticsStat label="Bugünkü tekil" value={data.today.uniqueVisitors} icon={BarChart3} />
+            <AnalyticsStat label="Masaüstü" value={data.today.desktop} icon={Monitor} />
+            <AnalyticsStat label="Mobil / tablet" value={data.today.mobileTablet} icon={Smartphone} />
+            <AnalyticsStat label={periodLabel} value={data.total} icon={CheckCircle2} badge={trendBadge} />
+          </div>
+          <div className="mt-4 flex h-16 items-end gap-1" role="img" aria-label={`${data.range} için ziyaretçi trendi, toplam ${data.total}`}>
+            {data.days.map((day) => (
+              <div key={day.day} className="min-w-1 flex-1 rounded-t bg-accent/70 transition motion-reduce:transition-none" style={{ height: `${Math.max(6, (day.uniqueVisitors / maximum) * 100)}%` }} title={`${day.day}: ${day.uniqueVisitors}`} />
+            ))}
+          </div>
+
+          {sourceEntries.length > 0 && (
+            <div className="mt-5 grid gap-4 border-t border-line pt-4 sm:grid-cols-2">
+              <div>
+                <div className="mb-2.5 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-faint">
+                  <Globe className="h-3.5 w-3.5 text-accent" />
+                  Trafik kaynakları ({periodLabel})
+                </div>
+                <div className="space-y-2">
+                  {sourceEntries.map((item) => (
+                    <div key={item.key} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted">{item.label}</span>
+                        <span className="font-mono tabular-nums text-ink">{item.count}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-canvas/80">
+                        <div className="h-full rounded-full bg-accent/75" style={{ width: `${item.count > 0 ? Math.max(6, (item.count / sourceMax) * 100) : 0}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2.5 font-mono text-[10px] uppercase tracking-wider text-faint">
+                  Dil dağılımı ({periodLabel})
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { label: "Türkçe (TR)", count: langTr },
+                    { label: "English (EN)", count: langEn },
+                  ].map((item) => {
+                    const pct = langTr + langEn > 0 ? Math.round((item.count / langTotal) * 100) : 0;
+                    return (
+                      <div key={item.label} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted">{item.label}</span>
+                          <span className="font-mono tabular-nums text-ink">{item.count} ({pct}%)</span>
+                        </div>
+                        <div className="h-1.5 overflow-hidden rounded-full bg-canvas/80">
+                          <div className="h-full rounded-full bg-accent/75" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-3 text-[10px] text-faint">Son güncelleme: {analytics.updatedAt?.toLocaleTimeString("tr-TR")}</div>
+        </>
+      )}
+    </Panel>
+  );
 }
 
 function AnalyticsStat({ label, value, icon: Icon, badge }) { return <div className="rounded-xl border border-line bg-canvas/40 p-2.5"><div className="flex items-center justify-between gap-2"><Icon className="h-3.5 w-3.5 text-accent" />{badge && <span title={badge.title} className={`rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-medium ${badge.tone}`}>{badge.label}</span>}</div><div className="mt-2 font-display text-2xl">{value}</div><div className="mt-1 text-[10px] text-muted">{label}</div></div>; }

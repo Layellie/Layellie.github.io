@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ImageUp, RefreshCw } from "lucide-react";
 import { validateFileSignature } from "../validation/files.js";
+import { optimizeImageUpload } from "../validation/imageOptimize.js";
 import { mediaTypeForMetadata } from "../../content/mediaTypes.js";
 import { parseGithubRepositoryUrl } from "../../content/githubUrls.js";
 import { Button, LocaleTabs, Notice, SelectField, TagsField, TextArea, TextField } from "../components/AdminUi.jsx";
@@ -67,6 +68,7 @@ async function fetchLatestReleaseTag(githubUrl, fetcher = globalThis.fetch) {
 export default function ProjectEditor({ project, presets, pendingUpload, publicSiteOrigin, onChange, onUpload }) {
   const [lang, setLang] = useState("tr");
   const [uploadError, setUploadError] = useState("");
+  const [uploadNote, setUploadNote] = useState("");
   const [localUpload, setLocalUpload] = useState(null);
   const [preview, setPreview] = useState({ projectId: "", file: null, url: "" });
   const [syncingRelease, setSyncingRelease] = useState(false);
@@ -82,6 +84,7 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
   useEffect(() => {
     setLocalUpload(null);
     setUploadError("");
+    setUploadNote("");
     setReleaseFeedback(null);
   }, [project.id]);
   useEffect(() => {
@@ -113,11 +116,22 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
     if (!file) return;
     try {
       await validateFileSignature(file, "screenshot");
+      const result = await optimizeImageUpload(file, "screenshot");
+      const finalFile = result.file;
+      if (result.optimized) {
+        await validateFileSignature(finalFile, "screenshot");
+        setUploadNote(
+          `WebP'ye optimize edildi (${result.width}×${result.height} · ${(result.originalBytes / 1024).toFixed(1)} KiB → ${(result.finalBytes / 1024).toFixed(1)} KiB)`,
+        );
+      } else {
+        setUploadNote("");
+      }
       setUploadError("");
-      setLocalUpload({ recordId: project.id, file });
-      updateVisual(pendingScreenshotVisual(project, file));
-      onUpload({ kind: "screenshot", recordId: project.id, file });
+      setLocalUpload({ recordId: project.id, file: finalFile });
+      updateVisual(pendingScreenshotVisual(project, finalFile));
+      onUpload({ kind: "screenshot", recordId: project.id, file: finalFile });
     } catch (error) {
+      setUploadNote("");
       setUploadError(error.message);
     }
   }
@@ -184,6 +198,7 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
       {project.shared.visual.mode === "custom" && <SelectField label="Geliştirici bileşeni" value={project.shared.visual.componentId} onChange={(event) => updateVisual({ mode: "custom", componentId: event.target.value })}><option value="legacy-clipboard">ClipboardMock</option><option value="legacy-standby">TimerMock</option><option value="legacy-eyehealth">EyeHealthMock</option></SelectField>}
       {presets.length === 0 && <Notice tone="warning" title="Builder preset’i bulunmuyor">Modüler görsel kullanmak için önce Görsel oluşturucu bölümünde bir preset oluştur.</Notice>}
       {project.shared.visual.mode === "screenshot" && <div className="grid gap-4 md:grid-cols-2"><label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-line bg-canvas/50 p-5 text-sm text-muted transition hover:border-accent/40 hover:text-ink"><ImageUp className="h-4 w-4 text-accent" />PNG, JPG veya WebP seç<input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => handleScreenshot(event.target.files?.[0])} /></label><SelectField label="Object fit" value={project.shared.visual.objectFit} onChange={(event) => updateVisual({ ...project.shared.visual, objectFit: event.target.value })}><option value="contain">Contain</option><option value="cover">Cover</option></SelectField><TextField label="Türkçe alt metin" value={project.shared.visual.alt.tr} onChange={(event) => updateVisual({ ...project.shared.visual, alt: { ...project.shared.visual.alt, tr: event.target.value } })} /><TextField label="English alt text" value={project.shared.visual.alt.en} onChange={(event) => updateVisual({ ...project.shared.visual, alt: { ...project.shared.visual.alt, en: event.target.value } })} /></div>}
+      {uploadNote && <Notice tone="info" title="Görsel optimize edildi">{uploadNote}</Notice>}
       {uploadError && <Notice tone="danger" title="Dosya kabul edilmedi">{uploadError}</Notice>}
       <div><div className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-faint">Gerçek kart önizlemesi · {lang.toUpperCase()}</div><ProjectPreview project={project} presets={presets} lang={lang} screenshotPreviewUrl={previewUrl} publicSiteOrigin={publicSiteOrigin} /></div>
     </div>

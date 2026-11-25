@@ -298,12 +298,17 @@ function normalizedDiscordPresence(site) {
 
 function siteTextDiff(before, after) {
   const changed = [];
+  if (JSON.stringify(before?.shared?.identity) !== JSON.stringify(after?.shared?.identity)) {
+    changed.push("shared.identity");
+  }
   if (JSON.stringify(normalizedDiscordPresence(before)) !== JSON.stringify(normalizedDiscordPresence(after))) {
     changed.push("shared.discordPresence");
   }
   for (const locale of ["tr", "en"]) {
-    if (JSON.stringify(before?.[locale]?.about) !== JSON.stringify(after?.[locale]?.about)) {
-      changed.push(`${locale}.about`);
+    for (const section of ["hero", "about", "contact", "faq"]) {
+      if (JSON.stringify(before?.[locale]?.[section]) !== JSON.stringify(after?.[locale]?.[section])) {
+        changed.push(`${locale}.${section}`);
+      }
     }
   }
   return { added: [], changed, removed: [] };

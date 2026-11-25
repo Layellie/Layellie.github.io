@@ -37,11 +37,23 @@ export class AdminSessionStore {
           day TEXT NOT NULL,
           visitor_hash TEXT NOT NULL,
           device_category TEXT NOT NULL CHECK(device_category IN ('desktop','mobile','tablet')),
+          source TEXT NOT NULL DEFAULT 'direct',
+          lang TEXT NOT NULL DEFAULT 'tr',
           first_seen_at INTEGER NOT NULL,
           PRIMARY KEY (day, visitor_hash)
         );
         CREATE INDEX IF NOT EXISTS analytics_visits_day_idx ON analytics_visits(day);
       `);
+      for (const migration of [
+        "ALTER TABLE analytics_visits ADD COLUMN source TEXT NOT NULL DEFAULT 'direct'",
+        "ALTER TABLE analytics_visits ADD COLUMN lang TEXT NOT NULL DEFAULT 'tr'",
+      ]) {
+        try {
+          this.state.storage.sql.exec(migration);
+        } catch {
+          /* column already exists on upgraded instances */
+        }
+      }
     });
   }
 
@@ -139,9 +151,27 @@ export class AdminSessionStore {
 
   private analyticsVisit(payload: Record<string, unknown>, now: number): Response {
     const { day, visitorHash, deviceCategory } = this.strings(payload, ["day", "visitorHash", "deviceCategory"]);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !/^[A-Za-z0-9_-]{32,128}$/.test(visitorHash) || !["desktop", "mobile", "tablet"].includes(deviceCategory)) throw new Error("invalid");
+    const source = typeof payload.source === "string" && payload.source ? payload.source : "direct";
+    const lang = typeof payload.lang === "string" && payload.lang ? payload.lang : "tr";
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(day) ||
+      !/^[A-Za-z0-9_-]{32,128}$/.test(visitorHash) ||
+      !["desktop", "mobile", "tablet"].includes(deviceCategory) ||
+      !["direct", "google", "linkedin", "github", "social", "other"].includes(source) ||
+      !["tr", "en"].includes(lang)
+    ) {
+      throw new Error("invalid");
+    }
     return this.state.storage.transactionSync(() => {
-      this.state.storage.sql.exec("INSERT INTO analytics_visits (day,visitor_hash,device_category,first_seen_at) VALUES (?,?,?,?) ON CONFLICT(day,visitor_hash) DO NOTHING", day, visitorHash, deviceCategory, now);
+      this.state.storage.sql.exec(
+        "INSERT INTO analytics_visits (day,visitor_hash,device_category,source,lang,first_seen_at) VALUES (?,?,?,?,?,?) ON CONFLICT(day,visitor_hash) DO NOTHING",
+        day,
+        visitorHash,
+        deviceCategory,
+        source,
+        lang,
+        now,
+      );
       return this.result({ recorded: true });
     });
   }
@@ -153,6 +183,16 @@ export class AdminSessionStore {
     const day = this.strings(payload, ["day"]).day;
     const currentStart = this.daysBefore(day, days - 1);
     const rows = this.state.storage.sql.exec<{ day: string; unique_visitors: number; desktop: number; mobile_tablet: number }>("SELECT day, COUNT(*) AS unique_visitors, SUM(CASE WHEN device_category='desktop' THEN 1 ELSE 0 END) AS desktop, SUM(CASE WHEN device_category IN ('mobile','tablet') THEN 1 ELSE 0 END) AS mobile_tablet FROM analytics_visits WHERE day>=? GROUP BY day ORDER BY day", currentStart).toArray();
+    const sourceRows = this.state.storage.sql.exec<{ source: string; total: number }>("SELECT source, COUNT(*) AS total FROM analytics_visits WHERE day>=? GROUP BY source", currentStart).toArray();
+    const langRows = this.state.storage.sql.exec<{ lang: string; total: number }>("SELECT lang, COUNT(*) AS total FROM analytics_visits WHERE day>=? GROUP BY lang", currentStart).toArray();
+    const sources = { direct: 0, google: 0, linkedin: 0, github: 0, social: 0, other: 0 };
+    for (const row of sourceRows) {
+      if (row.source in sources) sources[row.source as keyof typeof sources] = row.total;
+    }
+    const languages = { tr: 0, en: 0 };
+    for (const row of langRows) {
+      if (row.lang === "tr" || row.lang === "en") languages[row.lang] = row.total;
+    }
     const today = rows.find((row) => row.day === day) || { unique_visitors: 0, desktop: 0, mobile_tablet: 0 };
     const total = rows.reduce((sum, row) => sum + row.unique_visitors, 0);
     let previousTotal: number | null = null;
@@ -163,7 +203,16 @@ export class AdminSessionStore {
       previousTotal = prevRow?.total ?? 0;
       changePercent = previousTotal > 0 ? Math.round(((total - previousTotal) / previousTotal) * 100) : total === 0 ? 0 : null;
     }
-    return this.result({ range, today: { uniqueVisitors: today.unique_visitors, desktop: today.desktop, mobileTablet: today.mobile_tablet }, total, previousTotal, changePercent, days: rows.map((row) => ({ day: row.day, uniqueVisitors: row.unique_visitors, desktop: row.desktop, mobileTablet: row.mobile_tablet })) });
+    return this.result({
+      range,
+      today: { uniqueVisitors: today.unique_visitors, desktop: today.desktop, mobileTablet: today.mobile_tablet },
+      total,
+      previousTotal,
+      changePercent,
+      sources,
+      languages,
+      days: rows.map((row) => ({ day: row.day, uniqueVisitors: row.unique_visitors, desktop: row.desktop, mobileTablet: row.mobile_tablet })),
+    });
   }
 
   private daysBefore(day: string, days: number): string {

@@ -36,7 +36,7 @@ import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
 import { CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
 import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
-import { FAQ_CONTENT } from "./content/faq.js";
+import { resolveFaqContent } from "./content/faq.js";
 import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
 import {
   fetchWorkerHealth,
@@ -2648,8 +2648,9 @@ function Contact() {
 /*  SIK SORULAN SORULAR (CV tabanlı kısa özet)                         */
 /* ================================================================== */
 function FaqSection() {
-  const { lang } = useLang();
-  const faq = FAQ_CONTENT[lang] || FAQ_CONTENT.tr;
+  const { t, lang } = useLang();
+  const faq = resolveFaqContent(t, lang);
+  if (!faq.items.length) return null;
 
   return (
     <section id="sss" className={`${WRAP} py-20 md:py-24`}>
@@ -3437,7 +3438,7 @@ export default function App() {
   // Analitik kaydı, ilk boyamadan sonra boş zamanda başlar (otomasyon botları atlanır).
   useEffect(() => {
     if (isAutomatedBrowser()) return undefined;
-    return whenIdle(() => { void recordPortfolioVisit(); }, 3000);
+    return whenIdle(() => { void recordPortfolioVisit({ lang }); }, 3000);
   }, []);
 
   const t = CONTENT[lang];

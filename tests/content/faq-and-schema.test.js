@@ -77,4 +77,20 @@ describe("FAQ content and structured data", () => {
     expect(shell).toContain('width="324" height="108"');
     expect(shell).toContain('mt-2.5 text-sm leading-relaxed text-muted sm:text-base md:mt-3 md:text-lg');
   });
+
+  it("flows admin-edited site.json FAQ items into FAQPage JSON-LD and llms.txt", () => {
+    const customTr = structuredClone(view.content.tr);
+    const customEn = structuredClone(view.content.en);
+    customTr.faq = { heading: "SSS", kicker: "Test", items: [{ q: "Özel soru?", a: "Özel yanıt." }] };
+    customEn.faq = { heading: "FAQ", kicker: "Test", items: [{ q: "Custom question?", a: "Custom answer." }] };
+
+    const parsed = JSON.parse(renderStructuredData({ identity: view.identity, tr: customTr, en: customEn }, "2026-11-26"));
+    const faqNode = parsed["@graph"].find((node) => node["@type"] === "FAQPage");
+    expect(faqNode.mainEntity).toEqual([
+      { "@type": "Question", name: "Özel soru?", acceptedAnswer: { "@type": "Answer", text: "Özel yanıt." } },
+    ]);
+
+    const llms = renderLlmsTxt({ identity: view.identity, tr: customTr, en: customEn });
+    expect(llms).toContain("**Custom question?** Custom answer.");
+  });
 });

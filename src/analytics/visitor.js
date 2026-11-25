@@ -52,7 +52,45 @@ function readDailyRecord(storage) {
   } catch { return null; }
 }
 
-export async function recordPortfolioVisit({ storage = globalThis.localStorage, fetcher = globalThis.fetch, now = new Date(), origin = import.meta.env.VITE_ADMIN_ORIGIN } = {}) {
+export const ANALYTICS_SOURCES = Object.freeze(["direct", "google", "linkedin", "github", "social", "other"]);
+
+export function classifyReferrer(referrer = "", currentHost = "") {
+  const raw = typeof referrer === "string" ? referrer.trim() : "";
+  if (!raw) return "direct";
+  let host = "";
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "direct";
+    host = parsed.hostname.toLowerCase();
+  } catch {
+    return "direct";
+  }
+  const ownHost = String(currentHost || "").toLowerCase();
+  if (!host || (ownHost && host === ownHost)) return "direct";
+  if (/(^|\.)google\.[a-z.]+$/.test(host)) return "google";
+  if (/(^|\.)(linkedin\.com|lnkd\.in)$/.test(host)) return "linkedin";
+  if (/(^|\.)(github\.com|github\.io)$/.test(host)) return "github";
+  if (/(^|\.)(x\.com|twitter\.com|t\.co|reddit\.com|discord\.com|instagram\.com|youtube\.com|youtu\.be)$/.test(host)) {
+    return "social";
+  }
+  return "other";
+}
+
+function normalizeVisitLang(lang) {
+  if (lang === "en" || lang === "tr") return lang;
+  const docLang = typeof document !== "undefined" ? String(document.documentElement?.lang || "").toLowerCase() : "";
+  return docLang.startsWith("en") ? "en" : "tr";
+}
+
+export async function recordPortfolioVisit({
+  storage = globalThis.localStorage,
+  fetcher = globalThis.fetch,
+  now = new Date(),
+  origin = import.meta.env.VITE_ADMIN_ORIGIN,
+  referrer = typeof document !== "undefined" ? document.referrer : "",
+  currentHost = typeof window !== "undefined" ? window.location?.hostname : "",
+  lang,
+} = {}) {
   if (!origin) return false;
   try {
     // Retire the old persistent-UUID / day-marker keys so a stale marker can
@@ -71,7 +109,15 @@ export async function recordPortfolioVisit({ storage = globalThis.localStorage, 
     }
     if (record.sent) return false;
 
-    const response = await fetcher(`${origin.replace(/\/$/, "")}/api/analytics/visit`, { method: "POST", mode: "cors", credentials: "omit", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: record.visitorId, schemaVersion: 1 }) });
+    const source = classifyReferrer(referrer, currentHost);
+    const visitLang = normalizeVisitLang(lang);
+    const response = await fetcher(`${origin.replace(/\/$/, "")}/api/analytics/visit`, {
+      method: "POST",
+      mode: "cors",
+      credentials: "omit",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId: record.visitorId, schemaVersion: 1, source, lang: visitLang }),
+    });
     // Only remember the day as counted after a confirmed 204/2xx. A blocked,
     // CORS-failed or 5xx request leaves the record unsent so the next load
     // retries with the same daily UUID (staying idempotent for the day).

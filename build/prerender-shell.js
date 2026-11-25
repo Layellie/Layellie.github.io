@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { FAQ_CONTENT } from "../src/content/faq.js";
+import { resolveFaqContent } from "../src/content/faq.js";
 
 const CONTENT_KEYS = ["site", "projects", "certificates", "skills", "visuals"];
 
@@ -180,7 +180,7 @@ export function renderLlmsTxt({ identity, tr, en }) {
     "",
     "## Frequently Asked Questions",
     "",
-    ...FAQ_CONTENT.en.items.map((item) => `- **${item.q}** ${item.a}`),
+    ...resolveFaqContent(en, "en").items.map((item) => `- **${item.q}** ${item.a}`),
     "",
     "## Links",
     "",
@@ -240,7 +240,7 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       description: tr.hero.tagline,
       homeLocation: {
         "@type": "Place",
-        name: "Bursa, Türkiye",
+        name: tr.hero.location || "Bursa, Türkiye",
       },
       knowsLanguage: ["tr", "en"],
       alumniOf: [
@@ -276,18 +276,22 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       ...(p.year ? { datePublished: String(p.year) } : {}),
       author: { "@id": personId },
     })),
-    {
-      "@type": "FAQPage",
-      "@id": `${siteUrl}#faq`,
-      mainEntity: FAQ_CONTENT.tr.items.map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: item.a,
-        },
-      })),
-    },
+    ...(resolveFaqContent(tr, "tr").items.length
+      ? [
+          {
+            "@type": "FAQPage",
+            "@id": `${siteUrl}#faq`,
+            mainEntity: resolveFaqContent(tr, "tr").items.map((item) => ({
+              "@type": "Question",
+              name: item.q,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: item.a,
+              },
+            })),
+          },
+        ]
+      : []),
   ];
 
   return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll(

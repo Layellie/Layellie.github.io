@@ -14,6 +14,9 @@ export { AdminSessionStore };
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const BOT_UA = /bot|crawl|spider|slurp|facebookexternalhit|bingpreview/i;
+const ANALYTICS_SOURCES = new Set(["direct", "google", "linkedin", "github", "social", "other"]);
+const ANALYTICS_LANGS = new Set(["tr", "en"]);
+const ANALYTICS_ALLOWED_KEYS = new Set(["visitorId", "schemaVersion", "source", "lang"]);
 
 function istanbulDay(now = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
@@ -67,12 +70,30 @@ export default {
       if (url.pathname === "/api/analytics/visit" && request.method === "POST") {
         if (request.headers.get("Origin") !== config.publicSiteOrigin) throw httpError(403, "ORIGIN_REJECTED", "İstek origin doğrulamasından geçemedi.");
         if (!request.headers.get("Content-Type")?.toLocaleLowerCase("en-US").startsWith("application/json")) throw httpError(415, "CONTENT_TYPE_INVALID", "JSON içerik türü gerekli.");
-        const body = await request.json().catch(() => null) as { visitorId?: unknown; schemaVersion?: unknown } | null;
-        if (!body || Object.keys(body).length !== 2 || body.schemaVersion !== 1 || typeof body.visitorId !== "string" || body.visitorId.length !== 36 || !UUID_V4.test(body.visitorId)) throw httpError(400, "ANALYTICS_REQUEST_INVALID", "Ziyaret kaydı geçersiz.");
+        const body = await request.json().catch(() => null) as { visitorId?: unknown; schemaVersion?: unknown; source?: unknown; lang?: unknown } | null;
+        const bodyKeys = body && typeof body === "object" && !Array.isArray(body) ? Object.keys(body) : [];
+        const source = body?.source === undefined ? "direct" : body.source;
+        const lang = body?.lang === undefined ? "tr" : body.lang;
+        if (
+          !body ||
+          bodyKeys.length < 2 ||
+          bodyKeys.length > 4 ||
+          bodyKeys.some((key) => !ANALYTICS_ALLOWED_KEYS.has(key)) ||
+          body.schemaVersion !== 1 ||
+          typeof body.visitorId !== "string" ||
+          body.visitorId.length !== 36 ||
+          !UUID_V4.test(body.visitorId) ||
+          typeof source !== "string" ||
+          !ANALYTICS_SOURCES.has(source) ||
+          typeof lang !== "string" ||
+          !ANALYTICS_LANGS.has(lang)
+        ) {
+          throw httpError(400, "ANALYTICS_REQUEST_INVALID", "Ziyaret kaydı geçersiz.");
+        }
         if (!BOT_UA.test(request.headers.get("User-Agent") || "")) {
           const visitorHash = await analyticsVisitorHash(body.visitorId, istanbulDay(), config.sessionSecret);
           await storeCall(env, "rate.check", { key: `analytics:${visitorHash.slice(0, 24)}`, limit: 12, periodMs: 60_000 });
-          await storeCall(env, "analytics.visit", { day: istanbulDay(), visitorHash, deviceCategory: deviceCategory(request.headers.get("User-Agent")) });
+          await storeCall(env, "analytics.visit", { day: istanbulDay(), visitorHash, deviceCategory: deviceCategory(request.headers.get("User-Agent")), source, lang });
         }
         return new Response(null, { status: 204, headers: analyticsHeaders(config) });
       }

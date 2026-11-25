@@ -44,3 +44,14 @@ export const FAQ_CONTENT = {
     ],
   },
 };
+
+export function resolveFaqContent(localeData, lang = "tr") {
+  const fallback = FAQ_CONTENT[lang] || FAQ_CONTENT.tr;
+  const source = localeData?.faq;
+  if (!source || !Array.isArray(source.items)) return fallback;
+  return {
+    heading: source.heading || fallback.heading,
+    kicker: source.kicker || fallback.kicker,
+    items: source.items,
+  };
+}
