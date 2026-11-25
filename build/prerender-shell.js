@@ -437,6 +437,11 @@ export function inlineAndPrerenderShellPlugin() {
         );
       }
 
+      // Üretim HTML'indeki yorum satırlarını ve etiketler arası gereksiz girintileri temizle.
+      html = html
+        .replace(/<!--[\s\S]*?-->/g, "")
+        .replace(/>\r?\n\s+</g, "><");
+
       htmlAsset.source = html;
 
       this.emitFile({
