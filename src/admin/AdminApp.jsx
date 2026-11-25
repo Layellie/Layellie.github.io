@@ -583,11 +583,11 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
 
       {/* Canlı profil kartı önizlemesi */}
       <div className="mt-4 overflow-hidden rounded-2xl border border-[#1f1f24] bg-[#050507]">
-        <div className="h-20 w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]">
+        <div className="aspect-[3/1] w-full overflow-hidden bg-[radial-gradient(circle_at_82%_20%,rgba(214,255,63,0.18),transparent_58%),linear-gradient(135deg,#0f0f14_0%,#050507_100%)]">
           {bannerSrc && <img src={bannerSrc} alt="Banner önizleme" className="h-full w-full object-cover" />}
         </div>
         <div className="px-4 pb-3.5">
-          <div className="-mt-8 flex items-end justify-between gap-3">
+          <div className="-mt-8">
             <div className="relative h-14 w-14 shrink-0 rounded-full border-4 border-[#050507] bg-[#0d0d11]">
               {avatarSrc ? (
                 <img src={avatarSrc} alt="PP önizleme" className="h-full w-full rounded-full object-cover" />
@@ -596,16 +596,23 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
               )}
               <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-[3px] border-[#050507] ${current.enabled ? "bg-emerald-400" : "bg-[#52525b]"}`} />
             </div>
-            <span className={`mb-0.5 rounded-full border px-2 py-0.5 text-[10px] font-medium ${current.enabled ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-[#1f1f24] bg-[#0a0a0d] text-faint"}`}>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="truncate font-display text-base font-semibold leading-tight text-ink">{site?.shared?.identity?.name || "Samet Kaşmer"}</div>
+            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${current.enabled ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-[#1f1f24] bg-[#0a0a0d] text-faint"}`}>
               {current.enabled ? "Çevrimiçi" : "Kart kapalı"}
             </span>
           </div>
-          <div className="mt-2 flex items-baseline justify-between gap-2">
-            <div>
-              <div className="font-display text-base font-semibold leading-tight text-ink">{site?.shared?.identity?.name || "Samet Kaşmer"}</div>
-              <div className="font-mono text-[11px] text-faint">@{(site?.shared?.identity?.handle || "layellie").toLowerCase()}</div>
-            </div>
-            <span className="rounded-md border border-[#1f1f24] bg-[#0a0a0d] px-2 py-0.5 font-mono text-[10px] text-ink">
+          <div className="mt-0.5 flex items-center justify-between gap-2 font-mono text-[11px] text-faint">
+            <span>@{(site?.shared?.identity?.handle || "layellie").toLowerCase()}</span>
+            <span className="text-muted">Bursa · UTC+3</span>
+          </div>
+          {site?.tr?.hero?.role && (
+            <p className="mt-1.5 truncate text-xs text-muted">{site.tr.hero.role}</p>
+          )}
+          <div className="mt-2.5 flex items-center justify-between gap-2 rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2 font-mono text-[11px] text-ink">
+            <span className="tracking-[0.14em]">C 0 D 3</span>
+            <span className="text-[10px] text-faint">
               {current.professionalFilter ? "Sadece IDE" : "IDE · Spotify · Oyun"}
             </span>
           </div>
@@ -629,7 +636,7 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
           />
           <div className="min-w-0">
             <div className="text-xs font-medium text-ink">Profil Fotoğrafı (PP)</div>
-            <div className="truncate text-[10px] text-faint">{current.avatarPath ? "Yüklü · PNG/JPG/WebP/GIF" : "Varsayılan L monogram"}</div>
+            <div className="truncate text-[10px] text-faint">{current.avatarPath ? "Yüklü · 1:1 önerilir (112×112 WebP)" : "Varsayılan L monogram"}</div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <Button variant="ghost" className="min-h-8 px-2.5 text-xs" onClick={() => avatarInputRef.current?.click()}>
@@ -659,7 +666,7 @@ function DiscordPresencePanel({ site, pendingUploads = [], publicSiteOrigin, onC
           />
           <div className="min-w-0">
             <div className="text-xs font-medium text-ink">Banner Görseli</div>
-            <div className="truncate text-[10px] text-faint">{current.bannerPath ? "Yüklü · PNG/JPG/WebP/GIF" : "Varsayılan koyu-lime geçiş"}</div>
+            <div className="truncate text-[10px] text-faint">{current.bannerPath ? "Yüklü · 3:1 önerilir (648×216 WebP)" : "Varsayılan koyu-lime geçiş"}</div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <Button variant="ghost" className="min-h-8 px-2.5 text-xs" onClick={() => bannerInputRef.current?.click()}>

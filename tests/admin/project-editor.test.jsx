@@ -160,4 +160,21 @@ describe("ProjectEditor screenshot preview lifecycle", () => {
     expect(screen.getByText(/v4\.2\.0 sürümü TR ve EN/)).toBeTruthy();
     vi.unstubAllGlobals();
   });
+
+  it("explains automatic GitHub release sync on status tags and previews license + status pills", () => {
+    const project = structuredClone(portfolioFiles.projects.items[0]);
+    render(
+      <ProjectEditor
+        project={project}
+        presets={portfolioFiles.visuals.presets}
+        publicSiteOrigin="https://portfolio.example"
+        onUpload={vi.fn()}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/GitHub Release ile otomatik güncellenir/)).toBeTruthy();
+    expect(screen.getByText(project.shared.license)).toBeTruthy();
+    expect(screen.getByText(project.tr.status[0])).toBeTruthy();
+  });
 });

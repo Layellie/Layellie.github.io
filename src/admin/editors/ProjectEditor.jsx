@@ -101,7 +101,7 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
       const tag = await fetchLatestReleaseTag(project.shared.github);
       const normalized = normalizeVersionTag(tag);
       onChange(applyReleaseVersionToProject(project, normalized));
-      setReleaseFeedback({ tone: "success", message: `${normalized} sürümü TR ve EN durum etiketlerine işlendi.` });
+      setReleaseFeedback({ tone: "success", message: `${normalized} sürümü TR ve EN durum etiketlerine (yedek/SEO) işlendi.` });
     } catch (error) {
       setReleaseFeedback({ tone: "danger", message: error?.message || "GitHub sürümü alınamadı." });
     } finally {
@@ -150,7 +150,12 @@ export default function ProjectEditor({ project, presets, pendingUpload, publicS
         <TextField label="GitHub bağlantısı" className="md:col-span-2" value={project.shared.github} onChange={(event) => updateShared("github", event.target.value)} inputMode="url" />
         <TextArea label="Açıklama" className="md:col-span-2" value={locale.description} onChange={(event) => updateLocale("description", event.target.value)} maxLength={1200} />
         <TagsField label="Özellikler" value={locale.features} onChange={(value) => updateLocale("features", value)} hint="Virgülle ayır · en fazla 12" />
-        <TagsField label="Durum etiketleri" value={locale.status} onChange={(value) => updateLocale("status", value)} hint="Virgülle ayır · en fazla 8" />
+        <TagsField
+          label="Durum etiketleri"
+          value={locale.status}
+          onChange={(value) => updateLocale("status", value)}
+          hint="Virgülle ayır · en fazla 8 · vX.Y.Z etiketi canlı sitede GitHub Release ile otomatik güncellenir (burası yedek/SEO)"
+        />
         <TagsField label="Teknolojiler" className="md:col-span-2" value={project.shared.stack} onChange={(value) => updateShared("stack", value)} />
         <SelectField label="Yayın durumu" value={project.publicationStatus} onChange={(event) => onChange({ ...project, publicationStatus: event.target.value })}>
           <option value="draft">Taslak</option><option value="published">Yayında</option>
