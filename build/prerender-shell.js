@@ -130,7 +130,7 @@ export function renderInitialShellHtml({ identity, tr, discordPresence = null, a
     "</div>",
     showDiscordCard ? renderDiscordCardShell({ identity, hero, discordPresence }) : "",
     "</div>",
-    '<div class="hero-rise mt-8 flex flex-col gap-6 border-t border-line pt-6 lg:mt-12 lg:flex-row lg:items-end lg:justify-between lg:gap-8 lg:pt-8" style="--hero-delay:0.15s;--hero-dur:0.7s">',
+    '<div class="hero-rise mt-8 flex flex-col gap-6 border-t border-line pt-6 lg:mt-12 lg:flex-row lg:items-end lg:justify-between lg:gap-8 lg:pt-8" style="--hero-delay:0.04s;--hero-dur:0.45s">',
     '<div class="max-w-xl">',
     `<h2 class="font-display text-lg tracking-tight sm:text-xl md:text-2xl">${escapeHtml(hero.role)}</h2>`,
     `<p class="mt-2.5 text-sm leading-relaxed text-muted sm:text-base md:mt-3 md:text-lg">${escapeHtml(hero.tagline)}</p>`,

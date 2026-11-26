@@ -1316,7 +1316,7 @@ function Hero() {
 
         <div
           className="hero-rise mt-8 flex flex-col gap-6 border-t border-line pt-6 lg:mt-12 lg:flex-row lg:items-end lg:justify-between lg:gap-8 lg:pt-8"
-          style={{ "--hero-delay": "0.15s", "--hero-dur": "0.7s" }}
+          style={{ "--hero-delay": "0.04s", "--hero-dur": "0.45s" }}
         >
           <div className="max-w-xl">
             <h2 className="font-display text-lg tracking-tight sm:text-xl md:text-2xl">

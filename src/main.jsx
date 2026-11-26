@@ -22,27 +22,4 @@ function mountApp() {
   );
 }
 
-// Statik kabukta LCP banner görseli varsa, ilk boyama karesi tamamlandıktan
-// hemen sonra React'i mount et (en fazla 200 ms bekleme sınırı).
-if (window.__PRERENDERED_SHELL__ && !window.location.hash) {
-  let mounted = false;
-  const startMount = () => {
-    if (mounted) return;
-    mounted = true;
-    window.requestAnimationFrame(() => window.setTimeout(mountApp, 0));
-  };
-  const lcpImg = rootEl.querySelector('img[fetchpriority="high"]');
-  if (lcpImg && !lcpImg.complete) {
-    const cap = window.setTimeout(startMount, 350);
-    const done = () => {
-      window.clearTimeout(cap);
-      startMount();
-    };
-    lcpImg.addEventListener("load", done, { once: true });
-    lcpImg.addEventListener("error", done, { once: true });
-  } else {
-    startMount();
-  }
-} else {
-  mountApp();
-}
+mountApp();
