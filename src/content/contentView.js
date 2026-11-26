@@ -1,4 +1,5 @@
 import { parsePortfolioFiles } from "./schemas.js";
+import { resolveAvailabilityTone } from "./availability.js";
 
 function displayDate(isoDate) {
   const [year, month, day] = isoDate.split("-");
@@ -62,6 +63,7 @@ export function buildContentView(files, { includeVisual = true } = {}) {
   return {
     identity: parsed.site.shared.identity,
     discordPresence: parsed.site.shared.discordPresence,
+    availabilityTone: resolveAvailabilityTone(parsed.site.shared.availabilityTone),
     content,
   };
 }

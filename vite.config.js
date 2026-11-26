@@ -24,6 +24,7 @@ function resolveTailwindSources() {
   const sources = [
     "./App.jsx",
     "./main.jsx",
+    "./content/availability.js",
     "./components/LegacyProjectVisuals.jsx",
     "./components/PortfolioOverlays.jsx",
     "./components/project-visuals/iconRegistry.jsx",

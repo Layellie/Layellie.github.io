@@ -70,6 +70,7 @@ import FaqEditor from "./editors/FaqEditor.jsx";
 import ProjectEditor from "./editors/ProjectEditor.jsx";
 import SiteSettingsEditor from "./editors/SiteSettingsEditor.jsx";
 import SkillsEditor from "./editors/SkillsEditor.jsx";
+import TimelineEditor from "./editors/TimelineEditor.jsx";
 import VisualBuilder from "./editors/VisualBuilder.jsx";
 import ReleaseDownloadsPanel from "./components/ReleaseDownloadsPanel.jsx";
 import {
@@ -98,6 +99,7 @@ const NAVIGATION_GROUPS = [
       { id: "faq", label: "SSS (FAQ)", icon: HelpCircle },
       { id: "discord", label: "Discord Kartı", icon: Radio },
       { id: "about", label: "Hakkımda", icon: UserRound },
+      { id: "timeline", label: "Zaman Çizelgesi", icon: History },
       { id: "projects", label: "Projeler", icon: ClipboardList },
       { id: "certificates", label: "Sertifikalar", icon: Award },
       { id: "skills", label: "Yetenekler", icon: Boxes },
@@ -367,6 +369,7 @@ export default function AdminApp({ initialSession, initialContent }) {
           {screen === "faq" && <SectionShell eyebrow="Sık sorulan sorular" title="SSS (FAQ) yönetimi" description="Sitedeki #sss bölümü, Google FAQPage yapısal verisi ve llms.txt için soru-cevap maddelerini TR/EN yönet."><FaqEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "discord" && <SectionShell eyebrow="Hero profil kartı" title="Discord canlı durum kartı" description="PP ve Banner görselleri yüklenirken tarayıcı içinde otomatik WebP ve doğru orana (1:1 / 3:1) optimize edilir."><DiscordPresencePanel site={draft.site} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChangeSite={(site) => updateFiles("site", site)} onUpload={addUpload} onNavigate={switchScreen} /></SectionShell>}
           {screen === "about" && <SectionShell eyebrow="Genel site içeriği" title="Hakkımda bölümünü düzenle" description="Public sitedeki Hakkımda/About bölümünün canonical içeriği. Türkçe ve İngilizce ayrı düzenlenir; değişiklikler Yayın Merkezi üzerinden yayınlanır."><AboutEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
+          {screen === "timeline" && <SectionShell eyebrow="Deneyim & eğitim yolculuğu" title="Zaman çizelgesi" description="Hakkımda altındaki zikzak deneyim, eğitim ve sertifika duraklarını TR/EN düzenle, yeni iş deneyimi ekle ve sürükleyerek sırala."><TimelineEditor site={draft.site} onChange={(site) => updateFiles("site", site)} /></SectionShell>}
           {screen === "projects" && <ProjectsScreen projects={draft.projects} visuals={draft.visuals} pendingUploads={uploads} publicSiteOrigin={session.publicSiteOrigin} onChange={(projects) => updateFiles("projects", projects)} onUpload={addUpload} />}
           {screen === "certificates" && <CertificatesScreen certificates={draft.certificates} skills={draft.skills} onChange={(certificates) => updateFiles("certificates", certificates)} onUpload={addUpload} />}
           {screen === "skills" && <SectionShell eyebrow="Yetenek sistemi" title="Kartları ve odak alanlarını düzenle" description="Public Yetenekler bölümündeki kart hiyerarşisi önizlemede aynen kullanılır."><SkillsEditor skills={draft.skills} onChange={(skills) => updateFiles("skills", skills)} /></SectionShell>}

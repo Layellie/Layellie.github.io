@@ -301,6 +301,9 @@ function siteTextDiff(before, after) {
   if (JSON.stringify(before?.shared?.identity) !== JSON.stringify(after?.shared?.identity)) {
     changed.push("shared.identity");
   }
+  if ((before?.shared?.availabilityTone || "available") !== (after?.shared?.availabilityTone || "available")) {
+    changed.push("shared.availabilityTone");
+  }
   if (JSON.stringify(normalizedDiscordPresence(before)) !== JSON.stringify(normalizedDiscordPresence(after))) {
     changed.push("shared.discordPresence");
   }

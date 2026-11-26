@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
     root: "admin",
     cacheDir: "../node_modules/.vite-admin",
     plugins: [
-      tailwindSourceScope(["./admin", "./components/project-visuals", "../admin"]),
+      tailwindSourceScope(["./admin", "./content/availability.js", "./components/project-visuals", "../admin"]),
       react(),
       tailwindcss(),
       adminSecurityHeaders(),

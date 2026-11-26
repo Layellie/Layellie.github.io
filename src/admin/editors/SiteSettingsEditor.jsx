@@ -1,18 +1,42 @@
 import { useState } from "react";
-import { Globe, Mail, MapPin, UserRound } from "lucide-react";
-import { LocaleTabs, TextArea, TextField } from "../components/AdminUi.jsx";
+import { Briefcase, Globe, Mail, MapPin, UserRound } from "lucide-react";
+import { AVAILABILITY_META, AVAILABILITY_TONES, resolveAvailabilityMeta, resolveAvailabilityTone } from "../../content/availability.js";
+import { Button, LocaleTabs, TextArea, TextField } from "../components/AdminUi.jsx";
 
 const AVAILABILITY_PRESETS = {
-  tr: ["Yeni projelere açığım", "Tam zamanlı fırsatlara açığım", "Aktif projelerde çalışıyorum"],
-  en: ["Open to new projects", "Open to full-time roles", "Currently working on active projects"],
+  tr: [
+    { text: "Yeni projelere açığım", tone: "available" },
+    { text: "Tam zamanlı fırsatlara açığım", tone: "available" },
+    { text: "Tam zamanlı çalışıyorum", tone: "working" },
+    { text: "Aktif görevde çalışıyorum", tone: "working" },
+    { text: "Sınırlı freelance projelere açığım", tone: "limited" },
+  ],
+  en: [
+    { text: "Open to new projects", tone: "available" },
+    { text: "Open to full-time roles", tone: "available" },
+    { text: "Working full-time", tone: "working" },
+    { text: "Currently employed full-time", tone: "working" },
+    { text: "Limited availability for freelance", tone: "limited" },
+  ],
 };
 
 export default function SiteSettingsEditor({ site, onChange }) {
   const [lang, setLang] = useState("tr");
+  const [quickCompany, setQuickCompany] = useState("");
+  const [quickRole, setQuickRole] = useState("");
+
   const identity = site.shared.identity;
+  const availabilityTone = resolveAvailabilityTone(site.shared.availabilityTone);
+  const availabilityMeta = resolveAvailabilityMeta(availabilityTone);
   const locale = site[lang];
   const hero = locale.hero;
   const contact = locale.contact;
+
+  const updateShared = (patch) =>
+    onChange({
+      ...site,
+      shared: { ...site.shared, ...patch },
+    });
 
   const updateIdentity = (patch) =>
     onChange({
@@ -38,6 +62,32 @@ export default function SiteSettingsEditor({ site, onChange }) {
     updateContact({ big: nextBig });
   };
 
+  const applyPreset = (preset) => {
+    onChange({
+      ...site,
+      shared: { ...site.shared, availabilityTone: preset.tone },
+      [lang]: { ...locale, hero: { ...hero, available: preset.text } },
+    });
+  };
+
+  const applyCompanyStatus = () => {
+    const company = quickCompany.trim();
+    const role = quickRole.trim();
+    if (!company) return;
+    const trText = role
+      ? `${company} · ${role}`
+      : `${company} bünyesinde çalışıyorum`;
+    const enText = role
+      ? `${role} at ${company}`
+      : `Working at ${company}`;
+    onChange({
+      ...site,
+      shared: { ...site.shared, availabilityTone: "working" },
+      tr: { ...site.tr, hero: { ...site.tr.hero, available: trText } },
+      en: { ...site.en, hero: { ...site.en.hero, available: enText } },
+    });
+  };
+
   const requiredError = (value) => (typeof value === "string" && !value.trim() ? "Bu alan boş bırakılamaz." : undefined);
 
   return (
@@ -47,39 +97,125 @@ export default function SiteSettingsEditor({ site, onChange }) {
         <span className="font-mono text-xs text-faint">site · {lang} · hero &amp; iletişim</span>
       </div>
 
-      {/* Hero metinleri */}
-      <section className="space-y-4">
-        <div>
-          <h3 className="font-display text-xl">Hero üst bölümü ({lang.toUpperCase()})</h3>
-          <p className="mt-1 text-xs text-muted">
-            Site açılışındaki müsaitlik rozeti, konum, unvan, alt açıklama ve ana aksiyon butonları.
-          </p>
+      {/* Çalışma & Müsaitlik Durumu */}
+      <section className="space-y-4 rounded-2xl border border-line bg-canvas/35 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-display text-xl">Çalışma &amp; Müsaitlik Durumu</h3>
+            <p className="mt-1 text-xs text-muted">
+              Hero üstündeki durum noktasının rengini, görünürlüğünü ve yazısını buradan yönet. İşe girdiğinde tek tıkla “Çalışıyor” moduna alabilir veya tamamen gizleyebilirsin.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3 py-1 font-mono text-[10px] text-muted">
+            <span className={`h-2 w-2 rounded-full ${availabilityMeta.dotClass}`} />
+            {availabilityMeta.shortLabel}
+          </span>
         </div>
 
+        {/* Durum modu seçici (TR & EN ortak) */}
+        <div className="space-y-2">
+          <div className="text-xs font-medium text-muted">Durum rozeti modu (TR &amp; EN ortak)</div>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Durum rozeti modu">
+            {AVAILABILITY_TONES.map((tone) => {
+              const meta = AVAILABILITY_META[tone];
+              const active = availabilityTone === tone;
+              return (
+                <button
+                  key={tone}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => updateShared({ availabilityTone: tone })}
+                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition ${
+                    active
+                      ? "border-accent/50 bg-accent/12 text-ink"
+                      : "border-line bg-canvas/60 text-muted hover:border-accent/25 hover:text-ink"
+                  }`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${meta.dotClass}`} />
+                  {meta.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-faint">{availabilityMeta.description}</p>
+        </div>
+
+        {/* İşe giriş hızlı doldurucu */}
+        <div className="rounded-xl border border-line bg-surface/50 p-3.5">
+          <div className="flex items-center gap-2 text-xs font-medium text-ink">
+            <Briefcase className="h-3.5 w-3.5 text-sky-400" />
+            İşe giriş hızlı ayarla (TR &amp; EN birlikte doldurur)
+          </div>
+          <div className="mt-2.5 grid gap-2.5 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <TextField
+              label="Şirket adı"
+              placeholder="Örn. ABC Yazılım"
+              value={quickCompany}
+              onChange={(event) => setQuickCompany(event.target.value)}
+              maxLength={80}
+            />
+            <TextField
+              label="Pozisyon (opsiyonel)"
+              placeholder="Örn. Full-Stack Developer"
+              value={quickRole}
+              onChange={(event) => setQuickRole(event.target.value)}
+              maxLength={80}
+            />
+            <Button
+              type="button"
+              variant="primary"
+              disabled={!quickCompany.trim()}
+              onClick={applyCompanyStatus}
+            >
+              Uygula
+            </Button>
+          </div>
+        </div>
+
+        {/* Serbest metin + hazır şablonlar */}
         <div className="space-y-2">
           <TextField
-            label="Müsaitlik durumu"
+            label={`Müsaitlik durumu yazısı (${lang.toUpperCase()})`}
             value={hero.available}
             onChange={(event) => updateHero({ available: event.target.value })}
             maxLength={160}
             error={requiredError(hero.available)}
           />
+          {availabilityTone === "hidden" && (
+            <p className="text-[11px] text-amber-200/90">
+              Mod “Gizle” seçili olduğu için bu yazı sitede gösterilmez; tekrar görünür yapmak için yukarıdan bir renk modu seçebilirsin.
+            </p>
+          )}
           <div className="flex flex-wrap gap-1.5">
-            {AVAILABILITY_PRESETS[lang].map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => updateHero({ available: preset })}
-                className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
-                  hero.available === preset
-                    ? "border-accent/40 bg-accent/10 text-accent"
-                    : "border-line bg-canvas/50 text-faint hover:border-accent/25 hover:text-ink"
-                }`}
-              >
-                {preset}
-              </button>
-            ))}
+            {AVAILABILITY_PRESETS[lang].map((preset) => {
+              const meta = AVAILABILITY_META[preset.tone];
+              return (
+                <button
+                  key={preset.text}
+                  type="button"
+                  onClick={() => applyPreset(preset)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition ${
+                    hero.available === preset.text && availabilityTone === preset.tone
+                      ? "border-accent/40 bg-accent/10 text-accent"
+                      : "border-line bg-canvas/50 text-faint hover:border-accent/25 hover:text-ink"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${meta.dotClass}`} />
+                  {preset.text}
+                </button>
+              );
+            })}
           </div>
+        </div>
+      </section>
+
+      {/* Hero metinleri */}
+      <section className="space-y-4">
+        <div>
+          <h3 className="font-display text-xl">Hero üst bölümü ({lang.toUpperCase()})</h3>
+          <p className="mt-1 text-xs text-muted">
+            Site açılışındaki konum, unvan, alt açıklama ve ana aksiyon butonları.
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -222,9 +358,18 @@ export default function SiteSettingsEditor({ site, onChange }) {
           Canlı önizleme · {lang.toUpperCase()}
         </div>
         <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted">
-          <span className="h-2 w-2 rounded-full bg-accent" />
-          <span>{hero.available}</span>
-          <span className="text-faint">/</span>
+          {availabilityMeta.visible && (
+            <>
+              <span className="relative flex h-2.5 w-2.5">
+                {availabilityMeta.ping && (
+                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${availabilityMeta.pingClass}`} />
+                )}
+                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${availabilityMeta.dotClass}`} />
+              </span>
+              <span>{hero.available}</span>
+              <span className="text-faint">/</span>
+            </>
+          )}
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5 text-accent" />
             {hero.location}

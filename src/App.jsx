@@ -34,7 +34,8 @@ import {
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // Public site: içerik build sırasında doğrulanıp hazır JSON olarak gömülür (bkz. build/precomputed-content.js),
 // bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
-import { CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
+import { AVAILABILITY_TONE, CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
+import { resolveAvailabilityMeta } from "./content/availability.js";
 import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
 import { resolveFaqContent } from "./content/faq.js";
 import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
@@ -1239,6 +1240,7 @@ function Hero() {
   }, []);
 
   const showDiscordCard = Boolean(DISCORD_PRESENCE?.enabled) && isValidDiscordUserId(DISCORD_PRESENCE?.userId);
+  const availabilityMeta = resolveAvailabilityMeta(AVAILABILITY_TONE);
 
   return (
     <section
@@ -1251,12 +1253,18 @@ function Hero() {
           className="hero-rise mb-5 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm lg:mb-8 lg:gap-3"
           style={{ "--hero-dur": "0.7s" }}
         >
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
-          </span>
-          <span className="text-muted">{t.hero.available}</span>
-          <span className="text-faint">/</span>
+          {availabilityMeta.visible && (
+            <>
+              <span className="relative flex h-2.5 w-2.5">
+                {availabilityMeta.ping && (
+                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${availabilityMeta.pingClass}`} />
+                )}
+                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${availabilityMeta.dotClass}`} />
+              </span>
+              <span className="text-muted">{t.hero.available}</span>
+              <span className="text-faint">/</span>
+            </>
+          )}
           <span className="inline-flex items-center gap-1 text-muted">
             <MapPin className="h-3.5 w-3.5" /> {t.hero.location}
           </span>

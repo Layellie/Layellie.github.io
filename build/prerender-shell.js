@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { resolveAvailabilityMeta } from "../src/content/availability.js";
 import { resolveFaqContent } from "../src/content/faq.js";
 
 const CONTENT_KEYS = ["site", "projects", "certificates", "skills", "visuals"];
@@ -76,11 +77,15 @@ function renderDiscordCardShell({ identity, hero, discordPresence }) {
  * Tarayıcı JS'i indirmeden ilk boyamada (FCP + LCP) başlığı, alt metinleri
  * ve Hero profil kartını çizer; React yüklendiğinde #root'u devralır.
  */
-export function renderInitialShellHtml({ identity, tr, discordPresence = null }) {
+export function renderInitialShellHtml({ identity, tr, discordPresence = null, availabilityTone = "available" }) {
   const hero = tr.hero;
   const nav = tr.nav;
   const showDiscordCard =
     Boolean(discordPresence?.enabled) && isValidDiscordUserId(discordPresence?.userId);
+  const availabilityMeta = resolveAvailabilityMeta(availabilityTone);
+  const availabilityHtml = availabilityMeta.visible
+    ? `<span class="relative flex h-2.5 w-2.5">${availabilityMeta.ping ? `<span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${availabilityMeta.pingClass}"></span>` : ""}<span class="relative inline-flex h-2.5 w-2.5 rounded-full ${availabilityMeta.dotClass}"></span></span><span class="text-muted">${escapeHtml(hero.available)}</span><span class="text-faint">/</span>`
+    : "";
 
   return [
     '<div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0" style="background:radial-gradient(70% 55% at 50% -10%, rgba(214,255,63,0.07), transparent 70%)"></div>',
@@ -108,9 +113,7 @@ export function renderInitialShellHtml({ identity, tr, discordPresence = null })
     '<section id="anasayfa" class="mx-auto w-full max-w-[1380px] px-6 md:px-10 relative flex flex-col justify-center pb-14 pt-24 lg:min-h-screen lg:pb-16 lg:pt-28">',
     "<div>",
     '<div class="hero-rise mb-5 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm lg:mb-8 lg:gap-3" style="--hero-dur:0.7s">',
-    '<span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span><span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent"></span></span>',
-    `<span class="text-muted">${escapeHtml(hero.available)}</span>`,
-    '<span class="text-faint">/</span>',
+    availabilityHtml,
     `<span class="inline-flex items-center gap-1 text-muted"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg> ${escapeHtml(hero.location)}</span>`,
     "</div>",
     `<div class="${showDiscordCard ? "relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between lg:gap-10" : "relative"}">`,
@@ -364,6 +367,7 @@ export function inlineAndPrerenderShellPlugin() {
         identity: view.identity,
         tr: view.content.tr,
         discordPresence: view.discordPresence,
+        availabilityTone: view.availabilityTone,
       });
 
       let html = String(htmlAsset.source);

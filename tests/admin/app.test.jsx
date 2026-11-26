@@ -257,4 +257,19 @@ describe("AdminApp", () => {
     fireEvent.click(screen.getByRole("button", { name: /Soru ekle/i }));
     expect(screen.getByDisplayValue("Yeni soru?")).toBeTruthy();
   });
+
+  it("supports switching availability tone, quick company status fill, and editing Timeline from its dedicated tab", () => {
+    render(<AdminApp initialSession={session} initialContent={content} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Hero & İletişim" }));
+    fireEvent.change(screen.getByLabelText("Şirket adı"), { target: { value: "Acme Yazılım" } });
+    fireEvent.change(screen.getByLabelText("Pozisyon (opsiyonel)"), { target: { value: "Full-Stack Developer" } });
+    fireEvent.click(screen.getByRole("button", { name: "Uygula" }));
+    expect(screen.getByDisplayValue("Acme Yazılım · Full-Stack Developer")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Çalışıyor \(Mavi\)/i }).getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Zaman Çizelgesi" }));
+    fireEvent.click(screen.getByRole("button", { name: /İş deneyimi ekle/i }));
+    expect(screen.getByDisplayValue("Şirket Adı · Full-Stack Developer")).toBeTruthy();
+  });
 });

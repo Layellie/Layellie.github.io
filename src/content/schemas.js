@@ -1,7 +1,11 @@
 import { z } from "zod";
+import { AVAILABILITY_TONES } from "./availability.js";
 import { SAFE_ICON_IDS } from "./iconIds.js";
 import { validateVisualModulePayload, visualModuleIssuePath } from "./visualModuleSchemas.js";
 import { parseGithubRepositoryUrl } from "./githubUrls.js";
+
+export { AVAILABILITY_TONES };
+export const availabilityToneSchema = z.enum(AVAILABILITY_TONES);
 
 export const ICON_IDS = SAFE_ICON_IDS;
 
@@ -456,6 +460,7 @@ export const siteFileSchema = z.object({
   shared: z.object({
     identity: identitySchema,
     discordPresence: discordPresenceSchema.optional().default({ ...DEFAULT_DISCORD_PRESENCE }),
+    availabilityTone: availabilityToneSchema.optional(),
   }),
   tr: siteLocaleSchema,
   en: siteLocaleSchema,
