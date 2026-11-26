@@ -96,14 +96,14 @@ const NAVIGATION_GROUPS = [
     label: "Site içeriği",
     items: [
       { id: "site", label: "Hero & İletişim", icon: SlidersHorizontal },
-      { id: "faq", label: "SSS (FAQ)", icon: HelpCircle },
       { id: "discord", label: "Discord Kartı", icon: Radio },
       { id: "about", label: "Hakkımda", icon: UserRound },
       { id: "timeline", label: "Zaman Çizelgesi", icon: History },
-      { id: "projects", label: "Projeler", icon: ClipboardList },
-      { id: "certificates", label: "Sertifikalar", icon: Award },
       { id: "skills", label: "Yetenekler", icon: Boxes },
+      { id: "projects", label: "Projeler", icon: ClipboardList },
       { id: "visuals", label: "Görsel oluşturucu", icon: Sparkles },
+      { id: "certificates", label: "Sertifikalar", icon: Award },
+      { id: "faq", label: "SSS (FAQ)", icon: HelpCircle },
     ],
   },
   {

@@ -1,5 +1,5 @@
 import { parsePortfolioFiles } from "./schemas.js";
-import { resolveAvailabilityTone } from "./availability.js";
+import { normalizeAvailabilityColor, resolveAvailabilityTone } from "./availability.js";
 
 function displayDate(isoDate) {
   const [year, month, day] = isoDate.split("-");
@@ -60,10 +60,16 @@ export function buildContentView(files, { includeVisual = true } = {}) {
     content[lang] = language;
   }
 
+  const availabilityTone = resolveAvailabilityTone(parsed.site.shared.availabilityTone);
   return {
     identity: parsed.site.shared.identity,
     discordPresence: parsed.site.shared.discordPresence,
-    availabilityTone: resolveAvailabilityTone(parsed.site.shared.availabilityTone),
+    availabilityTone,
+    availability: {
+      tone: availabilityTone,
+      color: normalizeAvailabilityColor(parsed.site.shared.availabilityColor),
+      pulse: Boolean(parsed.site.shared.availabilityPulse),
+    },
     content,
   };
 }

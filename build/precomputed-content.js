@@ -47,6 +47,7 @@ export function precomputedContentPlugin() {
         `export const IDENTITY = ${JSON.stringify(view.identity)};`,
         `export const DISCORD_PRESENCE = ${JSON.stringify(view.discordPresence)};`,
         `export const AVAILABILITY_TONE = ${JSON.stringify(view.availabilityTone)};`,
+        `export const AVAILABILITY = ${JSON.stringify(view.availability)};`,
         `export const CONTENT = ${JSON.stringify(view.content)};`,
         `export const SKILL_RELATIONS = ${JSON.stringify(skillRelations)};`,
         `export const portfolioFiles = ${JSON.stringify({ visuals: parsed.visuals })};`,

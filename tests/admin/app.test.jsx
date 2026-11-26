@@ -258,10 +258,17 @@ describe("AdminApp", () => {
     expect(screen.getByDisplayValue("Yeni soru?")).toBeTruthy();
   });
 
-  it("supports switching availability tone, quick company status fill, and editing Timeline from its dedicated tab", () => {
+  it("supports switching availability tone, custom color picker, part-time preset, quick company status fill, and editing Timeline from its dedicated tab", () => {
     render(<AdminApp initialSession={session} initialContent={content} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Hero & İletişim" }));
+    fireEvent.click(screen.getByRole("button", { name: /Part-time çalışıyorum/i }));
+    expect(screen.getByDisplayValue("Part-time çalışıyorum")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Özel renk/i }));
+    fireEvent.change(screen.getByLabelText("Özel durum HEX kodu"), { target: { value: "#f43f5e" } });
+    expect(screen.getByText(/Özel \(#f43f5e\)/i)).toBeTruthy();
+
     fireEvent.change(screen.getByLabelText("Şirket adı"), { target: { value: "Acme Yazılım" } });
     fireEvent.change(screen.getByLabelText("Pozisyon (opsiyonel)"), { target: { value: "Full-Stack Developer" } });
     fireEvent.click(screen.getByRole("button", { name: "Uygula" }));

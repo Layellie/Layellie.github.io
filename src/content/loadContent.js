@@ -23,5 +23,6 @@ const hydrated = buildContentView(portfolioFiles);
 export const IDENTITY = hydrated.identity;
 export const DISCORD_PRESENCE = hydrated.discordPresence;
 export const AVAILABILITY_TONE = hydrated.availabilityTone;
+export const AVAILABILITY = hydrated.availability;
 export const CONTENT = hydrated.content;
 export const SKILL_RELATIONS = buildSkillRelationIndex(portfolioFiles);

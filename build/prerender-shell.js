@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { resolveAvailabilityMeta } from "../src/content/availability.js";
+import { resolveAvailabilityConfig } from "../src/content/availability.js";
 import { resolveFaqContent } from "../src/content/faq.js";
 
 const CONTENT_KEYS = ["site", "projects", "certificates", "skills", "visuals"];
@@ -77,14 +77,18 @@ function renderDiscordCardShell({ identity, hero, discordPresence }) {
  * Tarayıcı JS'i indirmeden ilk boyamada (FCP + LCP) başlığı, alt metinleri
  * ve Hero profil kartını çizer; React yüklendiğinde #root'u devralır.
  */
-export function renderInitialShellHtml({ identity, tr, discordPresence = null, availabilityTone = "available" }) {
+export function renderInitialShellHtml({ identity, tr, discordPresence = null, availability = null, availabilityTone = "available" }) {
   const hero = tr.hero;
   const nav = tr.nav;
   const showDiscordCard =
     Boolean(discordPresence?.enabled) && isValidDiscordUserId(discordPresence?.userId);
-  const availabilityMeta = resolveAvailabilityMeta(availabilityTone);
-  const availabilityHtml = availabilityMeta.visible
-    ? `<span class="relative flex h-2.5 w-2.5">${availabilityMeta.ping ? `<span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${availabilityMeta.pingClass}"></span>` : ""}<span class="relative inline-flex h-2.5 w-2.5 rounded-full ${availabilityMeta.dotClass}"></span></span><span class="text-muted">${escapeHtml(hero.available)}</span><span class="text-faint">/</span>`
+  const av = resolveAvailabilityConfig(availability || { tone: availabilityTone });
+  const pingStyleAttr = av.pingStyle ? ` style="background-color:${escapeHtml(av.color)}"` : "";
+  const dotStyleAttr = av.dotStyle
+    ? ` style="background-color:${escapeHtml(av.color)};box-shadow:0 0 8px ${escapeHtml(av.color)}99"`
+    : "";
+  const availabilityHtml = av.visible
+    ? `<span class="relative flex h-2.5 w-2.5">${av.pulse ? `<span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${av.pingClass}"${pingStyleAttr}></span>` : ""}<span class="relative inline-flex h-2.5 w-2.5 rounded-full ${av.dotClass}"${dotStyleAttr}></span></span><span class="text-muted">${escapeHtml(hero.available)}</span><span class="text-faint">/</span>`
     : "";
 
   return [
@@ -367,7 +371,7 @@ export function inlineAndPrerenderShellPlugin() {
         identity: view.identity,
         tr: view.content.tr,
         discordPresence: view.discordPresence,
-        availabilityTone: view.availabilityTone,
+        availability: view.availability,
       });
 
       let html = String(htmlAsset.source);

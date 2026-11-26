@@ -301,7 +301,11 @@ function siteTextDiff(before, after) {
   if (JSON.stringify(before?.shared?.identity) !== JSON.stringify(after?.shared?.identity)) {
     changed.push("shared.identity");
   }
-  if ((before?.shared?.availabilityTone || "available") !== (after?.shared?.availabilityTone || "available")) {
+  if (
+    (before?.shared?.availabilityTone || "available") !== (after?.shared?.availabilityTone || "available") ||
+    (before?.shared?.availabilityColor || "") !== (after?.shared?.availabilityColor || "") ||
+    Boolean(before?.shared?.availabilityPulse) !== Boolean(after?.shared?.availabilityPulse)
+  ) {
     changed.push("shared.availabilityTone");
   }
   if (JSON.stringify(normalizedDiscordPresence(before)) !== JSON.stringify(normalizedDiscordPresence(after))) {

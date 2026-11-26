@@ -34,8 +34,8 @@ import {
 import { SafeIcon } from "./components/project-visuals/iconRegistry.jsx";
 // Public site: içerik build sırasında doğrulanıp hazır JSON olarak gömülür (bkz. build/precomputed-content.js),
 // bu yüzden Zod ve çalışma zamanı şema ayrıştırması ilk JS paketine girmez.
-import { AVAILABILITY_TONE, CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
-import { resolveAvailabilityMeta } from "./content/availability.js";
+import { AVAILABILITY, CONTENT, DISCORD_PRESENCE, IDENTITY, SKILL_RELATIONS, portfolioFiles, selectSkillsTicker } from "./content/publicContent.js";
+import { resolveAvailabilityConfig } from "./content/availability.js";
 import { filterCertificates, summarizeCertificateCategories } from "./content/certificateCategories.js";
 import { resolveFaqContent } from "./content/faq.js";
 import { fetchDiscordPresence, isValidDiscordUserId, parseLanyardPresence } from "./presence/discordPresence.js";
@@ -1240,7 +1240,7 @@ function Hero() {
   }, []);
 
   const showDiscordCard = Boolean(DISCORD_PRESENCE?.enabled) && isValidDiscordUserId(DISCORD_PRESENCE?.userId);
-  const availabilityMeta = resolveAvailabilityMeta(AVAILABILITY_TONE);
+  const availability = resolveAvailabilityConfig(AVAILABILITY);
 
   return (
     <section
@@ -1253,13 +1253,19 @@ function Hero() {
           className="hero-rise mb-5 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm lg:mb-8 lg:gap-3"
           style={{ "--hero-dur": "0.7s" }}
         >
-          {availabilityMeta.visible && (
+          {availability.visible && (
             <>
               <span className="relative flex h-2.5 w-2.5">
-                {availabilityMeta.ping && (
-                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${availabilityMeta.pingClass}`} />
+                {availability.pulse && (
+                  <span
+                    className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${availability.pingClass}`}
+                    style={availability.pingStyle}
+                  />
                 )}
-                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${availabilityMeta.dotClass}`} />
+                <span
+                  className={`relative inline-flex h-2.5 w-2.5 rounded-full ${availability.dotClass}`}
+                  style={availability.dotStyle}
+                />
               </span>
               <span className="text-muted">{t.hero.available}</span>
               <span className="text-faint">/</span>
