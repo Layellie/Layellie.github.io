@@ -45,10 +45,9 @@
 @font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "Clash Display"; src: url("/fonts/clashdisplay-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
-/* Anton (SIL OFL) — marka yazısı ve kayan şerit için self-hosted woff2 */
+/* Anton (SIL OFL) — marka yazısı ve kayan şerit için Türkçe + ASCII subset self-hosted woff2 */
 @font-face { font-family: "Anton Fallback"; src: local("Impact"), local("Arial Narrow"), local("Segoe UI"), local("Roboto"), local("Arial"); size-adjust: 88%; ascent-override: 108%; descent-override: 28%; line-gap-override: 0%; }
-@font-face { font-family: "Anton"; src: url("/fonts/anton-latin-ext.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0100-024F; }
-@font-face { font-family: "Anton"; src: url("/fonts/anton-latin.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+2000-206F; }
+@font-face { font-family: "Anton"; src: url("/fonts/anton.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 
 /* ------------------------------------------------------------------ */
 /*  Tasarım token'ları — Tailwind v4 @theme                            */

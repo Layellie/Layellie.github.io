@@ -33,7 +33,7 @@ if (window.__PRERENDERED_SHELL__ && !window.location.hash) {
   };
   const lcpImg = rootEl.querySelector('img[fetchpriority="high"]');
   if (lcpImg && !lcpImg.complete) {
-    const cap = window.setTimeout(startMount, 200);
+    const cap = window.setTimeout(startMount, 350);
     const done = () => {
       window.clearTimeout(cap);
       startMount();

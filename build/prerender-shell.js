@@ -65,7 +65,7 @@ function renderDiscordCardShell({ identity, hero, discordPresence }) {
     "</div>",
     `<div class="mt-0.5 flex items-center justify-between gap-2 font-mono text-[11px] text-faint">@${escapeHtml(String(identity.handle || "").toLowerCase())}</div>`,
     `<p class="mt-1.5 truncate text-xs text-muted">${escapeHtml(hero.role)}</p>`,
-    '<div class="mt-3 overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2.5"><div class="profile-marquee-mask flex items-center overflow-hidden"><div class="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">',
+    '<div class="mt-3 flex min-h-[54px] flex-col justify-center overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2"><div class="profile-marquee-mask flex items-center overflow-hidden"><div class="animate-profile-marquee whitespace-nowrap font-mono text-xs font-medium tracking-[0.14em] text-ink">',
     `<span>${IDLE_MARQUEE_TEXT}</span><span aria-hidden="true">${IDLE_MARQUEE_TEXT}</span>`,
     "</div></div></div>",
     "</div></aside>",

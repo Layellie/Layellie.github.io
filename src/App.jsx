@@ -565,6 +565,11 @@ function BackToTop() {
     const update = () => {
       frame = 0;
       const y = window.scrollY;
+      if (y <= 0) {
+        progressRef.current = 0;
+        setVisible(false);
+        return;
+      }
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
       progressRef.current = progress;
@@ -1175,7 +1180,7 @@ export function DiscordProfileCard({ config = DISCORD_PRESENCE }) {
           {t.hero.role}
         </p>
 
-        <div className="mt-3 overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2.5">
+        <div className="mt-3 flex min-h-[54px] flex-col justify-center overflow-hidden rounded-xl border border-[#1f1f24] bg-[#0a0a0d] px-3 py-2">
           {hasActivity && (
             <div className="mb-1 font-mono text-[10px] leading-none tracking-[0.14em] text-accent">
               {activityHeading}
@@ -1229,9 +1234,9 @@ function Hero() {
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
-    update();
+    if (window.scrollY > 0) schedule();
     window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
+    window.addEventListener("resize", schedule, { passive: true });
     return () => {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
@@ -3010,11 +3015,12 @@ function Terminal() {
     setActiveGame(null);
   }, [bootLines]);
 
-  // her yeni çıktıda en alta kaydır
+  // her yeni kullanıcı çıktısında en alta kaydır (ilk mount'ta forced reflow yaratma)
   useEffect(() => {
+    if (lines === bootLines) return;
     const el = bodyRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [lines]);
+  }, [lines, bootLines]);
 
   const out = (text, tone = "out") => ({ text, tone });
 
@@ -3443,10 +3449,10 @@ export default function App() {
 
   useEffect(() => {
     if (mountStage >= 6) return undefined;
-    const timer = window.setTimeout(() => {
+    const cancel = whenIdle(() => {
       startTransition(() => setMountStage((s) => Math.min(6, s + 1)));
-    }, 40);
-    return () => window.clearTimeout(timer);
+    }, mountStage === 0 ? 120 : 220);
+    return cancel;
   }, [mountStage]);
 
   // Analitik kaydı, ilk boyamadan sonra boş zamanda başlar (otomasyon botları atlanır).
