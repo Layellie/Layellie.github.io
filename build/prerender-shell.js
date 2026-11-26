@@ -204,7 +204,13 @@ export function renderLlmsTxt({ identity, tr, en }) {
  * Güncel portfolyo içeriğinden Schema.org `@graph` JSON-LD üretir
  * (ProfilePage + Person + Credentials + WebSite + yayınlı açık kaynak projeler).
  */
-export function renderStructuredData({ identity, tr, en }, today = new Date().toISOString().slice(0, 10)) {
+export function renderStructuredData(
+  { identity, tr, en },
+  modifiedAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+) {
+  const isoModified = /^\d{4}-\d{2}-\d{2}$/.test(String(modifiedAt))
+    ? `${modifiedAt}T00:00:00Z`
+    : String(modifiedAt);
   const siteUrl = "https://layellie.dev/";
   const personId = `${siteUrl}#person`;
   const websiteId = `${siteUrl}#website`;
@@ -232,7 +238,7 @@ export function renderStructuredData({ identity, tr, en }, today = new Date().to
       "@id": `${siteUrl}#profilepage`,
       url: siteUrl,
       name: `${identity.name} — ${tr.hero.role}`,
-      dateModified: today,
+      dateModified: isoModified,
       mainEntity: { "@id": personId },
       isPartOf: { "@id": websiteId },
     },
