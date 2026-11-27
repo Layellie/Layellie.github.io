@@ -216,21 +216,21 @@ body {
 }
 
 .hero-rise {
-  animation: hero-rise var(--hero-dur, 0.55s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hero-rise var(--hero-dur, 0.75s) cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(var(--hero-delay, 0s) + var(--hero-offset, 0s));
 }
 
 .hero-char {
-  animation: hero-char 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(0.02s + var(--i, 0) * 0.025s + var(--hero-offset, 0s));
+  animation: hero-char 0.95s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.06s + var(--i, 0) * 0.045s + var(--hero-offset, 0s));
 }
 
 .hero-glow {
-  animation: hero-glow 0.65s cubic-bezier(0.16, 1, 0.3, 1) calc(0.04s + var(--hero-offset, 0s)) both;
+  animation: hero-glow 0.95s cubic-bezier(0.16, 1, 0.3, 1) calc(0.06s + var(--hero-offset, 0s)) both;
 }
 
 .hero-dot {
-  animation: hero-dot 2.6s ease-in-out calc(0.9s + var(--hero-offset, 0s)) infinite;
+  animation: hero-dot 2.6s ease-in-out calc(1.55s + var(--hero-offset, 0s)) infinite;
 }
 
 /* Bölüm ve kart giriş animasyonları (IntersectionObserver ile tetiklenir, framer-motion gerektirmez) */
